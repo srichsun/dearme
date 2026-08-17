@@ -8,6 +8,17 @@ from app.services import agent
 
 router = APIRouter(tags=["coach"])
 
+# Without these a streamed body can be held somewhere between here and the
+# screen and arrive all at once: a proxy caching it, or a browser waiting to
+# sniff the content type before it will show anything. They cost nothing when
+# the path is already clean.
+STREAM_HEADERS = {
+    "Cache-Control": "no-cache, no-transform",
+    "X-Content-Type-Options": "nosniff",
+    "X-Accel-Buffering": "no",
+}
+
+
 
 @router.post("/agent/stream")
 def talk_stream(req: TalkRequest, uid: CurrentUid):
@@ -19,5 +30,6 @@ def talk_stream(req: TalkRequest, uid: CurrentUid):
     """
     return StreamingResponse(
         agent.stream_and_save(req.question, user_id=uid),
-        media_type="text/plain",
+        media_type="text/plain; charset=utf-8",
+        headers=STREAM_HEADERS,
     )
