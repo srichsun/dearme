@@ -72,7 +72,9 @@ _CONDENSE_PROMPT = (
     "Journal entries (newest first):\n{recent}\n\n"
 )
 
-_condenser = chat_model.build_chat_model().with_structured_output(Reading)
+_condenser = chat_model.build_chat_model(
+    timeout=chat_model.WRITE_TIMEOUT
+).with_structured_output(Reading)
 
 
 def get_profile(user_id: str) -> dict:

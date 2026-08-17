@@ -47,3 +47,21 @@ def test_the_app_refuses_to_boot_when_something_is_missing(monkeypatch):
     monkeypatch.setattr(config, "missing_required_settings", lambda: ["OPENAI_API_KEY"])
     with pytest.raises(RuntimeError, match="OPENAI_API_KEY"):
         main._check_settings()
+
+
+def test_the_writing_calls_get_a_longer_budget_than_a_reply(monkeypatch):
+    """A reply streams and should fail fast when it stalls; the reading and the
+    fact extraction are one-shot calls that run to a thousand words, and timing
+    them out at the reply's budget fails the button while the model is still
+    working."""
+    from app.services import chat_model
+
+    monkeypatch.setattr(config, "LLM_PROVIDER", "openai")
+    monkeypatch.setattr(config, "OPENAI_API_KEY", "test-key")
+
+    assert chat_model.WRITE_TIMEOUT > chat_model.REPLY_TIMEOUT
+    assert chat_model.build_chat_model().request_timeout == chat_model.REPLY_TIMEOUT
+    assert (
+        chat_model.build_chat_model(timeout=chat_model.WRITE_TIMEOUT).request_timeout
+        == chat_model.WRITE_TIMEOUT
+    )
