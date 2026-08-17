@@ -28,6 +28,12 @@ from app.services import chat_model, entries
 # so it gets half the page.
 SECTIONS = ("who_you_are", "what_helps", "what_costs", "suggestions")
 
+# How many days back a rebuild reads. Long enough to catch a slow pattern —
+# something that happens every other week is invisible in a fortnight — and
+# short enough that the prompt stays a fixed, affordable size. Anything older
+# survives through the previous reading rather than by being read again.
+READING_DAYS = 60
+
 
 _CONDENSE_PROMPT = (
     "You keep a rolling read of one person, built from the journal they write "
@@ -136,7 +142,7 @@ def _prompt_for(user_id: str) -> str:
     )
     recent_text = "\n\n".join(
         f"[{e.entry_date} · energy {e.energy if e.energy else '—'}/10]\n{e.content}"
-        for e in entries.recent_entries(user_id)
+        for e in entries.recent_entries(user_id, limit=READING_DAYS)
     )
     return _CONDENSE_PROMPT.format(
         existing=existing_text or "(empty)", recent=recent_text or "(none)"

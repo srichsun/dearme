@@ -188,3 +188,16 @@ def test_every_section_is_named_in_the_prompt():
     reaches the page."""
     for name in profile.SECTIONS:
         assert f"**{name}**" in profile._CONDENSE_PROMPT
+
+
+def test_the_reading_reaches_back_further_than_a_fortnight(write_days, monkeypatch):
+    """A pattern that shows up every other week is invisible in two weeks of
+    entries, so the window is wide enough to catch one."""
+    write_days(U, "old enough to matter", ending_days_ago=40)
+    seen = {}
+    _fake_model(monkeypatch, _written(), seen)
+
+    profile.refresh_profile(U)
+
+    assert profile.READING_DAYS >= 60
+    assert "old enough to matter" in seen["prompt"]
