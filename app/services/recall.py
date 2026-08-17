@@ -13,7 +13,7 @@ diluted by the work and relationship threads that shared the same turn.
 PGVector needs a real Postgres with the vector extension, so the store is built
 lazily on first use and mocked in tests (SQLite can't run it).
 """
-from functools import lru_cache
+from threading import Lock
 
 from langchain.tools import ToolRuntime
 from langchain_core.tools import tool
@@ -42,23 +42,39 @@ TOP_K = 8
 MAX_K = 24
 
 
-@lru_cache(maxsize=1)
+_store: PGVector | None = None
+# Building the store must happen once and alone. PGVector declares its SQLAlchemy
+# tables on first construction and only sets its "already built" flag afterwards,
+# so two threads arriving together both start declaring and the second one dies on
+# "Table 'langchain_pg_collection' is already defined". A turn can fire several
+# tool calls at once, and the agent runs them in parallel — so two threads
+# arriving together is the normal case here, not a rare one.
+_store_lock = Lock()
+
+
 def _facts_store() -> PGVector:
     """The pgvector fact store, built once on first use.
 
     Needs a live Postgres (with the vector extension) and an OpenAI key for
     embeddings, so we don't build it at import time.
     """
-    embeddings = OpenAIEmbeddings(
-        model=config.OPENAI_EMBEDDING_MODEL,
-        api_key=config.OPENAI_API_KEY,
-    )
-    return PGVector(
-        embeddings=embeddings,
-        collection_name=FACTS_COLLECTION,
-        connection=config.DATABASE_URL,
-        use_jsonb=True,
-    )
+    global _store
+    if _store is not None:
+        return _store
+    with _store_lock:
+        # Someone may have built it while we waited for the lock.
+        if _store is None:
+            embeddings = OpenAIEmbeddings(
+                model=config.OPENAI_EMBEDDING_MODEL,
+                api_key=config.OPENAI_API_KEY,
+            )
+            _store = PGVector(
+                embeddings=embeddings,
+                collection_name=FACTS_COLLECTION,
+                connection=config.DATABASE_URL,
+                use_jsonb=True,
+            )
+    return _store
 
 
 def index_fact(fact_id: int, text: str, user_id: str, category: str) -> None:

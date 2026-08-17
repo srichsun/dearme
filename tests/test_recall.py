@@ -4,6 +4,8 @@ PGVector needs a real Postgres with the vector extension, which we can't run
 here, so we mock the store. These tests check the glue: that we call the store
 the way we mean to, and format its results for the coach.
 """
+import time
+
 from app.models import CATEGORIES
 from app.services import recall
 
@@ -204,3 +206,43 @@ def test_a_fact_with_no_row_behind_it_still_comes_back(sqlite_db, monkeypatch):
     monkeypatch.setattr(recall, "_facts_store", lambda: store)
 
     assert recall.recall("anything", user_id="u9") == ["orphaned"]
+
+
+def test_the_store_is_built_once_even_when_threads_arrive_together(monkeypatch):
+    """A turn can fire several tool calls, and the agent runs them in parallel —
+    so two threads asking for the store at the same moment is the normal case.
+
+    PGVector declares its SQLAlchemy tables on first construction and only sets
+    its "already built" flag afterwards, so a second thread that starts building
+    while the first is mid-flight dies on a duplicate table. Building must happen
+    once and alone.
+    """
+    import threading
+
+    builds = []
+    start = threading.Barrier(4)
+
+    def slow_build(**kwargs):
+        builds.append(kwargs)
+        # Wide enough for every other thread to reach the check if it isn't held.
+        time.sleep(0.05)
+        return object()
+
+    monkeypatch.setattr(recall, "_store", None)
+    monkeypatch.setattr(recall, "PGVector", slow_build)
+    monkeypatch.setattr(recall, "OpenAIEmbeddings", lambda **kw: object())
+
+    seen = []
+
+    def ask():
+        start.wait()
+        seen.append(recall._facts_store())
+
+    threads = [threading.Thread(target=ask) for _ in range(4)]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join()
+
+    assert len(builds) == 1
+    assert len(set(map(id, seen))) == 1
