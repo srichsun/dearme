@@ -9,16 +9,25 @@
  */
 
 :root {
-  --bone: #faf7f2;
-  --linen: #fffdfa;
-  --edge: #ece6dc;
+  /* Three surfaces, not two. The ground is a warm sand a person can see;
+   * cards sit on it as paper; a well is the shallow inset inside a card, for
+   * the things you type into. Bone and linen used to be a shade apart, which
+   * read as one flat white sheet with faint lines drawn on it. */
+  --bone: #efe7db;   /* the ground the page sits on */
+  --linen: #fffdf9;  /* cards, lifted off it */
+  --well: #f7f2e9;   /* inputs and tracks, pressed into a card */
+  --edge: #e2d8c8;
   --ink: #2f2b26;
   --ink-soft: #6f6759;
   --ink-faint: #a49a89;
   --clay: #b08475;
   --sage: #7f9d80;
-  --shadow: 0 1px 2px rgba(58, 48, 36, 0.03),
-            0 8px 24px -12px rgba(58, 48, 36, 0.14);
+  --wash-top: #fffdf8;   /* the opening line's wash, lightest at the centre */
+  --wash-edge: #e6dccb;
+  --focus: #ded5c6;
+  --veil: rgba(250, 247, 242, 0.92);  /* the tab bar, floating over the page */
+  --shadow: 0 1px 2px rgba(58, 48, 36, 0.04),
+            0 10px 26px -14px rgba(58, 48, 36, 0.20);
   --radius: 20px;
   /* How much room the fixed tab bar takes. One number, so the page padding,
    * the sticky ask bar and the bar itself can never disagree. */
@@ -27,6 +36,55 @@
            ui-serif, serif;
   --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, system-ui,
           sans-serif;
+}
+
+/* After dark: the same clay-and-linen world under a lamp, not a different one.
+ *
+ * A warm charcoal rather than near-black, because this gets read in a room
+ * that is dim but rarely pitch dark. Two things are deliberately not simple
+ * inversions: the text is a warm off-white, since pure white on a dark ground
+ * glares after a paragraph or two; and clay and sage are lifted, because the
+ * same hues that read as muted on paper turn to mud down here.
+ *
+ * The system's setting decides unless the person has said otherwise — hence
+ * the :not([data-theme="light"]) guard, so an explicit choice wins over the OS
+ * in both directions. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bone: #201d19;
+    --linen: #2b2721;
+    --well: #262219;
+    --edge: #3d382f;
+    --ink: #efe8dc;
+    --ink-soft: #b8b09e;
+    --ink-faint: #857e6f;
+    --clay: #c8988b;
+    --sage: #93b294;
+    --wash-top: #2b2721;
+    --wash-edge: #191612;
+    --focus: #4c463c;
+    --veil: rgba(32, 29, 25, 0.92);
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.3),
+              0 12px 28px -14px rgba(0, 0, 0, 0.6);
+  }
+}
+
+:root[data-theme="dark"] {
+  --bone: #201d19;
+  --linen: #2b2721;
+  --well: #262219;
+  --edge: #3d382f;
+  --ink: #efe8dc;
+  --ink-soft: #b8b09e;
+  --ink-faint: #857e6f;
+  --clay: #c8988b;
+  --sage: #93b294;
+  --wash-top: #2b2721;
+  --wash-edge: #191612;
+  --focus: #4c463c;
+  --veil: rgba(32, 29, 25, 0.92);
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.3),
+            0 12px 28px -14px rgba(0, 0, 0, 0.6);
 }
 
 * { box-sizing: border-box; }
@@ -53,7 +111,7 @@ input, textarea { font-family: inherit; font-size: 16px; }
   place-items: center;
   padding: 2rem;
   background:
-    radial-gradient(120% 80% at 50% 30%, #fffdf8 0%, var(--bone) 55%, #f3ece1 100%);
+    radial-gradient(120% 80% at 50% 30%, var(--wash-top) 0%, var(--bone) 55%, var(--wash-edge) 100%);
   z-index: 50;
   opacity: 1;
   transition: opacity var(--fade) ease;
@@ -88,11 +146,12 @@ input, textarea { font-family: inherit; font-size: 16px; }
 .head {
   display: flex;
   align-items: baseline;
-  justify-content: space-between;
+  gap: 0.85rem;
   padding: 1.6rem 0.2rem 1.1rem;
 }
+/* The title takes the room; the two small controls sit together on the right. */
 .head h1 {
-  margin: 0;
+  margin: 0 auto 0 0;
   font-family: var(--serif);
   font-size: 1.45rem;
   font-weight: 400;
@@ -155,7 +214,7 @@ button.primary, button.ghost {
 button.primary {
   border: none;
   background: var(--ink);
-  color: var(--bone);
+  color: var(--linen);
 }
 button.ghost {
   border: 1px solid var(--edge);
@@ -183,7 +242,7 @@ button.wide { width: 100%; margin-top: 0.9rem; }
   display: flex;
   gap: 0.3rem;
   justify-content: center;
-  background: var(--bone);
+  background: var(--well);
   border-radius: 999px;
   padding: 0.22rem;
   width: fit-content;
@@ -233,13 +292,13 @@ textarea {
   margin-top: 0.9rem;
   border: 1px solid var(--edge);
   border-radius: 14px;
-  background: var(--bone);
+  background: var(--well);
   padding: 0.9rem 3.4rem 0.9rem 0.9rem;  /* room for the mic in the corner */
   color: var(--ink);
   line-height: 1.7;
   resize: vertical;
 }
-textarea:focus, input:focus { outline: 1.5px solid #ded5c6; outline-offset: 1px; }
+textarea:focus, input:focus { outline: 1.5px solid var(--focus); outline-offset: 1px; }
 textarea::placeholder, input::placeholder { color: var(--ink-faint); }
 
 .energy { margin-top: 1.1rem; }
@@ -384,7 +443,7 @@ button.day:active { transform: scale(0.995); }
   color: var(--ink-faint);
   white-space: nowrap;
 }
-.threaddays button.on { background: var(--ink); color: var(--bone); border-color: var(--ink); }
+.threaddays button.on { background: var(--ink); color: var(--linen); border-color: var(--ink); }
 
 .thread { display: flex; flex-direction: column; gap: 0.75rem; }
 
@@ -392,7 +451,7 @@ button.day:active { transform: scale(0.995); }
 .msg.user {
   align-self: flex-end;
   background: var(--ink);
-  color: var(--bone);
+  color: var(--linen);
   border-radius: 18px 18px 5px 18px;
   padding: 0.68rem 1rem;
   font-size: 0.94rem;
@@ -420,7 +479,7 @@ button.day:active { transform: scale(0.995); }
   align-items: center;
   gap: 0.4rem;
   border: 1px solid var(--edge);
-  background: var(--bone);
+  background: var(--well);
   border-radius: 999px;
   padding: 0.32rem 0.8rem;
   font-size: 0.75rem;
@@ -464,7 +523,7 @@ button.day:active { transform: scale(0.995); }
 .bar .send {
   border: none;
   background: var(--ink);
-  color: var(--bone);
+  color: var(--linen);
   border-radius: 999px;
   padding: 0.5rem 1.05rem;
   font-size: 0.86rem;
@@ -477,7 +536,7 @@ button.day:active { transform: scale(0.995); }
   display: grid; place-items: center;
   border: 1px solid var(--edge);
   border-radius: 50%;
-  background: var(--bone);
+  background: var(--well);
   color: var(--ink-soft);
 }
 .mic.on { background: var(--clay); border-color: var(--clay); color: var(--linen); }
@@ -489,7 +548,7 @@ button.day:active { transform: scale(0.995); }
   flex: 1;
   border: 1px solid var(--edge);
   border-radius: 999px;
-  background: var(--bone);
+  background: var(--well);
   padding: 0.6rem 0.95rem;
   color: var(--ink);
 }
@@ -531,7 +590,7 @@ button.day:active { transform: scale(0.995); }
   gap: 0.15rem;
   gap: 0.3rem;
   padding: 0.7rem 0.6rem calc(1.35rem + env(safe-area-inset-bottom));
-  background: rgba(250, 247, 242, 0.92);
+  background: var(--veil);
   backdrop-filter: saturate(1.4) blur(14px);
   border-top: 1px solid var(--edge);
 }

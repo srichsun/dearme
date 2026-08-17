@@ -8,7 +8,9 @@
 
 html, body, #root { height: 100%; }
 
-:root { color-scheme: light; }
+/* Both, so form controls and the browser's own chrome follow the theme. The
+ * app narrows this to the resolved one at runtime (see theme.js). */
+:root { color-scheme: light dark; }
 
 /* Hide scrollbars (still scrollable). */
 * { scrollbar-width: none; }

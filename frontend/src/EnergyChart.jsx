@@ -7,6 +7,7 @@ import {
   XAxis,
 } from "recharts";
 import { colorFor, percentFor, shortDay } from "./energy";
+import { useCurrentTheme } from "./theme";
 
 // The energy chart: one bar per day, coloured by band.
 //
@@ -17,6 +18,9 @@ import { colorFor, percentFor, shortDay } from "./energy";
 // Over 30 days the numbers come off: thirty labels on a phone are a grey smear,
 // and at that range what you're reading is the run of colour anyway.
 export default function EnergyChart({ entries, days }) {
+  // Before the early return: a hook has to run on every render, not only the
+  // ones that reach the chart.
+  const theme = useCurrentTheme();
   const data = entries.map((e) => ({
     day: shortDay(e.date),
     percent: percentFor(e.energy),
@@ -36,7 +40,7 @@ export default function EnergyChart({ entries, days }) {
   return (
     <div className="chart">
       <div className="chartlede">
-        <span className="figure" style={{ color: colorFor(average / 10) }}>
+        <span className="figure" style={{ color: colorFor(average / 10, theme) }}>
           {average}%
         </span>
         <span className="caption">average over {rated.length} rated days</span>
@@ -49,7 +53,7 @@ export default function EnergyChart({ entries, days }) {
             tickLine={false}
             axisLine={false}
             interval={dense ? "preserveStartEnd" : 0}
-            tick={{ fontSize: 10, fill: "#a89f92", letterSpacing: "0.04em" }}
+            tick={{ fontSize: 10, fill: "currentColor", opacity: 0.5, letterSpacing: "0.04em" }}
             dy={4}
           />
           <Bar
@@ -59,14 +63,14 @@ export default function EnergyChart({ entries, days }) {
             isAnimationActive={false}
           >
             {data.map((d, i) => (
-              <Cell key={i} fill={colorFor(d.score)} />
+              <Cell key={i} fill={colorFor(d.score, theme)} />
             ))}
             {!dense && (
               <LabelList
                 dataKey="percent"
                 position="top"
                 formatter={(v) => (v ? `${v}` : "")}
-                style={{ fontSize: 11, fill: "#8d8478", letterSpacing: "0.03em" }}
+                style={{ fontSize: 11, fill: "currentColor", opacity: 0.55, letterSpacing: "0.03em" }}
               />
             )}
           </Bar>

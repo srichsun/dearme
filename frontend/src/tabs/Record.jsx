@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import EnergyChart from "../EnergyChart";
 import { bandFor, colorFor, longDay, percentFor } from "../energy";
+import { useCurrentTheme } from "../theme";
 import { getJSON, postJSON } from "../api";
 import { useRecorder, transcribe } from "../speech";
 import { ChevronIcon, MicIcon, StopIcon } from "../icons";
@@ -178,13 +179,14 @@ function Analysis({ entry, onRun, busy }) {
 // The energy slider. Ten steps, shown as a percentage and a word — the word is
 // what you actually mean; the number is only there to make the chart readable.
 function EnergyPicker({ value, onChange }) {
+  const theme = useCurrentTheme();
   const band = value ? bandFor(value) : null;
   return (
     <div className="energy">
       <div className="energyhead">
         <span className="label">Energy</span>
         {value ? (
-          <span className="reading" style={{ color: band.color }}>
+          <span className="reading" style={{ color: colorFor(value, theme) }}>
             {percentFor(value)}% <em>{band.label}</em>
           </span>
         ) : (
@@ -198,7 +200,7 @@ function EnergyPicker({ value, onChange }) {
         step="1"
         value={value || 5}
         onChange={(e) => onChange(Number(e.target.value))}
-        style={{ "--track": band ? band.color : "#d9d3c9" }}
+        style={{ "--track": colorFor(value, theme) }}
       />
     </div>
   );
@@ -221,7 +223,7 @@ function DayCard({ entry }) {
       aria-expanded={open}
     >
       <span className="dayhead">
-        <span className="dot" style={{ background: colorFor(entry.energy) }} />
+        <span className="dot" style={{ background: colorFor(entry.energy, theme) }} />
         <span className="date">{longDay(entry.date)}</span>
         {entry.energy ? (
           <span className="pct">{percentFor(entry.energy)}%</span>

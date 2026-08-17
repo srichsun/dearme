@@ -7,21 +7,30 @@
 // The three colours are muted on purpose. A screen you open on your worst day
 // shouldn't shout at you in traffic-light red — clay, honey and sage carry the
 // same three readings without the alarm.
+//
+// Each band carries both readings of itself. These are values, not CSS, because
+// the chart hands them straight to Recharts — so the dark ones can't come from
+// the stylesheet and have to live here beside the light ones. They are lifted
+// rather than inverted: the same hues that read as muted on paper turn to mud
+// on a dark ground.
 
 export const BANDS = [
-  { max: 3, color: "#c08578", light: "#f0e2dd", label: "Low" },
-  { max: 6, color: "#c9a05c", light: "#f3ead9", label: "Steady" },
-  { max: 10, color: "#7f9d80", light: "#e3ece2", label: "Good" },
+  { max: 3, color: "#c08578", dark: "#c8988b", tint: "#f0e2dd", darkTint: "#3a2e2a", label: "Low" },
+  { max: 6, color: "#c9a05c", dark: "#d3ab72", tint: "#f3ead9", darkTint: "#3b3325", label: "Steady" },
+  { max: 10, color: "#7f9d80", dark: "#93b294", tint: "#e3ece2", darkTint: "#2b3730", label: "Good" },
 ];
 
-export const UNRATED = "#d9d3c9";
+export const UNRATED = { light: "#d9d3c9", dark: "#3d382f" };
 
 export function bandFor(score) {
   return BANDS.find((b) => score <= b.max) || BANDS[BANDS.length - 1];
 }
 
-export function colorFor(score) {
-  return score ? bandFor(score).color : UNRATED;
+/** The band's colour in the theme being shown. */
+export function colorFor(score, theme = "light") {
+  if (!score) return UNRATED[theme] ?? UNRATED.light;
+  const band = bandFor(score);
+  return theme === "dark" ? band.dark : band.color;
 }
 
 export function percentFor(score) {

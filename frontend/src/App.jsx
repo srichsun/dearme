@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { ThemeProvider, nextChoice, useTheme } from "./theme";
 import "./App.css";
 import Greeting from "./Greeting";
 import Landing from "./Landing";
@@ -24,7 +25,11 @@ function todayInTaipei() {
   return taipei.toISOString().slice(0, 10);
 }
 
+// Follow the phone, light, dark — and what to call each on the button.
+const THEME_LABEL = { system: "Auto", light: "Light", dark: "Dark" };
+
 export default function App() {
+  const { theme, choice, setChoice } = useTheme();
   const [user, setUser] = useState(null);
   const [authReady, setAuthReady] = useState(false);
   const [tab, setTab] = useState("record");
@@ -55,27 +60,36 @@ export default function App() {
   const { Screen } = TABS.find((t) => t.key === tab);
 
   return (
-    <div className="app">
-      <header className="head">
-        <h1>Dear Myself</h1>
-        <button className="signout" onClick={() => signOutUser()}>
-          Sign out
-        </button>
-      </header>
-
-      <Screen today={todayInTaipei()} />
-
-      <nav className="tabbar">
-        {TABS.map((t) => (
+    <ThemeProvider value={theme}>
+      <div className="app">
+        <header className="head">
+          <h1>Dear Myself</h1>
           <button
-            key={t.key}
-            className={tab === t.key ? "on" : ""}
-            onClick={() => setTab(t.key)}
+            className="signout"
+            onClick={() => setChoice(nextChoice(choice))}
+            aria-label={`Appearance: ${THEME_LABEL[choice]}`}
           >
-            {t.label}
+            {THEME_LABEL[choice]}
           </button>
-        ))}
-      </nav>
-    </div>
+          <button className="signout" onClick={() => signOutUser()}>
+            Sign out
+          </button>
+        </header>
+
+        <Screen today={todayInTaipei()} />
+
+        <nav className="tabbar">
+          {TABS.map((t) => (
+            <button
+              key={t.key}
+              className={tab === t.key ? "on" : ""}
+              onClick={() => setTab(t.key)}
+            >
+              {t.label}
+            </button>
+          ))}
+        </nav>
+      </div>
+    </ThemeProvider>
   );
 }
