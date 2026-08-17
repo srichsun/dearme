@@ -13,9 +13,12 @@ LLM_PROVIDER = os.getenv("LLM_PROVIDER", "openai")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
 ANTHROPIC_CHAT_MODEL = os.getenv("ANTHROPIC_CHAT_MODEL", "claude-haiku-4-5")
-# gpt-5.x-chat-latest is the model family that powers ChatGPT itself — the
-# warm, structured style the product is known for. (gpt-4o was two+ years old.)
-OPENAI_CHAT_MODEL = os.getenv("OPENAI_CHAT_MODEL", "gpt-5.3-chat-latest")
+# The mid-tier of the current flagship series: the same price as the
+# gpt-5.3-chat-latest it replaces, which OpenAI deprecated out from under us —
+# a 404 on every model call, with the app itself still healthy. Pin a concrete
+# version rather than a moving "-latest" alias, so the next deprecation is a
+# deliberate upgrade instead of an outage.
+OPENAI_CHAT_MODEL = os.getenv("OPENAI_CHAT_MODEL", "gpt-5.6-terra")
 # Ceiling, not a target — length is driven by the prompt. Sized from real
 # replies (persona + tools), which run 340-480 completion tokens; this leaves
 # ~4x headroom for a longer day without letting a runaway generation drag on.
