@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import ReactMarkdown from "react-markdown";
-import { getJSON, postJSON } from "../api";
+import { authFetch, getJSON } from "../api";
 
 // The rolling read, in the order it answers: who you are, the two halves of
 // your energy, then what to do about them. Rebuilt only when you ask — so a
@@ -31,14 +31,40 @@ export default function Insights() {
     };
   }, []);
 
+  // The reading arrives as text with "### section" headings in it. Splitting on
+  // those as it streams is what lets each part appear the moment it is written,
+  // instead of the page sitting blank for a minute and then filling all at once.
+  function splitSections(text) {
+    const found = {};
+    const parts = text.split(/^[#\s]*(\w+)\s*:?\s*$/m);
+    for (let i = 1; i < parts.length; i += 2) {
+      const key = parts[i];
+      if (SECTIONS.some((s) => s.key === key)) found[key] = parts[i + 1].trim();
+    }
+    return found;
+  }
+
   async function refresh() {
     if (busy) return;
     setBusy(true);
-    const res = await postJSON("/profile/refresh");
-    setBusy(false);
-    if (!res.ok) return;
-    setSections(res.data.sections || {});
-    setBehind(0);
+    try {
+      const res = await authFetch("/profile/refresh/stream", { method: "POST" });
+      if (!res.ok || !res.body) return;
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let written = "";
+      for (;;) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        written += decoder.decode(value, { stream: true });
+        // Written sections replace their old text; ones not reached yet keep
+        // theirs, so the page never blanks out mid-rewrite.
+        setSections((prev) => ({ ...(prev || {}), ...splitSections(written) }));
+      }
+      setBehind(0);
+    } finally {
+      setBusy(false);
+    }
   }
 
   const written = sections && SECTIONS.some((s) => sections[s.key]);
@@ -55,7 +81,7 @@ export default function Insights() {
               : "Write a few days, then ask for a reading"}
         </p>
         <button className="primary wide" onClick={refresh} disabled={busy}>
-          {busy ? "Reading you…" : written ? "Read again" : "Read me"}
+          {busy ? "Analysing…" : "Analyse"}
         </button>
       </section>
 

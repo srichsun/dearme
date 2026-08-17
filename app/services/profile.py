@@ -10,7 +10,8 @@ it in the background — the same rule as the day's analysis, and for the same
 reason: they should know when the machine has just spent a model call on them,
 and be able to read a page without wondering whether it changed underneath.
 """
-from pydantic import BaseModel, Field
+import re
+from collections.abc import Iterator
 
 from app.core import db
 from app.models import Profile
@@ -26,17 +27,6 @@ from app.services import chat_model, entries
 # with a list of what is wrong with them. Protecting energy is half the work,
 # so it gets half the page.
 SECTIONS = ("who_you_are", "what_helps", "what_costs", "suggestions")
-
-
-class Reading(BaseModel):
-    """One rolling read of a person, as the model returns it."""
-
-    who_you_are: str = Field(
-        description="who this person is, leaning on what they have actually done"
-    )
-    what_helps: str = Field(description="what reliably raises or protects their energy")
-    what_costs: str = Field(description="what reliably drains them")
-    suggestions: str = Field(description="one or two concrete things worth trying next")
 
 
 _CONDENSE_PROMPT = (
@@ -72,13 +62,23 @@ _CONDENSE_PROMPT = (
     "of what costs. Only what the entries actually support.\n\n"
     "Keep the whole thing under ~1000 words: it is injected into every "
     "conversation, so it must not grow without bound.\n\n"
+    "Write the four parts in the order above, each opening with its name on a "
+    "line of its own as a heading — `### who_you_are` — and nothing else on "
+    "that line. Write no preamble before the first heading and no closing "
+    "remark after the last part. The headings are how the page finds each "
+    "part; a part written without one never reaches the screen.\n\n"
     "Current read:\n{existing}\n\n"
     "Journal entries (newest first):\n{recent}\n\n"
 )
 
-_condenser = chat_model.build_chat_model(
-    timeout=chat_model.WRITE_TIMEOUT
-).with_structured_output(Reading)
+# Plain text, not structured output: the reading is streamed so the person
+# watches it arrive instead of waiting a minute on a blank page, and a schema
+# only resolves once the whole object is complete. The headings below buy the
+# same thing at the cost of trusting the model to write them.
+_condenser = chat_model.build_chat_model(timeout=chat_model.WRITE_TIMEOUT)
+
+# A heading line, and nothing else on it: "### what_helps".
+_HEADING = re.compile(r"^[#\s]*(" + "|".join(SECTIONS) + r")\s*:?\s*$", re.MULTILINE)
 
 
 def get_profile(user_id: str) -> dict:
@@ -109,31 +109,52 @@ def entries_behind(user_id: str) -> int:
     return max(0, entries.count_entries(user_id) - last)
 
 
-def _condense(existing: dict, recent_text: str) -> dict:
-    """Fold recent entries into the existing reading and return the new one."""
+def parse_sections(text: str) -> dict:
+    """Split a written reading into {section: text} on its headings.
+
+    Anything before the first heading is dropped — that is where a model puts
+    the "here is your reading" line nobody asked for. A section the model left
+    out simply isn't in the result; the caller decides what that means.
+    """
+    parts: dict = {}
+    matches = list(_HEADING.finditer(text))
+    for i, m in enumerate(matches):
+        end = matches[i + 1].start() if i + 1 < len(matches) else len(text)
+        body = text[m.end():end].strip()
+        if body:
+            parts[m.group(1)] = body
+    return parts
+
+
+def _prompt_for(user_id: str) -> str:
+    """The condense prompt for one person: their current reading, then their
+    recent days with the energy they gave each one — so the energy sections are
+    read off what they actually rated rather than guessed from the tone."""
+    existing = get_profile(user_id)
     existing_text = "\n\n".join(
         f"{name}:\n{existing[name]}" for name in SECTIONS if existing.get(name)
     )
-    result = _condenser.invoke(
-        _CONDENSE_PROMPT.format(
-            existing=existing_text or "(empty)", recent=recent_text or "(none)"
-        )
-    )
-    return result.model_dump()
-
-
-def refresh_profile(user_id: str) -> dict:
-    """Rebuild one person's reading from their journal and save it.
-
-    The energy rating goes in alongside the writing, so the energy section is
-    read off what they actually rated rather than guessed from the tone.
-    """
-    rows = entries.recent_entries(user_id)
     recent_text = "\n\n".join(
         f"[{e.entry_date} · energy {e.energy if e.energy else '—'}/10]\n{e.content}"
-        for e in rows
+        for e in entries.recent_entries(user_id)
     )
-    updated = _condense(get_profile(user_id), recent_text)
+    return _CONDENSE_PROMPT.format(
+        existing=existing_text or "(empty)", recent=recent_text or "(none)"
+    )
+
+
+def _save(user_id: str, written: str) -> dict:
+    """Store a finished reading, and return what was stored.
+
+    A section the model didn't write keeps whatever it had: the reading is the
+    only copy, and a heading the model forgot is a formatting slip, not a
+    statement that the person changed. Nothing is stored at all if the writing
+    yielded no sections — better a stale reading than an empty one.
+    """
+    parts = parse_sections(written)
+    if not parts:
+        return get_profile(user_id)
+    updated = {**get_profile(user_id), **parts}
     with db.get_session() as s:
         row = s.get(Profile, user_id)
         if row is None:
@@ -143,3 +164,26 @@ def refresh_profile(user_id: str) -> dict:
         row.entry_count = entries.count_entries(user_id)
         s.commit()
     return updated
+
+
+def stream_and_save(user_id: str) -> Iterator[str]:
+    """Write the reading, streaming it as it comes, then store it.
+
+    Streaming is the whole point of the plain-text format: this call runs to a
+    thousand words, and a minute of blank page reads as broken however fast the
+    answer eventually lands.
+    """
+    written = []
+    for chunk in _condenser.stream(_prompt_for(user_id)):
+        text = chunk.content if isinstance(chunk.content, str) else ""
+        if text:
+            written.append(text)
+            yield text
+    _save(user_id, "".join(written))
+
+
+def refresh_profile(user_id: str) -> dict:
+    """Rebuild one person's reading and return it, without streaming."""
+    for _ in stream_and_save(user_id):
+        pass
+    return get_profile(user_id)
