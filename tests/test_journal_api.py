@@ -104,8 +104,14 @@ def test_analysis_extracts_the_days_facts(sqlite_db, monkeypatch):
     body = client.post(f"/entries/{entry_id}/analyze").json()
 
     assert body["analyzed"] is True
-    assert body["wins"] == ["went for a run while exhausted"]
-    assert body["gratitude"] == ["a friend read my CV"]
+    # Every category comes back, not only the two the screen used to show:
+    # analysing is the one thing that spends a model call, and showing two
+    # lists back made it look like it had barely done anything.
+    assert body["facts"] == [
+        {"category": "wins", "text": "went for a run while exhausted"},
+        {"category": "gratitude", "text": "a friend read my CV"},
+        {"category": "patterns", "text": "keeps going when tired"},
+    ]
     assert body["analyses_left"] == entries.ANALYSIS_LIMIT - 1
 
 
@@ -117,7 +123,7 @@ def test_re_analysing_replaces_rather_than_doubles(sqlite_db, monkeypatch):
     _fake_extraction(monkeypatch, ("wins", "second reading"))
     body = client.post(f"/entries/{entry_id}/analyze").json()
 
-    assert body["wins"] == ["second reading"]
+    assert [f["text"] for f in body["facts"]] == ["second reading"]
     stored = facts.for_entries([entry_id], user_id=UID)[entry_id]
     assert [f.text for f in stored] == ["second reading"]
 
@@ -128,7 +134,7 @@ def test_analysing_someone_elses_day_is_a_404(sqlite_db):
     assert client.post(f"/entries/{other.id}/analyze").status_code == 404
 
 
-def test_the_record_range_carries_each_days_wins(sqlite_db, monkeypatch):
+def test_the_record_range_carries_each_days_facts(sqlite_db, monkeypatch):
     _fake_extraction(monkeypatch, ("wins", "shipped it"), ("about me", "lives in Taipei"))
     entry_id = client.post("/entries", json={"content": "a day", "energy": 9}).json()["id"]
     client.post(f"/entries/{entry_id}/analyze")
@@ -138,6 +144,4 @@ def test_the_record_range_carries_each_days_wins(sqlite_db, monkeypatch):
     assert len(body["entries"]) == 1
     day = body["entries"][0]
     assert day["energy"] == 9
-    assert day["wins"] == ["shipped it"]
-    # Only the two shown categories come back — the rest are memory, not screen.
-    assert day["gratitude"] == []
+    assert [f["text"] for f in day["facts"]] == ["shipped it", "lives in Taipei"]

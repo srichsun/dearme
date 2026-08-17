@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import EnergyChart from "../EnergyChart";
 import { bandFor, colorFor, longDay, percentFor } from "../energy";
 import { useCurrentTheme } from "../theme";
@@ -18,6 +18,10 @@ export default function Record({ today }) {
   const [energy, setEnergy] = useState(null);
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState("");
+  const [saved, setSaved] = useState(false);
+  // Nothing is saved until the person has actually changed something. Without
+  // this, loading today's entry would immediately write it straight back.
+  const touched = useRef(false);
 
   // Speaking the day out loud is how most days get written at all — typing a
   // paragraph on a phone at 11pm is a good way to write nothing.
@@ -45,6 +49,7 @@ export default function Record({ today }) {
         setDraft(mine.content);
         setEnergy(mine.energy);
       }
+      touched.current = false;
     })();
     return () => {
       cancelled = true;
@@ -71,9 +76,23 @@ export default function Record({ today }) {
     return res.data;
   }
 
-  const save = () =>
-    draft.trim() &&
-    run(() => postJSON("/entries", { content: draft, energy }), "Couldn't save that.");
+  // Saving is not a decision, so it is not a button. A pause in the typing is
+  // the signal — long enough not to write on every keystroke, short enough that
+  // putting the phone down mid-sentence still keeps the sentence.
+  useEffect(() => {
+    if (!touched.current || !draft.trim()) return;
+    setSaved(false);
+    const pause = setTimeout(async () => {
+      const res = await postJSON("/entries", { content: draft, energy });
+      if (!res.ok) return setNotice("Couldn't save that.");
+      setNotice("");
+      merge(res.data);
+      setSaved(true);
+    }, 1200);
+    return () => clearTimeout(pause);
+    // merge is stable enough for this: it only ever calls setEntries.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [draft, energy]);
 
   const analyse = () =>
     todays &&
@@ -106,7 +125,10 @@ export default function Record({ today }) {
         <div className="writer">
           <textarea
             value={draft}
-            onChange={(e) => setDraft(e.target.value)}
+            onChange={(e) => {
+              touched.current = true;
+              setDraft(e.target.value);
+            }}
             placeholder="How did today really go?"
             rows={7}
           />
@@ -120,16 +142,17 @@ export default function Record({ today }) {
           </button>
         </div>
 
-        <EnergyPicker value={energy} onChange={setEnergy} />
+        <EnergyPicker
+          value={energy}
+          onChange={(v) => {
+            touched.current = true;
+            setEnergy(v);
+          }}
+        />
 
-        <div className="actions">
-          <button className="primary" onClick={save} disabled={busy}>
-            Save
-          </button>
-          <span className="hint inline">
-            {notice || "Add to today as many times as you like"}
-          </span>
-        </div>
+        <p className="hint savedline">
+          {notice || (saved ? "Saved" : "Saves itself as you write")}
+        </p>
       </section>
 
       {todays && <Analysis entry={todays} onRun={analyse} busy={busy} />}
@@ -150,25 +173,20 @@ function Analysis({ entry, onRun, busy }) {
   const left = entry.analyses_left;
   return (
     <section className="panel">
-      <h2 className="display">Read the day</h2>
+      <h2 className="display">Analyse</h2>
       <p className="note">
-        Pulls out what you won today and what you were grateful for, and keeps
-        them where later answers can find them. Worth doing once the day is
-        done.
+        Breaks the day into what actually happened in it, and keeps those where
+        later answers can find them. Worth doing once the day is done.
       </p>
 
       <button className="primary wide" onClick={onRun} disabled={busy || !left}>
-        {busy
-          ? "Reading…"
-          : entry.analyzed
-            ? "Read it again"
-            : "Read today"}
+        {busy ? "Analysing…" : entry.analyzed ? "Analyse again" : "Analyse"}
       </button>
 
       <p className="hint">
         {left
-          ? `${left} of today's ${left === 1 ? "reading" : "readings"} left`
-          : "Today has been read as many times as it can be."}
+          ? `${left} of today's ${left === 1 ? "analysis" : "analyses"} left`
+          : "Today has been analysed as many times as it can be."}
       </p>
 
       <Facts entry={entry} />
@@ -214,8 +232,7 @@ function EnergyPicker({ value, onChange }) {
 function DayCard({ entry }) {
   const theme = useCurrentTheme();
   const [open, setOpen] = useState(false);
-  const extra =
-    Math.max(0, entry.wins.length - 1) + Math.max(0, entry.gratitude.length - 1);
+  const extra = Math.max(0, (entry.facts?.length || 0) - 2);
 
   return (
     <button
@@ -243,31 +260,39 @@ function DayCard({ entry }) {
           <p className="daytext">{entry.content}</p>
         </>
       ) : (
-        <Facts entry={entry} limit={1} />
+        <Facts entry={entry} limit={2} />
       )}
     </button>
   );
 }
 
-// Wins and gratitude, as quiet typographic entries rather than emoji rows.
+// What the day was broken into, as quiet typographic entries rather than emoji
+// rows. Wins and gratitude lead, because they are the two a person actually
+// comes back for; the rest follow in the order they were found.
+const LEADS = ["wins", "gratitude"];
+const LABEL = { wins: "Won", gratitude: "Grateful" };
+
+function label(category) {
+  return LABEL[category] || category[0].toUpperCase() + category.slice(1);
+}
+
+function ordered(facts) {
+  const lead = LEADS.flatMap((c) => facts.filter((f) => f.category === c));
+  return [...lead, ...facts.filter((f) => !LEADS.includes(f.category))];
+}
+
 function Facts({ entry, limit }) {
-  const wins = limit ? entry.wins.slice(0, limit) : entry.wins;
-  const thanks = limit ? entry.gratitude.slice(0, limit) : entry.gratitude;
-  if (!wins.length && !thanks.length) {
-    return limit ? <p className="hint">Not yet reflected on.</p> : null;
+  const all = ordered(entry.facts || []);
+  const shown = limit ? all.slice(0, limit) : all;
+  if (!shown.length) {
+    return limit ? <p className="hint">Not yet analysed.</p> : null;
   }
   return (
     <dl className="facts">
-      {wins.map((w, i) => (
-        <div key={`w${i}`} className="fact win">
-          <dt>Won</dt>
-          <dd>{w}</dd>
-        </div>
-      ))}
-      {thanks.map((g, i) => (
-        <div key={`g${i}`} className="fact thanks">
-          <dt>Grateful</dt>
-          <dd>{g}</dd>
+      {shown.map((f, i) => (
+        <div key={i} className={"fact " + f.category.replace(/[^a-z]+/g, "-")}>
+          <dt>{label(f.category)}</dt>
+          <dd>{f.text}</dd>
         </div>
       ))}
     </dl>

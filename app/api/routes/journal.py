@@ -15,13 +15,15 @@ from app.services import entries, facts
 
 router = APIRouter(tags=["journal"])
 
-# The two categories the record screen shows back day by day.
-SHOWN = ("wins", "gratitude")
 
+def _entry_dict(e: Entry, facts_for_day: list | None = None) -> dict:
+    """Turn a stored Entry into plain JSON for the review screens.
 
-def _entry_dict(e: Entry, shown: list | None = None) -> dict:
-    """Turn a stored Entry into plain JSON for the review screens."""
-    shown = shown or []
+    Every fact the day was broken into comes back, not just the two categories
+    the screen used to show. Analysing is the one thing in the app that spends
+    a model call, and showing two lists back made it look like it had barely
+    done anything — the rest of what it found was real, and invisible.
+    """
     return {
         "id": e.id,
         "date": e.entry_date.isoformat(),
@@ -29,8 +31,9 @@ def _entry_dict(e: Entry, shown: list | None = None) -> dict:
         "energy": e.energy,
         "analyses_left": max(0, entries.ANALYSIS_LIMIT - e.analysis_count),
         "analyzed": e.analyzed_at is not None,
-        "wins": [f.text for f in shown if f.category == "wins"],
-        "gratitude": [f.text for f in shown if f.category == "gratitude"],
+        "facts": [
+            {"category": f.category, "text": f.text} for f in (facts_for_day or [])
+        ],
     }
 
 
@@ -44,11 +47,11 @@ def entries_in_range(uid: CurrentUid, days: int = 7):
     end = clock.today()
     start = end - timedelta(days=days - 1)
     rows = entries.entries_between(start, end, user_id=uid)
-    shown = facts.for_entries([r.id for r in rows], user_id=uid, categories=SHOWN)
+    found = facts.for_entries([r.id for r in rows], user_id=uid)
     return {
         "start": start.isoformat(),
         "end": end.isoformat(),
-        "entries": [_entry_dict(r, shown.get(r.id)) for r in rows],
+        "entries": [_entry_dict(r, found.get(r.id)) for r in rows],
     }
 
 
@@ -80,5 +83,5 @@ def analyze(entry_id: int, uid: CurrentUid):
     entries.mark_analyzed(row.id)
 
     fresh = entries.entry_on(row.entry_date, user_id=uid)
-    shown = facts.for_entries([row.id], user_id=uid, categories=SHOWN)
-    return _entry_dict(fresh, shown.get(row.id))
+    found = facts.for_entries([row.id], user_id=uid)
+    return _entry_dict(fresh, found.get(row.id))

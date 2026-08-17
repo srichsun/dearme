@@ -225,6 +225,9 @@ button.primary:active, button.ghost:active { transform: scale(0.985); }
 button.primary:disabled, button.ghost:disabled { opacity: 0.4; }
 button.wide { width: 100%; margin-top: 0.9rem; }
 
+/* Saving happens on its own, so it gets a line rather than a control. */
+.savedline { margin-top: 0.8rem; text-align: right; }
+
 /* --- when a screen throws ---------------------------------------------- */
 
 /* No tab bar to sit above when the app has fallen over, so the screen gets its
