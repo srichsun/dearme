@@ -10,9 +10,9 @@ from app.services import profile
 U = "u-profile"
 
 READING = {
-    "mood": "- steadier than last week",
     "who_you_are": "- runs regularly",
-    "patterns": "- goes quiet when overloaded",
+    "what_helps": "- a run before the day starts",
+    "what_costs": "- goes quiet when overloaded",
     "suggestions": "- stop an hour earlier on the heavy days",
 }
 
@@ -69,16 +69,16 @@ def test_a_reading_is_built_only_from_that_persons_days(write_days, monkeypatch)
 
 def test_refresh_carries_forward_the_previous_reading(write_days, monkeypatch):
     write_days(U, "first")
-    monkeypatch.setattr(profile, "_condense", lambda e, r: {"patterns": "v1"})
+    monkeypatch.setattr(profile, "_condense", lambda e, r: {"what_helps": "v1"})
     profile.refresh_profile(U)
 
     captured = {}
     monkeypatch.setattr(
-        profile, "_condense", lambda e, r: captured.update(existing=e) or {"patterns": "v2"}
+        profile, "_condense", lambda e, r: captured.update(existing=e) or {"what_helps": "v2"}
     )
     profile.refresh_profile(U)
 
-    assert captured["existing"] == {"patterns": "v1"}
+    assert captured["existing"] == {"what_helps": "v1"}
 
 
 def test_entries_behind_counts_days_written_since_the_last_rebuild(
@@ -102,9 +102,9 @@ def test_the_prompt_text_keeps_the_sections_in_order(sqlite_db, monkeypatch):
     text = profile.as_prompt_text(U)
 
     assert (
-        text.index("mood")
-        < text.index("who_you_are")
-        < text.index("patterns")
+        text.index("who_you_are")
+        < text.index("what_helps")
+        < text.index("what_costs")
         < text.index("suggestions")
     )
     assert "stop an hour earlier on the heavy days" in text

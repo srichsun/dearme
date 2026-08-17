@@ -16,21 +16,26 @@ from app.core import db
 from app.models import Profile
 from app.services import chat_model, entries
 
-# The four parts of the reading, in the order the screen shows them, which is
-# also the order they answer: how you are now, who you are, why it keeps going
-# this way, and what to do about it. Suggestions come last because a suggestion
-# that arrives before the pattern it addresses reads as advice from a stranger.
-SECTIONS = ("mood", "who_you_are", "patterns", "suggestions")
+# The four parts of the reading, in the order the screen shows them: who you
+# are, then the two halves of your energy, then what to do about them.
+# Suggestions come last because a suggestion that arrives before the pattern it
+# addresses reads as advice from a stranger.
+#
+# Lift and drain are two sections rather than one "patterns" block on purpose:
+# folded together, the costly half swallows the other, and the person leaves
+# with a list of what is wrong with them. Protecting energy is half the work,
+# so it gets half the page.
+SECTIONS = ("who_you_are", "what_helps", "what_costs", "suggestions")
 
 
 class Reading(BaseModel):
     """One rolling read of a person, as the model returns it."""
 
-    mood: str = Field(description="how they have been lately, plainly and without verdict")
     who_you_are: str = Field(
         description="who this person is, leaning on what they have actually done"
     )
-    patterns: str = Field(description="what they keep repeating, good and bad")
+    what_helps: str = Field(description="what reliably raises or protects their energy")
+    what_costs: str = Field(description="what reliably drains them")
     suggestions: str = Field(description="one or two concrete things worth trying next")
 
 
@@ -43,12 +48,6 @@ _CONDENSE_PROMPT = (
     "ones least often written down. Drop it when something they wrote actually "
     "overturns it.\n\n"
     "Four parts, each a few short paragraphs or bullets:\n\n"
-    "**mood** — how they have been lately: the general weather of it, and "
-    "whether it has been steady or swinging. Read their energy ratings against "
-    "what they wrote on those days. Say it plainly and without a verdict — this "
-    "is the first thing they see, and being told what their own feelings mean "
-    "before anything else lands badly. If the entries are too few to say "
-    "anything, say that rather than inventing a trend.\n\n"
     "**who_you_are** — who this person is: their situation, what they care "
     "about, the people who matter, what they're reaching for. Ground it in "
     "what they have actually done, and say those things plainly — they lose "
@@ -57,15 +56,20 @@ _CONDENSE_PROMPT = (
     "did while afraid or exhausted. Warm means specific, not flattering — a "
     "real day named does more than any amount of praise. Never guess at facts "
     "they haven't stated.\n\n"
-    "**patterns** — what they keep repeating, especially under stress, and how "
-    "it runs through their energy: what reliably lifts them, what reliably "
-    "drains them. Both kinds: what they do that works, and what they do that "
-    "costs them. Be specific and honest; a pattern named vaguely is no use.\n\n"
+    "**what_helps** — what reliably raises their energy or protects the energy "
+    "they already have. Read their energy ratings against what they wrote on "
+    "those days, and name what preceded the good ones. Count the quiet kinds "
+    "too: stopping earlier, saying no, leaving something undone. Be specific — "
+    "a pattern named vaguely is no use.\n\n"
+    "**what_costs** — what reliably drains them, especially what they keep "
+    "doing under stress. Name what preceded the flat days. Be honest and "
+    "unflinching, but describe the behaviour, not the person — this is a "
+    "pattern they can act on, not a verdict on their character. If the ratings "
+    "are too few to say anything, say that rather than inventing a trend.\n\n"
     "**suggestions** — one or two concrete things worth trying next, each "
-    "small enough to start today, and each tied to a pattern named above rather "
-    "than to general advice. Protecting energy counts as much as raising it: "
-    "stopping earlier, saying no, leaving something undone are all fair "
-    "suggestions. Only what the entries actually support.\n\n"
+    "small enough to start today, and each tied to something named in the two "
+    "sections above rather than to general advice: more of what helps, or less "
+    "of what costs. Only what the entries actually support.\n\n"
     "Keep the whole thing under ~1000 words: it is injected into every "
     "conversation, so it must not grow without bound.\n\n"
     "Current read:\n{existing}\n\n"
