@@ -41,7 +41,11 @@ export default class ErrorBoundary extends Component {
           </button>
           {shown && (
             <pre className="crashdetail">
-              {String(error?.stack || error?.message || error)}
+              {/* Message first and always: Safari's stack omits it, so a stack
+                  on its own says where but never what. */}
+              {[String(error?.message || error), error?.stack]
+                .filter(Boolean)
+                .join("\n\n")}
             </pre>
           )}
         </section>

@@ -212,6 +212,7 @@ function EnergyPicker({ value, onChange }) {
 // The whole card is the button, not a control tucked inside it. On a phone,
 // anything smaller than the card is something you have to aim at.
 function DayCard({ entry }) {
+  const theme = useCurrentTheme();
   const [open, setOpen] = useState(false);
   const extra =
     Math.max(0, entry.wins.length - 1) + Math.max(0, entry.gratitude.length - 1);
