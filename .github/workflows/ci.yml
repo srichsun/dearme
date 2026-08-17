@@ -38,6 +38,17 @@ jobs:
       - name: Test
         run: uv run pytest -q
 
+      # The frontend was never checked here, so a screen that could only crash
+      # still went out green. The tests can't see it — they never render — but
+      # the linter can.
+      - name: Install frontend dependencies
+        run: npm ci
+        working-directory: frontend
+
+      - name: Lint the frontend
+        run: npx oxlint src
+        working-directory: frontend
+
   deploy:
     # Only main, and only once the tests are green.
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
