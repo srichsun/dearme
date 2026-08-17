@@ -2,13 +2,15 @@ import { useEffect, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import { getJSON, postJSON } from "../api";
 
-// The rolling read: who you are, what you repeat, and what your energy responds
-// to. Rebuilt only when you ask — so a page you're reading never changes
-// underneath you, and you always know when a model call was spent on you.
+// The rolling read, in the order it answers: how you've been, who you are, why
+// it keeps going this way, and what to do next. Rebuilt only when you ask — so
+// a page you're reading never changes underneath you, and you always know when
+// a model call was spent on you.
 const SECTIONS = [
+  { key: "mood", title: "Emotional state", note: "read against the days you rated" },
   { key: "who_you_are", title: "Who you are", note: "drawn from what you've actually done" },
   { key: "patterns", title: "What you repeat", note: "the kind ones and the costly ones" },
-  { key: "energy", title: "Your energy", note: "read against the days you rated" },
+  { key: "suggestions", title: "Worth trying", note: "small enough to start today" },
 ];
 
 export default function Insights() {

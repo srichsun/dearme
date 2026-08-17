@@ -16,37 +16,56 @@ from app.core import db
 from app.models import Profile
 from app.services import chat_model, entries
 
-# The three parts of the reading, in the order the screen shows them.
-SECTIONS = ("who_you_are", "patterns", "energy")
+# The four parts of the reading, in the order the screen shows them, which is
+# also the order they answer: how you are now, who you are, why it keeps going
+# this way, and what to do about it. Suggestions come last because a suggestion
+# that arrives before the pattern it addresses reads as advice from a stranger.
+SECTIONS = ("mood", "who_you_are", "patterns", "suggestions")
 
 
 class Reading(BaseModel):
     """One rolling read of a person, as the model returns it."""
 
+    mood: str = Field(description="how they have been lately, plainly and without verdict")
     who_you_are: str = Field(
         description="who this person is, leaning on what they have actually done"
     )
     patterns: str = Field(description="what they keep repeating, good and bad")
-    energy: str = Field(description="what raises and drains their energy, and what to do")
+    suggestions: str = Field(description="one or two concrete things worth trying next")
 
 
 _CONDENSE_PROMPT = (
     "You keep a rolling read of one person, built from the journal they write "
     "each day. Rewrite it from the entries below, keeping what is still true "
-    "and dropping one-off trivia. Three parts, each a few short paragraphs or "
-    "bullets:\n\n"
+    "and dropping one-off trivia. Keep something because the entries still "
+    "support it, not because it is recent — a thing they haven't mentioned "
+    "lately is not thereby untrue, and the steadiest parts of a person are the "
+    "ones least often written down. Drop it when something they wrote actually "
+    "overturns it.\n\n"
+    "Four parts, each a few short paragraphs or bullets:\n\n"
+    "**mood** — how they have been lately: the general weather of it, and "
+    "whether it has been steady or swinging. Read their energy ratings against "
+    "what they wrote on those days. Say it plainly and without a verdict — this "
+    "is the first thing they see, and being told what their own feelings mean "
+    "before anything else lands badly. If the entries are too few to say "
+    "anything, say that rather than inventing a trend.\n\n"
     "**who_you_are** — who this person is: their situation, what they care "
     "about, the people who matter, what they're reaching for. Ground it in "
     "what they have actually done, and say those things plainly — they lose "
-    "sight of their own record, and this is where they come to find it. Never "
-    "guess at facts they haven't stated.\n\n"
-    "**patterns** — what they keep repeating, especially under stress. Both "
-    "kinds: what they reliably do that works, and what they reliably do that "
+    "sight of their own record, and this is where they come to find it. Lean "
+    "warm here: name the things they have pulled off, especially the ones they "
+    "did while afraid or exhausted. Warm means specific, not flattering — a "
+    "real day named does more than any amount of praise. Never guess at facts "
+    "they haven't stated.\n\n"
+    "**patterns** — what they keep repeating, especially under stress, and how "
+    "it runs through their energy: what reliably lifts them, what reliably "
+    "drains them. Both kinds: what they do that works, and what they do that "
     "costs them. Be specific and honest; a pattern named vaguely is no use.\n\n"
-    "**energy** — read their energy ratings against what they wrote on those "
-    "days. What lifts them, what drains them, and one or two concrete things "
-    "worth trying. Only what the entries actually support — if the ratings are "
-    "too few to say anything, say that instead of inventing a trend.\n\n"
+    "**suggestions** — one or two concrete things worth trying next, each "
+    "small enough to start today, and each tied to a pattern named above rather "
+    "than to general advice. Protecting energy counts as much as raising it: "
+    "stopping earlier, saying no, leaving something undone are all fair "
+    "suggestions. Only what the entries actually support.\n\n"
     "Keep the whole thing under ~1000 words: it is injected into every "
     "conversation, so it must not grow without bound.\n\n"
     "Current read:\n{existing}\n\n"

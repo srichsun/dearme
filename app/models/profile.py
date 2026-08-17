@@ -8,11 +8,11 @@ from app.models.base import Base, now
 
 
 class Profile(Base):
-    """What the journal adds up to, in three parts: who this person is, the
-    patterns they keep repeating, and what actually lifts their energy.
+    """What the journal adds up to, in four parts: how they have been, who this
+    person is, the patterns they keep repeating, and what is worth trying next.
 
-    Kept as three named sections rather than one blob of prose, because the
-    screen shows them as three separate things and the coach leans on them
+    Kept as four named sections rather than one blob of prose, because the
+    screen shows them as four separate things and the coach leans on them
     differently. Rebuilt only when the person asks for it — nothing here
     updates on its own.
 
@@ -23,8 +23,8 @@ class Profile(Base):
     __tablename__ = "profiles"
 
     key: Mapped[str] = mapped_column(String(64), primary_key=True)
-    # {"who_you_are": ..., "patterns": ..., "energy": ...} — see
-    # app.services.profile.SECTIONS.
+    # {"mood": ..., "who_you_are": ..., "patterns": ..., "suggestions": ...} —
+    # see app.services.profile.SECTIONS.
     sections: Mapped[dict] = mapped_column(JSON, default=dict)
     # How many journal days went into this reading, so the screen can say how
     # far behind it has fallen.

@@ -10,9 +10,10 @@ from app.services import profile
 U = "u-profile"
 
 READING = {
+    "mood": "- steadier than last week",
     "who_you_are": "- runs regularly",
     "patterns": "- goes quiet when overloaded",
-    "energy": "- mornings are the good hours",
+    "suggestions": "- stop an hour earlier on the heavy days",
 }
 
 
@@ -100,5 +101,17 @@ def test_the_prompt_text_keeps_the_sections_in_order(sqlite_db, monkeypatch):
 
     text = profile.as_prompt_text(U)
 
-    assert text.index("who_you_are") < text.index("patterns") < text.index("energy")
-    assert "mornings are the good hours" in text
+    assert (
+        text.index("mood")
+        < text.index("who_you_are")
+        < text.index("patterns")
+        < text.index("suggestions")
+    )
+    assert "stop an hour earlier on the heavy days" in text
+
+def test_the_sections_and_the_model_fields_stay_in_step():
+    """SECTIONS drives the prompt text and the screen's order; Reading is what
+    the model is actually asked to return. A name added to one and not the other
+    goes missing silently — the section simply never renders.
+    """
+    assert tuple(profile.Reading.model_fields) == profile.SECTIONS
