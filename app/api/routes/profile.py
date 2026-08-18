@@ -1,5 +1,5 @@
 """The rolling read of the person, built from their journal."""
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
 
 from app.services import profile
@@ -25,13 +25,19 @@ def read_profile(uid: CurrentUid):
     return {
         "sections": profile.get_profile(uid),
         "entries_behind": profile.entries_behind(uid),
+        "readings_left": profile.readings_left(uid),
     }
 
 
 @router.post("/profile/refresh")
 def refresh_profile(uid: CurrentUid):
     """Rebuild the reading from the journal. Only ever runs when asked."""
-    return {"sections": profile.refresh_profile(uid), "entries_behind": 0}
+    try:
+        sections = profile.refresh_profile(uid)
+    except profile.NoReadingsLeft:
+        raise HTTPException(status_code=409, detail="no readings left today")
+    return {"sections": sections, "entries_behind": 0,
+            "readings_left": profile.readings_left(uid)}
 
 
 @router.post("/profile/refresh/stream")
@@ -43,6 +49,8 @@ def refresh_profile_stream(uid: CurrentUid):
     the screen splits on those as it goes, and the finished reading is stored
     once the stream ends.
     """
+    if profile.readings_left(uid) < 1:
+        raise HTTPException(status_code=409, detail="no readings left today")
     return StreamingResponse(
         profile.stream_and_save(uid),
         media_type="text/plain; charset=utf-8",

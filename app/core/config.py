@@ -9,20 +9,13 @@ load_dotenv()
 # Swappable via LangChain wrappers — set LLM_PROVIDER to "openai" (ChatGPT) or
 # "anthropic" (Claude). OPENAI_API_KEY doubles as the key for STT and
 # embeddings below, regardless of which provider is chosen as the brain.
+#
+# Which model, and how much of it: app.core.budget. Everything that costs money
+# lives there together, so a bill can be read in one file.
 LLM_PROVIDER = os.getenv("LLM_PROVIDER", "openai")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
 ANTHROPIC_CHAT_MODEL = os.getenv("ANTHROPIC_CHAT_MODEL", "claude-haiku-4-5")
-# The mid-tier of the current flagship series: the same price as the
-# gpt-5.3-chat-latest it replaces, which OpenAI deprecated out from under us —
-# a 404 on every model call, with the app itself still healthy. Pin a concrete
-# version rather than a moving "-latest" alias, so the next deprecation is a
-# deliberate upgrade instead of an outage.
-OPENAI_CHAT_MODEL = os.getenv("OPENAI_CHAT_MODEL", "gpt-5.6-terra")
-# Ceiling, not a target — length is driven by the prompt. Sized from real
-# replies (persona + tools), which run 340-480 completion tokens; this leaves
-# ~4x headroom for a longer day without letting a runaway generation drag on.
-MAX_TOKENS = int(os.getenv("MAX_TOKENS", "2048"))
 
 # --- Database (journal entries) ---
 # Defaults to the local Postgres from docker-compose; tests point this at an

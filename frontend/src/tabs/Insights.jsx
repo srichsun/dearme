@@ -16,6 +16,7 @@ const SECTIONS = [
 export default function Insights() {
   const [sections, setSections] = useState(null);
   const [behind, setBehind] = useState(0);
+  const [left, setLeft] = useState(null);
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
@@ -25,6 +26,7 @@ export default function Insights() {
       if (cancelled || !data) return;
       setSections(data.sections || {});
       setBehind(data.entries_behind || 0);
+      setLeft(data.readings_left ?? null);
     })();
     return () => {
       cancelled = true;
@@ -49,6 +51,7 @@ export default function Insights() {
     setBusy(true);
     try {
       const res = await authFetch("/profile/refresh/stream", { method: "POST" });
+      if (res.status === 409) return setLeft(0);
       if (!res.ok || !res.body) return;
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
@@ -62,6 +65,7 @@ export default function Insights() {
         setSections((prev) => ({ ...(prev || {}), ...splitSections(written) }));
       }
       setBehind(0);
+      setLeft((n) => (n === null ? null : Math.max(0, n - 1)));
     } finally {
       setBusy(false);
     }
@@ -80,9 +84,16 @@ export default function Insights() {
               ? "Up to date with everything you've written"
               : "Write a few days, then ask for a reading"}
         </p>
-        <button className="primary wide" onClick={refresh} disabled={busy}>
+        <button className="primary wide" onClick={refresh} disabled={busy || left === 0}>
           {busy ? "Analysing…" : "Analyse"}
         </button>
+        {left !== null && (
+          <p className="hint">
+            {left
+              ? `${left} of today's ${left === 1 ? "reading" : "readings"} left`
+              : "Today has been read as many times as it can be."}
+          </p>
+        )}
       </section>
 
       {written &&

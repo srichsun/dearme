@@ -12,15 +12,12 @@ from datetime import date
 
 from sqlalchemy import func, select
 
-from app.core import clock, db
+from app.core import budget, clock, db
 from app.models import Entry
 
-# How many times a day may be analysed. Writing is deliberately not counted:
-# a day is often written in several passes — a note at lunch, the rest at
-# midnight — and metering that would punish keeping up with your own day.
-# Analysis is what costs a model call, and what should settle once the day is
-# actually over.
-ANALYSIS_LIMIT = 3
+# How many times a day may be analysed — see app.core.budget, where every
+# number that costs money lives together.
+ANALYSIS_LIMIT = budget.ANALYSES_PER_DAY
 
 
 class AnalysisLimitReached(Exception):
@@ -115,7 +112,7 @@ def entries_between(start: date, end: date, user_id: str) -> list[Entry]:
         return list(s.scalars(stmt))
 
 
-def recent_entries(user_id: str, limit: int = 30) -> list[Entry]:
+def recent_entries(user_id: str, limit: int = budget.READING_DAYS) -> list[Entry]:
     """One person's most recent entries, newest first — raw material for the profile."""
     with db.get_session() as s:
         stmt = (

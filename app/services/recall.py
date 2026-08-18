@@ -21,7 +21,7 @@ from langchain_openai import OpenAIEmbeddings
 from langchain_postgres import PGVector
 from sqlalchemy import select
 
-from app.core import config
+from app.core import budget, config
 from app.models import Category
 
 # Kept separate from the SQL `facts` table; PGVector manages its own tables.
@@ -29,17 +29,9 @@ from app.models import Category
 # ids can never collide.
 FACTS_COLLECTION = "facts"
 
-# How many facts to pull back per category searched. Facts are single sentences
-# — much shorter than a whole turn — so we pull more of them than the old
-# per-turn recall did.
-TOP_K = 8
+TOP_K = budget.RECALL_PER_CATEGORY
 
-# Searching two categories at once shouldn't halve the depth of each, so the
-# budget scales with how many were asked for. Capped so the prompt still can't
-# grow without bound: past this, extra facts are near-duplicates of ones already
-# in hand, and how often something recurs is the rolling profile's job (layer 3)
-# rather than something to establish by pulling back more of the same.
-MAX_K = 24
+MAX_K = budget.RECALL_MAX
 
 
 _store: PGVector | None = None

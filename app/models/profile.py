@@ -1,7 +1,7 @@
 """The long-term, rolling read of one person, condensed from their journal."""
-from datetime import datetime
+from datetime import date, datetime
 
-from sqlalchemy import JSON, DateTime, Integer, String
+from sqlalchemy import JSON, Date, DateTime, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models.base import Base, now
@@ -29,6 +29,11 @@ class Profile(Base):
     # How many journal days went into this reading, so the screen can say how
     # far behind it has fallen.
     entry_count: Mapped[int] = mapped_column(Integer, default=0)
+    # Rebuilding spends a model call, so it is metered the same way analysing a
+    # day is — and by the same reasoning. The date is kept alongside the count
+    # so the allowance refills at midnight without anything having to run.
+    rebuilt_on: Mapped[date | None] = mapped_column(Date, nullable=True)
+    rebuild_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=now, onupdate=now
     )

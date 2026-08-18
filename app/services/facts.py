@@ -37,7 +37,7 @@ class _FactList(BaseModel):
 # A small model call that only returns the structured facts above — same shape
 # as the profile condenser and the old tag extractor.
 _extractor = chat_model.build_chat_model(
-    timeout=chat_model.WRITE_TIMEOUT
+    timeout=chat_model.WRITE_TIMEOUT, worker=True
 ).with_structured_output(_FactList)
 
 _EXTRACT_PROMPT = (

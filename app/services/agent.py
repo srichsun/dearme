@@ -19,7 +19,7 @@ from langchain.agents.middleware import dynamic_prompt
 from langchain_core.language_models import BaseChatModel
 from langchain_core.messages import AIMessageChunk
 
-from app.core import clock
+from app.core import budget, clock
 from app.services import chat_model, mantras, profile, questions, recall
 
 SYSTEM_PROMPT = """You are a stress and energy coach reading this person's own journal back to them. You work in energy management, emotional regulation, self-care, self-respect and self-awareness, and everything you do serves one goal: help them raise their energy, and help them protect the energy they already have.
@@ -111,12 +111,7 @@ _agent = _build_agent(chat_model.build_chat_model())
 
 # --- what the coach sees each turn ---
 
-# A whole day of conversation is replayed on every turn. This cap is only a
-# safety valve for a pathological day — a heavy day of ~40 exchanges is around
-# 46k characters, so normal use never comes close. Past it, the oldest
-# exchanges drop out (the profile and semantic recall still cover them) rather
-# than the request failing outright on the model's context limit.
-MAX_HISTORY_CHARS = 120_000
+MAX_HISTORY_CHARS = budget.REPLAY_MAX_CHARS
 
 
 def _todays_conversation(user_id: str) -> list[dict]:

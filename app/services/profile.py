@@ -13,7 +13,7 @@ and be able to read a page without wondering whether it changed underneath.
 import re
 from collections.abc import Iterator
 
-from app.core import db
+from app.core import budget, clock, db
 from app.models import Profile
 from app.services import chat_model, entries
 
@@ -28,11 +28,9 @@ from app.services import chat_model, entries
 # so it gets half the page.
 SECTIONS = ("who_you_are", "what_helps", "what_costs", "suggestions")
 
-# How many days back a rebuild reads. Long enough to catch a slow pattern —
-# something that happens every other week is invisible in a fortnight — and
-# short enough that the prompt stays a fixed, affordable size. Anything older
-# survives through the previous reading rather than by being read again.
-READING_DAYS = 60
+# How far back a rebuild reads, and how long the result may be — see
+# app.core.budget, where every number that costs money lives together.
+READING_DAYS = budget.READING_DAYS
 
 
 _CONDENSE_PROMPT = (
@@ -66,7 +64,7 @@ _CONDENSE_PROMPT = (
     "small enough to start today, and each tied to something named in the two "
     "sections above rather than to general advice: more of what helps, or less "
     "of what costs. Only what the entries actually support.\n\n"
-    "Keep the whole thing under ~1000 words: it is injected into every "
+    "Keep the whole thing under ~{words} words: it is injected into every "
     "conversation, so it must not grow without bound.\n\n"
     "Write the four parts in the order above, each opening with its name on a "
     "line of its own as a heading — `### who_you_are` — and nothing else on "
@@ -101,6 +99,38 @@ def as_prompt_text(user_id: str) -> str:
     sections = get_profile(user_id)
     parts = [f"{name}:\n{sections[name]}" for name in SECTIONS if sections.get(name)]
     return "\n\n".join(parts)
+
+
+class NoReadingsLeft(Exception):
+    """Raised when today's allowance of rebuilds is used up."""
+
+
+def readings_left(user_id: str) -> int:
+    """How many rebuilds this person has left today.
+
+    The allowance refills at midnight on its own: a count stamped with an older
+    date is simply not today's, so nothing has to run to reset it.
+    """
+    with db.get_session() as s:
+        row = s.get(Profile, user_id)
+        used = row.rebuild_count if row and row.rebuilt_on == clock.today() else 0
+    return max(0, budget.READINGS_PER_DAY - used)
+
+
+def _spend_reading(user_id: str) -> None:
+    """Charge one of today's rebuilds, or refuse once they're gone."""
+    today = clock.today()
+    with db.get_session() as s:
+        row = s.get(Profile, user_id)
+        if row is None:
+            row = Profile(key=user_id)
+            s.add(row)
+        if row.rebuilt_on != today:
+            row.rebuilt_on, row.rebuild_count = today, 0
+        if row.rebuild_count >= budget.READINGS_PER_DAY:
+            raise NoReadingsLeft
+        row.rebuild_count += 1
+        s.commit()
 
 
 def entries_behind(user_id: str) -> int:
@@ -145,7 +175,9 @@ def _prompt_for(user_id: str) -> str:
         for e in entries.recent_entries(user_id, limit=READING_DAYS)
     )
     return _CONDENSE_PROMPT.format(
-        existing=existing_text or "(empty)", recent=recent_text or "(none)"
+        words=budget.READING_WORDS,
+        existing=existing_text or "(empty)",
+        recent=recent_text or "(none)",
     )
 
 
@@ -179,6 +211,7 @@ def stream_and_save(user_id: str) -> Iterator[str]:
     thousand words, and a minute of blank page reads as broken however fast the
     answer eventually lands.
     """
+    _spend_reading(user_id)
     written = []
     for chunk in _condenser.stream(_prompt_for(user_id)):
         text = chunk.content if isinstance(chunk.content, str) else ""

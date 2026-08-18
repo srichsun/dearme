@@ -6,6 +6,11 @@ previous reading is carried forward, that the energy ratings go in alongside
 the writing, that the streamed text is split back into sections, and that
 nothing rebuilds it unless asked.
 """
+from datetime import date
+
+import pytest
+
+from app.core import budget
 from app.services import profile
 
 U = "u-profile"
@@ -201,3 +206,32 @@ def test_the_reading_reaches_back_further_than_a_fortnight(write_days, monkeypat
 
     assert profile.READING_DAYS >= 60
     assert "old enough to matter" in seen["prompt"]
+
+
+def test_a_rebuild_is_metered_like_a_day_is(write_days, monkeypatch):
+    """Rebuilding spends a model call, so it is capped the same way analysing a
+    day is — one rule to learn rather than two."""
+    write_days(U, "first")
+    _fake_model(monkeypatch, _written())
+
+    assert profile.readings_left(U) == budget.READINGS_PER_DAY
+    for _ in range(budget.READINGS_PER_DAY):
+        profile.refresh_profile(U)
+    assert profile.readings_left(U) == 0
+
+    with pytest.raises(profile.NoReadingsLeft):
+        profile.refresh_profile(U)
+
+
+def test_the_allowance_refills_on_a_new_day(write_days, monkeypatch):
+    """Nothing runs at midnight; a count stamped with an older date simply
+    isn't today's."""
+    from datetime import timedelta
+
+    write_days(U, "first")
+    _fake_model(monkeypatch, _written())
+    profile.refresh_profile(U)
+
+    monkeypatch.setattr(profile.clock, "today", lambda: date.today() + timedelta(days=1))
+
+    assert profile.readings_left(U) == budget.READINGS_PER_DAY

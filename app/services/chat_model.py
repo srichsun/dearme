@@ -9,28 +9,28 @@ from langchain_anthropic import ChatAnthropic
 from langchain_core.language_models import BaseChatModel
 from langchain_openai import ChatOpenAI
 
-from app.core import config
+from app.core import budget, config
 
 
-# What a reply may take before we give up. Sized for the coach answering a
-# question: it streams, so the person sees words within a second or two, and
-# anything past this is a stall rather than a long answer.
-REPLY_TIMEOUT = 20.0
-
-# The condenser and the fact extractor are a different shape of call: one shot,
-# no streaming, and the reading runs to about a thousand words. Those take
-# comfortably longer than a chat reply, and timing them out at the reply's
-# budget means the button fails on the person while the model is still working.
-WRITE_TIMEOUT = 120.0
+REPLY_TIMEOUT = budget.REPLY_TIMEOUT
+WRITE_TIMEOUT = budget.WRITE_TIMEOUT
 
 
-def build_chat_model(timeout: float = REPLY_TIMEOUT) -> BaseChatModel:
-    """Build the configured chat model (needs the matching API key)."""
+def build_chat_model(
+    timeout: float = budget.REPLY_TIMEOUT, worker: bool = False
+) -> BaseChatModel:
+    """Build the configured chat model (needs the matching API key).
+
+    `worker=True` asks for the cheap tier: the extractor and the condenser read
+    a lot and write a little, which the small model does at a fraction of the
+    price. The coach's own reply is the one a person reads and judges, so it
+    stays on the better one.
+    """
     if config.LLM_PROVIDER == "openai":
         return ChatOpenAI(
-            model=config.OPENAI_CHAT_MODEL,
+            model=budget.WORKER_MODEL if worker else budget.CHAT_MODEL,
             api_key=config.OPENAI_API_KEY,
-            max_tokens=config.MAX_TOKENS,
+            max_tokens=budget.REPLY_MAX_TOKENS,
             timeout=timeout,
             # The current models reason by default, and chat completions
             # refuses to take function tools alongside that — which is every
@@ -45,7 +45,7 @@ def build_chat_model(timeout: float = REPLY_TIMEOUT) -> BaseChatModel:
         return ChatAnthropic(
             model_name=config.ANTHROPIC_CHAT_MODEL,
             api_key=config.ANTHROPIC_API_KEY,
-            max_tokens=config.MAX_TOKENS,
+            max_tokens=budget.REPLY_MAX_TOKENS,
             timeout=timeout,
         )
     raise ValueError(f"LLM_PROVIDER must be openai or anthropic, got {config.LLM_PROVIDER!r}")
