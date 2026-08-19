@@ -1,0 +1,936 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dear Myself — 畫面與系統</title>
+<meta name="description" content="Dear Myself 的產品介紹影片、三個動作的互動展示，以及工程品質、開發時最難的問題與效能數字。">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🕯</text></svg>">
+</head>
+<body>
+
+<style>
+  :root {
+    --bone: #efe7db;
+    --linen: #fffdf9;
+    --well: #f7f2e9;
+    --edge: #e2d8c8;
+    --ink: #2f2b26;
+    --ink-soft: #6f6759;
+    --ink-faint: #a49a89;
+    --clay: #b08475;
+    --honey: #c9a05c;
+    --sage: #7f9d80;
+    --shadow: 0 1px 2px rgba(58,48,36,.04), 0 10px 26px -14px rgba(58,48,36,.2);
+    --page: #e4dccf;
+    --rule: rgba(58,48,36,.14);
+    --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, ui-serif, serif;
+    --sans: -apple-system, BlinkMacSystemFont, "PingFang TC", "Segoe UI", system-ui, sans-serif;
+    --mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--page);
+    color: var(--ink);
+    font-family: var(--sans);
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+    padding: clamp(18px, 3.5vw, 46px) clamp(14px, 3.5vw, 44px) 60px;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; }
+
+  header.top { max-width: 56ch; margin-bottom: 26px; }
+  .eyebrow {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .16em;
+    text-transform: uppercase; color: var(--clay); margin-bottom: 10px;
+  }
+  header.top h1 {
+    font-family: var(--serif); font-weight: 400;
+    font-size: clamp(28px, 5vw, 46px); line-height: 1.12;
+    letter-spacing: -.02em; margin-bottom: 10px;
+  }
+  header.top p { color: var(--ink-soft); font-size: 15.5px; }
+
+
+  /* ---------- the film ---------- */
+  .film {
+    margin: 0 0 30px;
+    background: var(--bone);
+    border: 1px solid var(--rule);
+    border-radius: 20px;
+    padding: 14px;
+    box-shadow: var(--shadow);
+  }
+  .film video {
+    display: block;
+    width: 100%;
+    border-radius: 12px;
+    background: #e4dccf;
+  }
+  .film p {
+    font-family: var(--mono);
+    font-size: 11.5px;
+    letter-spacing: .06em;
+    color: var(--ink-faint);
+    margin-top: 10px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 16px;
+  }
+
+
+  /* ---------- engineering ---------- */
+  .quality {
+    border-top: 1px solid var(--rule);
+    margin-top: 46px;
+    padding-top: 32px;
+  }
+  .quality > h2 {
+    font-size: clamp(21px, 2.8vw, 26px);
+    font-weight: 600;
+    letter-spacing: .01em;
+    margin-bottom: 6px;
+  }
+  .quality > p.lede { color: var(--ink-soft); font-size: 15px; max-width: 56ch; }
+
+  /* One card per row: full width, so a seven-item list reads down the page
+     rather than as a grid to scan across. */
+  .qrows { margin-top: 26px; display: grid; gap: 12px; }
+  .q {
+    background: var(--linen);
+    border: 1px solid var(--edge);
+    border-radius: 16px;
+    box-shadow: var(--shadow);
+    padding: 18px 22px;
+    display: grid;
+    grid-template-columns: minmax(150px, 200px) 1fr;
+    gap: clamp(14px, 3vw, 36px);
+    align-items: start;
+  }
+  @media (max-width: 700px) { .q { grid-template-columns: 1fr; gap: 8px; } }
+
+  .q h3 { font-size: 16.5px; font-weight: 600; margin-bottom: 3px; }
+  .q .one { font-size: 13.5px; color: var(--clay); line-height: 1.5; }
+  .q ul { list-style: none; display: grid; gap: 8px; }
+  .q li {
+    font-size: 14px;
+    color: var(--ink-soft);
+    line-height: 1.65;
+    padding-left: 16px;
+    position: relative;
+    max-width: 66ch;
+  }
+  .q li::before {
+    content: "";
+    position: absolute;
+    left: 0; top: .75em;
+    width: 7px; height: 1px;
+    background: var(--edge);
+  }
+  .q li b { color: var(--ink); font-weight: 600; }
+  .gap {
+    margin-top: 22px;
+    background: var(--well);
+    border: 1px solid var(--edge);
+    border-left: 2px solid var(--clay);
+    border-radius: 0 14px 14px 0;
+    padding: 14px 18px;
+    font-size: 14px;
+    color: var(--ink-soft);
+    max-width: 68ch;
+  }
+  .gap b { color: var(--ink); }
+
+
+  /* ---------- what was hard ---------- */
+  .hard {
+    border-top: 1px solid var(--rule);
+    margin-top: 46px;
+    padding-top: 32px;
+  }
+  .hard > h2 {
+    font-size: clamp(21px, 2.8vw, 26px);
+    font-weight: 600;
+    letter-spacing: .01em;
+    margin-bottom: 6px;
+  }
+  .hard > p.lede { color: var(--ink-soft); font-size: 15px; max-width: 58ch; }
+  .hards { margin-top: 26px; display: grid; gap: 14px; }
+  .h {
+    background: var(--linen);
+    border: 1px solid var(--edge);
+    border-radius: 16px;
+    box-shadow: var(--shadow);
+    padding: 20px 24px;
+  }
+  .h > .n {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .12em;
+    color: var(--clay);
+  }
+  .h > h3 {
+    font-size: 16.5px;
+    font-weight: 600;
+    margin: 3px 0 12px;
+  }
+  .h dl { display: grid; gap: 10px; }
+  .h dl > div {
+    display: grid;
+    grid-template-columns: 74px 1fr;
+    gap: 14px;
+    align-items: baseline;
+  }
+  @media (max-width: 640px) { .h dl > div { grid-template-columns: 1fr; gap: 2px; } }
+  .h dt {
+    font-size: 12.5px;
+    color: var(--ink-faint);
+    font-family: var(--mono);
+    letter-spacing: .04em;
+  }
+  .h dd { font-size: 14px; color: var(--ink-soft); line-height: 1.65; max-width: 64ch; }
+  .h dd b { color: var(--ink); font-weight: 600; }
+  .h dd code {
+    font-family: var(--mono);
+    font-size: .86em;
+    background: var(--well);
+    border: 1px solid var(--edge);
+    border-radius: 3px;
+    padding: 1px 5px;
+  }
+  .h .took { border-top: 1px solid var(--rule); margin-top: 14px; padding-top: 12px; }
+  .h .took dt { color: var(--clay); }
+
+  /* ---------- controls ---------- */
+  .controls {
+    display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+    margin-bottom: 20px;
+  }
+  .scenes { display: flex; gap: 4px; background: var(--bone); border-radius: 999px; padding: 4px; }
+  .scenes button {
+    border: none; background: none; font: inherit; font-size: 13.5px;
+    color: var(--ink-faint); border-radius: 999px; padding: 6px 14px; cursor: pointer;
+  }
+  .scenes button.on { background: var(--linen); color: var(--ink); box-shadow: var(--shadow); }
+  .play {
+    border: none; background: var(--ink); color: var(--linen);
+    font: inherit; font-size: 13.5px; border-radius: 999px;
+    padding: 8px 20px; cursor: pointer; margin-left: auto;
+  }
+  .play.again { background: var(--clay); }
+  .stepnav { display: flex; gap: 4px; align-items: center; }
+  .stepnav button {
+    border: 1px solid var(--edge); background: var(--linen); color: var(--ink);
+    font: inherit; font-size: 13.5px; border-radius: 999px;
+    width: 34px; height: 34px; cursor: pointer; line-height: 1;
+  }
+  .stepnav button:disabled { opacity: .35; cursor: default; }
+  .stepnav .count {
+    font-family: var(--mono); font-size: 12px; color: var(--ink-faint);
+    font-variant-numeric: tabular-nums; padding: 0 4px; min-width: 46px; text-align: center;
+  }
+  button:focus-visible, .scenes button:focus-visible { outline: 2px solid var(--clay); outline-offset: 2px; }
+
+
+  /* ---------- stage ---------- */
+  .stage {
+    display: grid;
+    grid-template-columns: minmax(250px, 320px) 1fr;
+    gap: clamp(18px, 3vw, 40px);
+    align-items: start;
+  }
+  @media (max-width: 820px) { .stage { grid-template-columns: 1fr; } }
+
+  .phone {
+    background: var(--bone);
+    border: 1px solid var(--rule);
+    border-radius: 26px;
+    padding: 14px 12px 16px;
+    min-height: 430px;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .panel {
+    background: var(--linen); border: 1px solid var(--edge);
+    border-radius: 20px; box-shadow: var(--shadow); padding: 15px 14px;
+  }
+  .panel h3 {
+    font-family: var(--serif); font-weight: 400; font-size: 19px;
+    letter-spacing: -.01em; margin-bottom: 3px;
+  }
+  .panel .note { font-size: 12px; color: var(--ink-faint); margin-bottom: 10px; }
+
+  .well {
+    background: var(--well); border: 1px solid var(--edge);
+    border-radius: 14px; padding: 10px 12px; min-height: 66px; max-height: 280px; overflow-y: auto;
+    font-size: 12.5px; color: var(--ink-soft); line-height: 1.65;
+  }
+  .well.empty { color: var(--ink-faint); }
+  .caret { border-right: 1.5px solid var(--clay); animation: blink 1s steps(1) infinite; }
+  @keyframes blink { 50% { border-color: transparent; } }
+  @media (prefers-reduced-motion: reduce) { .caret { animation: none; } }
+
+  /* The writer's corner: the mic sits inside the box, the way it does in the
+     app — speaking is the path most days actually take. */
+  .writer { position: relative; }
+  .mic {
+    position: absolute;
+    right: 10px; bottom: 10px;
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    border: 1px solid var(--edge);
+    background: var(--linen);
+    display: grid; place-items: center;
+    transition: background .2s ease, border-color .2s ease, transform .2s ease;
+  }
+  .mic svg { width: 14px; height: 14px; }
+  .mic path, .mic rect { fill: var(--ink-soft); }
+  .mic.on { background: var(--clay); border-color: var(--clay); transform: scale(1.08); }
+  .mic.on path, .mic.on rect { fill: var(--linen); }
+  .mic.on::after {
+    content: "";
+    position: absolute;
+    inset: -6px;
+    border-radius: 50%;
+    border: 1px solid var(--clay);
+    opacity: .5;
+    animation: ripple 1.4s ease-out infinite;
+  }
+  @keyframes ripple {
+    to { transform: scale(1.5); opacity: 0; }
+  }
+  @media (prefers-reduced-motion: reduce) { .mic.on::after { animation: none; } }
+
+  .notice {
+    font-size: 11px;
+    color: var(--clay);
+    font-family: var(--mono);
+    margin-top: 8px;
+    min-height: 14px;
+  }
+
+  .saved {
+    font-size: 11px; color: var(--ink-faint); text-align: right;
+    margin-top: 8px; font-family: var(--mono);
+    opacity: 0; transition: opacity .3s ease;
+  }
+  .saved.on { opacity: 1; }
+
+  .btn {
+    display: block; width: 100%; margin-top: 10px; border: none;
+    background: var(--ink); color: var(--linen); border-radius: 999px;
+    padding: 11px; font: inherit; font-size: 13.5px; text-align: center;
+    transition: transform .12s ease, opacity .2s ease;
+  }
+  .btn.pressed { transform: scale(.97); opacity: .75; }
+  .hintline { font-size: 11px; color: var(--ink-faint); text-align: center; margin-top: 7px; }
+
+  .slider { margin-top: 12px; }
+  .slider .row { display: flex; justify-content: space-between; font-size: 11.5px; color: var(--ink-faint); }
+  .slider .row b { color: var(--clay); font-weight: 600; }
+  .slider .track { height: 4px; border-radius: 999px; background: var(--edge); margin-top: 8px; position: relative; }
+  .slider .track i { position: absolute; left: 0; top: 0; bottom: 0; width: 0; background: var(--clay); border-radius: 999px; transition: width .7s cubic-bezier(.2,.7,.2,1); }
+  .slider .track span { position: absolute; top: -5px; left: 0; width: 14px; height: 14px; border-radius: 50%; background: var(--linen); border: 1px solid var(--edge); box-shadow: var(--shadow); transition: left .7s cubic-bezier(.2,.7,.2,1); }
+
+  dl.facts { margin-top: 12px; display: grid; gap: 9px; }
+  dl.facts > div {
+    display: grid; grid-template-columns: 68px 1fr; gap: 8px; align-items: baseline;
+    opacity: 0; transform: translateY(4px);
+    transition: opacity .35s ease, transform .35s ease;
+  }
+  dl.facts > div.in { opacity: 1; transform: none; }
+  dl.facts dt {
+    font-family: var(--mono); font-size: 9.5px; letter-spacing: .07em;
+    text-transform: uppercase; color: var(--ink-faint);
+  }
+  dl.facts .wins dt { color: var(--sage); }
+  dl.facts .gratitude dt { color: var(--honey); }
+  dl.facts dd { font-size: 12.5px; color: var(--ink-soft); line-height: 1.5; }
+
+  .bubble { border-radius: 16px 16px 16px 5px; padding: 9px 12px; font-size: 12.5px; line-height: 1.55; }
+  .bubble.you { background: var(--ink); color: var(--linen); border-radius: 16px 16px 5px 16px; margin-left: 20%; }
+  .bubble.her { background: var(--well); color: var(--ink-soft); border: 1px solid var(--edge); margin-right: 6%; margin-top: 8px; min-height: 40px; }
+  .sources {
+    font-family: var(--mono); font-size: 10px; color: var(--clay); margin-top: 7px;
+    opacity: 0; transition: opacity .4s ease;
+  }
+  .sources.on { opacity: 1; }
+  .thinking { font-family: var(--mono); font-size: 11px; color: var(--ink-faint); margin-top: 8px; }
+
+  .caption {
+    font-family: var(--mono); font-size: 10.5px; letter-spacing: .06em;
+    color: var(--ink-faint); text-align: center; padding-top: 2px; margin-top: auto;
+  }
+
+  /* ---------- backstage ---------- */
+  .backstage h2 {
+    font-family: var(--mono); font-size: 11.5px; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--ink-faint); margin-bottom: 14px;
+  }
+  ol.log { list-style: none; display: grid; gap: 0; }
+  /* Each row is a button: the whole point is being able to stop on a step and
+     talk about it rather than racing the animation. */
+  ol.log li { border-bottom: 1px solid var(--rule); }
+  ol.log li:last-child { border-bottom: none; }
+  ol.log li button {
+    width: 100%; text-align: left; border: none; background: none;
+    font: inherit; cursor: pointer;
+    display: grid; grid-template-columns: 24px 1fr; gap: 12px;
+    padding: 11px 6px 11px 0; border-radius: 10px;
+    opacity: .35; transition: opacity .25s ease, background .2s ease;
+  }
+  ol.log li button:hover { opacity: .8; background: rgba(255,253,249,.5); }
+  ol.log li button:focus-visible { outline: 2px solid var(--clay); outline-offset: -2px; }
+  ol.log li.done button { opacity: .6; }
+  ol.log li.now button { opacity: 1; background: rgba(255,253,249,.72); }
+  ol.log .dot {
+    width: 20px; height: 20px; border-radius: 50%;
+    background: var(--ink); margin-top: 3px;
+    display: grid; place-items: center;
+    font-family: var(--mono); font-size: 10px; color: var(--linen);
+  }
+  ol.log .dot.model { background: var(--clay); }
+  ol.log .dot.store { background: var(--sage); }
+  ol.log li.now .dot { box-shadow: 0 0 0 4px rgba(176,132,117,.22); }
+  ol.log h4 span.hint { font-family: var(--mono); font-size: 10px; color: var(--ink-faint); margin-left: 8px; }
+  ol.log h4 { font-size: 14.5px; font-weight: 600; margin-bottom: 2px; }
+  ol.log p { font-size: 13.5px; color: var(--ink-soft); max-width: 58ch; }
+  ol.log code {
+    font-family: var(--mono); font-size: .85em; background: var(--well);
+    border: 1px solid var(--edge); border-radius: 3px; padding: 1px 5px;
+  }
+
+  .legend {
+    display: flex; flex-wrap: wrap; gap: 6px 18px;
+    font-family: var(--mono); font-size: 11px; color: var(--ink-faint);
+    margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--rule);
+  }
+  .legend i { width: 9px; height: 9px; border-radius: 50%; display: inline-block; margin-right: 6px; }
+  .legend .a { background: var(--ink); }
+  .legend .b { background: var(--clay); }
+  .legend .c { background: var(--sage); }
+
+  footer.end {
+    border-top: 1px solid var(--rule); margin-top: 40px; padding-top: 18px;
+    font-family: var(--mono); font-size: 12px; color: var(--ink-faint);
+    display: flex; flex-wrap: wrap; gap: 8px 24px;
+  }
+</style>
+
+<div class="wrap">
+
+<header class="top">
+  <p class="eyebrow">Dear Me ・ 產品與系統</p>
+  <h1>你看到的畫面，<br>跟背後跑的系統</h1>
+  <p>上面是一分鐘的產品介紹。下面把三個動作拆開：左邊是使用者看到的畫面，右邊是背後真正跑的東西——按播放，或用 <b>← →</b> 一步一步走。</p>
+</header>
+
+<figure class="film">
+  <video controls playsinline preload="metadata" poster="">
+    <source src="dearme.mp4" type="video/mp4">
+  </video>
+  <p><span>產品介紹 ・ 1 分 20 秒</span><span>中文旁白 ・ 中文字幕</span><span>畫面逐格繪製，非螢幕錄影</span></p>
+</figure>
+
+<div class="controls">
+  <div class="scenes" id="scenes"></div>
+  <div class="stepnav">
+    <button id="prev" aria-label="上一步">←</button>
+    <span class="count" id="count">1 / 6</span>
+    <button id="next" aria-label="下一步">→</button>
+  </div>
+  <button class="play" id="play">▶ 播放</button>
+</div>
+
+
+<div class="stage">
+  <div class="phone" id="phone"></div>
+  <div class="backstage">
+    <h2 id="stageTitle">背後發生的事</h2>
+    <ol class="log" id="log"></ol>
+    <div class="legend">
+      <span><i class="a"></i>一般後端動作</span>
+      <span><i class="b"></i>花錢的模型呼叫</span>
+      <span><i class="c"></i>寫進儲存</span>
+    </div>
+  </div>
+</div>
+
+<section class="quality">
+  <h2>工程品質</h2>
+  <p class="lede">這個專案我最在意的七件事，以及每一件實際做了什麼。</p>
+
+  <div class="qrows">
+    <div class="q">
+      <div>
+        <h3>可測試</h3>
+        <p class="one">93 個測試，但不打真的模型。</p>
+      </div>
+      <ul><li>塞一個<b>假模型</b>進去，資料庫用記憶體 SQLite——不花錢、兩秒跑完，也不會因為模型今天回答不一樣就無故變紅。</li><li>假模型還能測真模型測不到的：我可以叫它<b>故意漏寫一段</b>，看程式撐不撐得住。</li></ul>
+    </div>
+    <div class="q">
+      <div>
+        <h3>可觀測</h3>
+        <p class="one">AI 會很有自信地講錯話，所以要能查。</p>
+      </div>
+      <ul><li>每個回答都列出<b>它讀了哪幾天</b>——日期是從工具的輸出抓的，不是模型講的，所以造不了假。</li><li>LangSmith 留下每次呼叫的 prompt、工具參數、token、延遲。有人說答錯了，我打得開現場。</li></ul>
+    </div>
+    <div class="q">
+      <div>
+        <h3>成本可控</h3>
+        <p class="one">每個花錢的地方都有天花板，全部在一支檔案裡。</p>
+      </div>
+      <ul><li><code>budget.py</code> 打開就知道錢花在哪：分析一天 3 次、摘要一天 3 次、讀 60 天、答案上限 2048 token。</li><li><b>寫日記不計次，分析才計次</b>——存文字不花錢，對寫字收費等於在懲罰認真寫的人。</li></ul>
+    </div>
+    <div class="q">
+      <div>
+        <h3>資料正確</h3>
+        <p class="one">規則寫在資料庫和型別裡，不是靠程式記得。</p>
+      </div>
+      <ul><li>一天一篇是<b>唯一索引</b>擋的——寫第二篇不是被拒絕，是做不到。</li><li>向量的 id 就用 SQL 主鍵，所以刪得準。我踩過一次只刪 SQL 忘了刪向量，AI 就記得一個<b>已經不存在的版本</b>。</li></ul>
+    </div>
+    <div class="q">
+      <div>
+        <h3>可擴展</h3>
+        <p class="one">寫一年之後，一次呼叫餵進去的量跟第一週差不多。</p>
+      </div>
+      <ul><li>摘要是滾動更新的：只讀最近 60 天，更舊的靠上一版帶下來；撈回的事實也有上限（24 條）。<b>資料一直長，prompt 不會。</b></li><li>下一個瓶頸我知道在哪：pgvector 目前<b>沒有建向量索引</b>。幾百條事實用暴力搜尋沒問題，到幾十萬條就需要 HNSW。還沒到那個量，現在加是為一個還不存在的問題付代價。</li></ul>
+    </div>
+    <div class="q">
+      <div>
+        <h3>好維護</h3>
+        <p class="one">註解寫「為什麼」，不只寫「做什麼」。</p>
+      </div>
+      <ul><li>做什麼看程式碼就知道，<b>會消失的是當初的理由</b>——為什麼要加這個鎖、為什麼這個錯誤刻意讓它過。</li><li>換模型只改一支檔案。OpenAI 把我的模型下架那天，我改一行就修好了。</li></ul>
+    </div>
+    <div class="q">
+      <div>
+        <h3>安全</h3>
+        <p class="one">把權限拿掉，不是靠檢查擋掉。</p>
+      </div>
+      <ul><li>每個查詢都把 uid 寫進 where——猜 id 的結果是<b>查無此筆</b>，不會有「先載入別人的資料再擋掉」這個中間狀態。</li><li>Agent 的工具<b>沒有 user_id 這個參數</b>，模型看不到也填不了。安全不能建立在「模型會乖乖聽話」上面。</li></ul>
+    </div>
+  </div>
+
+  <p class="gap"><b>還缺的：告警。</b>我踩過一次外部模型被下架，日誌裡躺著 404，但沒有人通知我——是自己去用才發現。這讓我學到健康檢查要真的碰到相依服務，不然它只是在告訴你伺服器還活著。</p>
+</section>
+
+<section class="hard">
+  <h2>開發時最難的三件事</h2>
+  <p class="lede">照難度排，不是照時間。前兩個是設計上的判斷，第三個是上線之後才學得到的。</p>
+
+  <div class="hards">
+
+    <div class="h">
+      <p class="n">01</p>
+      <h3>長期記憶要怎麼設計</h3>
+      <dl>
+        <div><dt>難在哪</dt><dd>三個需求互相打架：<b>要記得夠久</b>（三個月前的事也撈得回來）、<b>不能越來越貴</b>（不可能每次把整本日記塞進 prompt）、<b>要撈得準</b>（撈回一堆不相關的，答案就歪了）。</dd></div>
+        <div><dt>怎麼做</dt><dd>參考了 Mindsera 的做法——把日記拆成原子事實、歸進固定分類、檢索時讓模型自己挑要搜哪幾類。他們那八個分類我一字不差沿用，另外加了 <code>wins</code> 和 <code>gratitude</code>，因為我的畫面要一天一天顯示這兩個。</dd></div>
+        <div><dt>踩到的</dt><dd>一開始我是<b>一天存一個向量</b>，結果很糟：一天會寫工作、睡眠、家人，三件事混在同一個向量裡，搜「睡眠」時分數被另外兩件事稀釋，撈不回來。改成<b>一條事實一個向量</b>之後就乾淨了。</dd></div>
+        <div><dt>結論</dt><dd>記憶分三層，因為問題本來就有三種：「3/18 發生什麼」用<b>純 SQL</b>、「以前有過類似的嗎」用<b>向量</b>、「我是個怎樣的人」用<b>LLM 濃縮的摘要</b>。<b>該用 SQL 的地方就用 SQL</b>，不是什麼都丟去做向量搜尋。</dd></div>
+        <div class="took"><dt>還缺的</dt><dd>Mindsera 有定期清理（每月重生分類、丟掉過時的事實），<b>我沒有</b>。事實只會累積，寫久了會有「兩年前早就不成立的事還在被撈回來」的問題。</dd></div>
+      </dl>
+    </div>
+
+    <div class="h">
+      <p class="n">02</p>
+      <h3>改產品，讓架構和成本問題一起消失</h3>
+      <dl>
+        <div><dt>難在哪</dt><dd>這個專案原本是聊天形式，<b>事實抽取每一輪都要跑</b>——等於在使用者跟他的回覆之間，插進一次 LLM 呼叫加一輪 embedding。很慢。</dd></div>
+        <div><dt>本來的解法</dt><dd>看起來很明確：上任務佇列。Celery 加 Redis，再養一個<b>不能縮到零的常駐 worker</b>。多三個要維運的東西，而且<b>不管有沒有人用，每個月都在燒錢</b>。</dd></div>
+        <div><dt>實際做的</dt><dd>把產品改成<b>一天一頁的日記</b>。抽取就自然變成使用者主動按的動作，<b>整個延遲問題直接不存在了</b>，那三樣東西也都不用養。</dd></div>
+        <div><dt>成本也一起解了</dt><dd>抽取變成使用者主動按之後，<b>沒人按就是零成本</b>——不是有一台機器在那邊空轉等工作。同一個決定也讓「一天三次」這種上限變得自然：計次落在真的花掉模型呼叫的動作上，寫日記本身完全不計次。</dd></div>
+        <div class="took"><dt>學到的</dt><dd><b>延遲問題最便宜的解法，常常是產品決定，不是基礎設施。</b>我沒有把非同步做好，我是讓那個需求不存在。</dd></div>
+      </dl>
+    </div>
+
+    <div class="h">
+      <p class="n">03</p>
+      <h3>外部依賴會靜默失效</h3>
+      <dl>
+        <div><dt>難在哪</dt><dd>使用者說問教練沒反應。但 App 是活的、健康檢查綠燈、Cloud Run 一切正常。<b>我完全沒有動過任何程式碼。</b></dd></div>
+        <div><dt>查出來</dt><dd>日誌裡躺著 <code>404 — 這個模型已經被下架</code>。OpenAI 淘汰了我寫在設定裡的模型。</dd></div>
+        <div><dt>三層</dt><dd>換掉模型名稱 → 又炸：新模型預設會 reasoning，而 reasoning 跟工具呼叫在那個端點上不相容。<br>關掉 reasoning → 又炸：第三方套件的<b>執行緒競態</b>（它的單例旗標在建構完才設，我的 agent 平行呼叫工具剛好撞上）。<br><b>每修好一層，才看得到下一層。</b>前兩個把第三個遮住了——那個競態其實一直都在，只是從來沒執行到那裡。</dd></div>
+        <div class="took"><dt>學到的</dt><dd><b>健康檢查要真的碰到相依服務</b>，不然它只是在告訴你伺服器還活著。<br>還有：測試塞假模型跑得快又免費，但<b>測不到真 API 的行為改變</b>——所以我現在改動模型層之後，會另外打一次真的 API。</dd></div>
+      </dl>
+    </div>
+
+  </div>
+</section>
+
+<section class="hard">
+  <h2>效能與記憶體</h2>
+  <p class="lede">不算最難，但是實際量過、也實際改過的部分。</p>
+
+  <div class="hards">
+    <div class="h">
+      <h3>延遲不是等比例成長的</h3>
+      <dl>
+        <div><dt>難在哪</dt><dd>教練的回答可以唸出來。但語音合成的耗時<b>隨長度超線性成長</b>——實測一句話回來要 <b>0.6 秒</b>，整段回答要 <b>11 秒</b>。使用者按下播放，要等超過十秒才有聲音。</dd></div>
+        <div><dt>沒有用的解法</dt><dd>換更快的供應商沒有意義，因為問題不在單價而在曲線。無論誰做，長文字都會比短文字慢得不成比例。</dd></div>
+        <div><dt>實際做的</dt><dd>前端把回答切成約 <b>220 字元的句子</b>，<b>播第一段的同時去抓第二段</b>。因為唸一段的時間大約是合成一段的十倍，所以第一段之後永遠有下一段等在那裡，接縫聽不出來——<b>第一聲大約 1 秒就出來</b>。同一段文字只合成一次，之後從快取拿，重播不再花錢。</dd></div>
+        <div><dt>另一個延遲問題</dt><dd>模型呼叫的逾時本來全部是 20 秒。摘要改成四段之後輸出變長，<b>20 秒直接把它砍斷</b>，使用者只看到失敗。現在分成兩種：<b>會串流的回答 20 秒</b>（卡住就該快點失敗）、<b>一次吐一大包的 120 秒</b>。</dd></div>
+        <div class="took"><dt>規格與現況</dt><dd>Cloud Run <code>512 MiB</code> / 1 vCPU，並發 80、最多 20 個實例；30 天日誌裡<b>零筆記憶體超限</b>。模型客戶端在匯入時就建好、全程重用，省下每次請求重建的時間——代價是常駐佔記憶體，這個規格綽綽有餘。</dd></div>
+      </dl>
+    </div>
+
+  </div>
+</section>
+
+<footer class="end">
+  <span><a href="../" style="color:var(--clay)">← 專案總覽（含英文版）</a></span>
+  <span>FastAPI ・ PostgreSQL + pgvector ・ LangChain ・ Cloud Run</span>
+  <span>heydearmyself.com</span>
+</footer>
+
+</div>
+
+<script>
+(function () {
+  const phone = document.getElementById("phone");
+  const logEl = document.getElementById("log");
+  const playBtn = document.getElementById("play");
+  const scenesEl = document.getElementById("scenes");
+  const prevBtn = document.getElementById("prev");
+  const nextBtn = document.getElementById("next");
+  const countEl = document.getElementById("count");
+
+  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  // Every render gets a token. A typing animation still mid-flight when the
+  // person clicks another step simply stops applying its characters.
+  let token = 0;
+  let playing = false;
+  let scene = 0;
+  let step = 0;
+
+  const sleep = (ms) => new Promise((r) => setTimeout(r, reduced ? Math.min(ms, 90) : ms));
+  const $ = (sel) => phone.querySelector(sel);
+
+  async function type(el, html, per, mine) {
+    el.classList.remove("empty");
+    el.classList.add("caret");
+    const plain = html.replace(/<br\s*\/?>/g, "\n").replace(/<[^>]+>/g, "");
+    let out = "";
+    for (const ch of plain) {
+      if (mine !== token) return;
+      out += ch;
+      el.textContent = out;
+      await sleep(per);
+    }
+    el.innerHTML = html;
+    el.classList.remove("caret");
+  }
+
+  const DRAFT =
+    "今天早上六點就醒了，還是很累，但還是去跑了五公里，跑完精神好很多。" +
+    "中午跟同事吃飯，聊得很開心。下午連開三個會，整個人被榨乾，本來要去健身房也放棄了。" +
+    "晚上跟妹妹講電話，她說我最近聽起來比較有精神。今天想十一點前上床，不要又熬夜。";
+
+  const FACTS = [
+    ["wins", "Won", "很累又早醒的一天，還是去跑了五公里"],
+    ["gratitude", "Grateful", "妹妹說你最近聽起來比較有精神"],
+    ["health", "Health", "六點就醒，睡不飽；但運動之後精神明顯變好"],
+    ["people", "People", "中午跟同事吃飯，聊得很開心"],
+    ["work", "Work", "下午連開三個會，之後就沒力氣了"],
+    ["patterns", "Patterns", "會議一多，晚上原本的安排就會先被放掉"],
+    ["goals", "Goals", "想調整作息，十一點前上床"],
+  ];
+
+  const ANSWER =
+    "不是工作本身。8 月 15 日和 13 日的下墜，前面都接著一個晚睡和一個滿檔的會議日" +
+    "——而你最好的那天 16 日，早上先動了身體。";
+
+  const READING = [
+    "你在做一份需要長時間專注的工作，同時也很認真在維持身體的狀態——這兩件事在你的日子裡經常互相搶時間。" +
+    "8 月 16 日你六點就醒、明顯沒睡飽，還是去跑了五公里，下午把卡住的部分寫完了。<b>你不是等狀態好了才動的人。</b><br><br>" +
+    "「今天想十一點前上床」這句話你這兩週寫過三次——你知道問題在哪，只是還沒找到把它做到的方法。",
+
+    "<b>早上先動身體。</b>你打 7 分以上的六天裡，有五天是早上運動過的。" +
+    "8 月 16 日最清楚：沒睡飽、六點醒，跑完五公里之後那天你給了 8 分。<br><br>" +
+    "<b>跟親近的人說到話。</b>妹妹打電話來那天是你這兩週分數最高的一天。她說你聽起來比較有精神——這句你自己也記在那天的紀錄裡。",
+
+    "<b>會議排滿的日子。</b>8 月 15 日連開三個會，那天 4 分；13 日類似的組合，1 分。" +
+    "會議本身不見得糟，但它會把你一天的專注額度用完。<br><br>" +
+    "<b>晚上的安排會第一個被放掉。</b>會議多的那幾天，你原本要去健身房，最後都沒去。" +
+    "「本來要⋯後來放棄了」在你的紀錄裡出現過三次，每次都是晚上的事。",
+
+    "<b>會議滿檔那天，把運動移到早上。</b>你已經證明早上做得到——8 月 16 日就是。" +
+    "晚上那一格在你的紀錄裡一直是最先被吃掉的，不必再賭一次。<br><br>" +
+    "<b>「十一點前上床」先改成十一點半。</b>一件事提了三次都沒做到，通常代表目標訂得比現在的生活大一點。" +
+    "把門檻降低，先讓它變成做得到的事。",
+  ];
+
+  const SCENES = [
+    {
+      label: "寫日記 → Analyse",
+      gaps: [1000, 1100, 800, 1500, 2200],
+      html: `
+        <div class="panel">
+          <h3>Today</h3>
+          <div class="writer">
+            <div class="well empty" id="draft">How did today really go?</div>
+            <button class="mic" id="mic" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0h-2a5 5 0 0 1-10 0zM11 20h2v2h-2z"/></svg>
+            </button>
+          </div>
+          <p class="notice" id="notice"></p>
+          <div class="slider">
+            <div class="row"><span>Energy</span><b id="reading">not yet rated</b></div>
+            <div class="track"><i id="fill"></i><span id="knob"></span></div>
+          </div>
+          <p class="saved" id="saved">Saved</p>
+        </div>
+        <div class="panel">
+          <h3>Analyse</h3>
+          <p class="note">把這一天拆成實際發生過的事</p>
+          <button class="btn" id="go">Analyse</button>
+          <p class="hintline" id="left">3 of today's analyses left</p>
+          <dl class="facts" id="facts"></dl>
+        </div>
+        <p class="caption">RECORD</p>`,
+      log: [
+        ["", "按住麥克風，把今天講出來", "瀏覽器用 <code>MediaRecorder</code> 錄成 webm，包成 FormData 送 <code>POST /transcribe</code>。在手機上打一段字的實際結果通常是什麼都不寫——用講的才有人真的會寫。"],
+        ["model", "語音轉文字", "<code>gpt-4o-mini-transcribe</code>，約 $0.003 一分鐘。轉出來的字<b>接在草稿後面而不是覆蓋</b>，所以一天可以分好幾次講完。"],
+        ["", "存進資料庫", "<code>POST /entries</code> 寫進 <code>entries</code> 表，一天一列由唯一索引鎖住。這一步不碰模型，不花錢。"],
+        ["model", "拆成事實，順便分類", "<code>gpt-5.6-luna</code>——抽事實是機械工作，用便宜的那一級。structured output 綁定 schema，分類是 <code>Literal</code> 型別，模型發明不出第十一個。"],
+        ["store", "每條各自變成一個向量", "<code>text-embedding-3-small</code>，一條 1536 維。存進 pgvector，跟資料表在<b>同一個 Postgres</b>，不用另外養一台向量資料庫。<br><br>向量的 id 直接用 SQL 那列的主鍵——同一條事實存在兩個地方，用同一個名字才連得起來。重新分析時刪掉 SQL 第 42 列，就用 42 去刪對應的向量；如果向量是隨機 id，刪掉 SQL 之後就<b>再也找不到它</b>，那條向量會永遠留著被撈出來。"],
+      ],
+      async apply(i, animate, mine) {
+        const draft = $("#draft");
+
+        if (i === 0) {
+          // Recording: nothing written yet, the mic is the only thing moving.
+          $("#mic").classList.add("on");
+          $("#notice").textContent = "錄音中…";
+          return;
+        }
+
+        if (i === 1 && animate) {
+          $("#notice").textContent = "Writing that down…";
+          await sleep(700);
+          if (mine !== token) return;
+          $("#notice").textContent = "";
+          await type(draft, DRAFT, 17, mine);
+        } else {
+          draft.textContent = DRAFT;
+          draft.classList.remove("empty");
+        }
+        if (mine !== token) return;
+
+        if (i >= 2) {
+          $("#saved").classList.add("on");
+          $("#fill").style.width = "80%";
+          $("#knob").style.left = "calc(80% - 7px)";
+          $("#reading").textContent = "80% Good";
+        }
+        if (i >= 3) {
+          $("#left").textContent = "2 of today's analyses left";
+          $("#go").textContent = i >= 4 ? "Analyse again" : "Analysing…";
+        }
+        if (animate && i === 3) {
+          $("#go").classList.add("pressed");
+          await sleep(240);
+          if (mine !== token) return;
+          $("#go").classList.remove("pressed");
+        }
+        if (i >= 4) {
+          for (const [cls, dt, dd] of FACTS) {
+            if (mine !== token) return;
+            const row = document.createElement("div");
+            row.className = cls;
+            row.innerHTML = `<dt>${dt}</dt><dd>${dd}</dd>`;
+            $("#facts").append(row);
+            if (animate) {
+              requestAnimationFrame(() => row.classList.add("in"));
+              await sleep(300);
+            } else {
+              row.classList.add("in");
+            }
+          }
+        }
+      },
+    },
+
+    {
+      label: "A reading of you",
+      gaps: [900, 1400, 1500, 2600],
+      html: `
+        <div class="panel">
+          <h3>A reading of you</h3>
+          <p class="note" id="behind">3 days written since this was last read</p>
+          <button class="btn" id="go">Analyse</button>
+        </div>
+        <div class="panel"><h3>Who you are</h3><div class="well empty" id="s1">—</div></div>
+        <div class="panel"><h3>What lifts you</h3><div class="well empty" id="s2">—</div></div>
+        <div class="panel"><h3>What drains you</h3><div class="well empty" id="s3">—</div></div>
+        <div class="panel"><h3>Worth trying</h3><div class="well empty" id="s4">—</div></div>
+        <p class="caption">INSIGHTS</p>`,
+      log: [
+        ["", "按下 Analyse", "<b>一天上限三次</b>，跟日記的分析同一套規則。沒有背景排程，要你主動按才跑——會花錢的動作都是這樣。"],
+        ["", "餵進去的只有兩樣：上一版摘要 + 最近 60 天", "不是把整本日記重讀一遍。<b>更舊的事情靠上一版摘要一版一版帶下來</b>——所以寫三年跟寫三天，一次餵進去的量一樣多，成本也一樣。"],
+        ["model", "叫它重寫一份，而不是新增一段", "<code>gpt-5.6-luna</code>。prompt 講的是：還成立的留著，被新內容推翻的丟掉。所以它是<b>滾動更新</b>——新的一版蓋掉舊的，不會越疊越長。"],
+        ["store", "寫出四段，存成 JSON", "你是誰、什麼讓你有力氣、什麼在耗你、現在可以先做什麼。每篇日記前面都標著那天的能量分數，所以後面兩段是<b>對照你真的打的數字</b>寫出來的。<br><br>四段合起來<b>字數有上限</b>——因為它之後每次對話都會被塞進教練的 prompt，不能無限長大。"],
+      ],
+      async apply(i, animate, mine) {
+        const go = $("#go");
+        go.textContent = i === 0 ? "Analyse" : "Analysing…";
+        if (animate && i === 0) {
+          go.classList.add("pressed");
+          await sleep(240);
+          if (mine !== token) return;
+          go.classList.remove("pressed");
+        }
+        if (i >= 3) {
+          const boxes = [$("#s1"), $("#s2"), $("#s3"), $("#s4")];
+          for (let n = 0; n < boxes.length; n++) {
+            if (mine !== token) return;
+            if (animate && i === 3) await type(boxes[n], READING[n], 7, mine);
+            else { boxes[n].textContent = READING[n]; boxes[n].classList.remove("empty"); }
+          }
+          $("#behind").textContent = "Up to date with everything you've written";
+          $("#go").textContent = "Analyse";
+        }
+      },
+    },
+
+    {
+      label: "Ask 問問題",
+      gaps: [900, 1500, 1900, 1600, 1900, 1000],
+      html: `
+        <div class="panel">
+          <div class="bubble you">到底什麼在消耗我？</div>
+          <div class="bubble her" id="a"></div>
+          <p class="thinking" id="think"></p>
+          <p class="sources" id="src">來源：08-13 ・ 08-15 ・ 08-16</p>
+        </div>
+        <p class="caption">ASK</p>`,
+      log: [
+        ["", "重放今天的對話", "從 <code>questions</code> 表讀回今天問過的。<b>對話狀態存在資料庫，不放記憶體</b>——重新部署不會斷、換裝置接得回來，而且明天撈到的是空的，對話自然跟著日子結束。"],
+        ["", "把摘要接到 prompt 最前面", "四段：你是誰、什麼讓你有力氣、什麼在耗你、可以先做什麼。<br><br>這一段讓它<b>一開口就知道你是誰</b>——你在做什麼、誰對你重要、你的循環是什麼。沒有它，回答會變成給任何人都成立的建議。而且它是固定大小的，不會因為你寫了三年就變長。"],
+        ["model", "第一次呼叫模型：它決定要去搜什麼", "<code>gpt-5.6-terra</code>。這一次它<b>不寫答案</b>，只判斷要不要查資料、查什麼、查哪幾類。<br><br>十個分類裡挑——問「為什麼這麼累」它挑 <code>health &amp; habits</code> 和 <code>patterns</code>；問「我最近做到什麼」它挑 <code>wins</code>。純靠向量距離只知道「哪句話像」，模型知道的是「這個問題該往哪找」。"],
+        ["store", "工具去撈：向量搜尋 + 回 SQL 補日期", "問題轉成向量，pgvector 依 <code>user_id</code> 和剛剛那幾個分類過濾，每類取 8 條、最多 24 條。<br><br>拿到 fact id 之後<b>再回 SQL join 一次取日期</b>——讓模型自己講日期，它會編。"],
+        ["model", "第二次呼叫模型：把三樣東西一起送出去", "送給 <code>gpt-5.6-terra</code> 的是這三樣：<br>① <b>長期摘要</b>——你是誰、什麼讓你有力氣、什麼在耗你<br>② <b>你這次的問題</b><br>③ <b>剛撈回來的事實</b>，每條前面都接著日期（<code>2026-08-15 — 連開三個會</code>）<br><br>答案就是從這三樣組出來的。<b>它沒有在回憶，也沒有在猜</b>——所有材料都是這一輪現找的。"],
+        ["store", "整輪只寫一張表", "問答存進 <code>questions</code>，附上這次摸到哪幾天。<b>不產生日記、不產生事實、不更新摘要</b>——那些呼叫在這條路徑上根本不存在。"],
+      ],
+      async apply(i, animate, mine) {
+        const notes = [
+          "· 讀回今天的對話",
+          "· 注入你的長期摘要",
+          "· 搜尋 health & habits, patterns",
+          "· 撈回 12 條事實，補上日期",
+        ];
+        $("#think").textContent = i < notes.length ? notes[i] : "";
+        if (i >= 4) {
+          if (animate && i === 4) await type($("#a"), ANSWER, 22, mine);
+          else $("#a").textContent = ANSWER;
+        }
+        if (mine !== token) return;
+        if (i >= 5) $("#src").classList.add("on");
+      },
+    },
+  ];
+
+  function paintLog() {
+    const rows = logEl.children;
+    for (let n = 0; n < rows.length; n++) {
+      rows[n].classList.toggle("now", n === step);
+      rows[n].classList.toggle("done", n < step);
+    }
+    countEl.textContent = `${step + 1} / ${SCENES[scene].log.length}`;
+    prevBtn.disabled = step === 0;
+    nextBtn.disabled = step === SCENES[scene].log.length - 1;
+  }
+
+  // Render the phone as it stands *after* this step. Always from a clean slate,
+  // so clicking backwards is as correct as clicking forwards.
+  async function show(i, animate) {
+    token++;
+    const mine = token;
+    step = i;
+    phone.innerHTML = SCENES[scene].html;
+    paintLog();
+    await SCENES[scene].apply(i, animate, mine);
+  }
+
+  function buildLog() {
+    logEl.innerHTML = SCENES[scene].log
+      .map(
+        ([kind, title, body], i) =>
+          `<li><button data-step="${i}">
+             <span class="dot ${kind}">${i + 1}</span>
+             <div><h4>${title}</h4><p>${body}</p></div>
+           </button></li>`
+      )
+      .join("");
+    logEl.querySelectorAll("button[data-step]").forEach((b) =>
+      b.addEventListener("click", () => {
+        playing = false;
+        resetPlay();
+        show(Number(b.dataset.step), false);
+      })
+    );
+  }
+
+  function resetPlay() {
+    playBtn.textContent = "▶ 播放";
+    playBtn.classList.remove("again");
+  }
+
+  function mount(index) {
+    scene = index;
+    step = 0;
+    playing = false;
+    buildLog();
+    resetPlay();
+    Array.from(scenesEl.children).forEach((b, i) => b.classList.toggle("on", i === index));
+    show(0, false);
+  }
+
+  async function play() {
+    if (playing) return;
+    playing = true;
+    playBtn.textContent = "播放中…";
+    const s = SCENES[scene];
+    for (let i = 0; i < s.log.length; i++) {
+      if (!playing) return;
+      const mine = token + 1;
+      await show(i, true);
+      if (mine !== token || !playing) return;
+      await sleep(s.gaps[i] || 900);
+    }
+    playing = false;
+    playBtn.textContent = "↻ 再播一次";
+    playBtn.classList.add("again");
+  }
+
+  SCENES.forEach((s, i) => {
+    const b = document.createElement("button");
+    b.textContent = s.label;
+    b.addEventListener("click", () => mount(i));
+    scenesEl.append(b);
+  });
+
+  playBtn.addEventListener("click", () => {
+    if (playing) { playing = false; resetPlay(); return; }
+    show(0, false).then(play);
+  });
+  prevBtn.addEventListener("click", () => { playing = false; resetPlay(); show(Math.max(0, step - 1), false); });
+  nextBtn.addEventListener("click", () => {
+    playing = false; resetPlay();
+    show(Math.min(SCENES[scene].log.length - 1, step + 1), true);
+  });
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowRight") { e.preventDefault(); nextBtn.click(); }
+    else if (e.key === "ArrowLeft") { e.preventDefault(); prevBtn.click(); }
+  });
+
+  mount(0);
+})();
+</script>
+
+</body>
+</html>
