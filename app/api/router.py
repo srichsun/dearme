@@ -10,6 +10,7 @@ from app.api.routes import (
     health,
     journal,
     mantras,
+    meals,
     profile,
     questions,
     voice,
@@ -22,4 +23,5 @@ api_router.include_router(voice.router)
 api_router.include_router(journal.router)
 api_router.include_router(profile.router)
 api_router.include_router(mantras.router)
+api_router.include_router(meals.router)
 api_router.include_router(questions.router)

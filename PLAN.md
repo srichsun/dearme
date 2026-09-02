@@ -26,7 +26,7 @@
 - Test: `test_meal_notes.py` — 去空白、空白拒絕、新到舊、跨 user 隔離、刪別人的 False
 - Check: `uv run pytest tests/test_meal_notes.py -q && uv run ruff check .`
 - Done when: 新增／列出／刪除三個函式都有測試
-- Status: todo
+- Status: done
 
 ### 5. feat: meals and notes API routes
 - Files: `app/api/routes/meals.py`, `app/schemas/meal.py`, `app/api/router.py`, `tests/test_meals_api.py`
