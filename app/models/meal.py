@@ -9,7 +9,7 @@ the database and the API stay language-neutral.
 """
 from datetime import datetime
 
-from sqlalchemy import DateTime, Integer, String, Text
+from sqlalchemy import DateTime, Float, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models.base import Base, now
@@ -33,6 +33,16 @@ class Meal(Base):
     method: Mapped[str | None] = mapped_column(String(32), nullable=True)
     recipe: Mapped[str | None] = mapped_column(Text, nullable=True)
     note: Mapped[str | None] = mapped_column(Text, nullable=True)
+    # The shop, for eating out — filled from Google Places, so the name is
+    # Google's, the coordinates are real, and "nearest" can be computed.
+    # All NULL for home-cooked.
+    place_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    place_name: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    address: Mapped[str | None] = mapped_column(Text, nullable=True)
+    phone: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    lat: Mapped[float | None] = mapped_column(Float, nullable=True)
+    lng: Mapped[float | None] = mapped_column(Float, nullable=True)
+    maps_url: Mapped[str | None] = mapped_column(Text, nullable=True)
     # Free text the person groups by — 火鍋, 牛排, 超商 — so the list can be
     # browsed by kind. A string, not a table: the kinds are theirs to invent.
     kind: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)

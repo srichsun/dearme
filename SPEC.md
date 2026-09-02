@@ -31,6 +31,7 @@
 | recipe | text, nullable | 自由文字 | 食材和步驟自己換行寫 |
 | note | text, nullable | 自由文字 | 想寫熱量就寫這裡 |
 | rating | int, nullable | 1–10 | 幾顆星；選填（2026-09-02 加） |
+| place_id / place_name / address / phone / lat / lng / maps_url | nullable | 外食店家（Google Places） | 只有外食才有；自煮一律清空。彈窗打店名 → Google 建議 → 點一下全部填好（2026-09-02 加） |
 | kind | str(64), nullable | 自由文字 | 「類型」：火鍋、牛排、海鮮、超商…自己打，選填（2026-09-02 加）。列表可「依類型看」 |
 | created_at / updated_at | tz datetime | | |
 
@@ -58,11 +59,14 @@
 - `category` / `source` / `season` / `method` 不在清單內 → 拒絕（422）。
 - `source = home_cooked` 而 `method` 是空的 → 拒絕（422）。為什麼：自己煮一定有煮法，這是你要搜的維度。
 - `rating` 有給就必須是 1–10 的整數，否則 422；沒給存 null。為什麼：選填，沒吃過的還不能評。
+- `source = home_cooked` → 店家七個欄位一律清空。為什麼：自己煮沒有店。
 - `source = eat_out` → `method` 和 `recipe` 一律清空存 null，就算送了也丟掉。為什麼：外食沒有煮法；不清掉的話搜「氣炸鍋」會撈到外食。
 - 讀、改、刪都同時比對 `id` 和 `user_id`，別人的餐點一律 404（和不存在同一個答案）。為什麼：照 mantras 的做法，猜 id 猜不到別人的東西。
 
 ### API（prefix `/api/meals`，全部要登入）
 - `GET /api/meals?q=&category=&source=&season=&method=&kind=` → `{"meals":[...]}`，新到舊。`kind` 精確比對。
+- `GET /api/meals?near=25.04,121.56` → 有座標的外食依直線距離近到遠排在前面、每筆多 `distance_m`；沒座標的照舊排在後面。座標格式錯 → 422。
+- `POST /api/meals/search` body 可帶 `near`，同上。句子裡有「附近／最近／現在」→ 模型把 source 設成 eat_out。
 - `GET /api/meals/kinds` → `{"kinds":[{"kind":"火鍋","count":3},...]}`，多到少；沒填類型的不算。
   `q` 對 `name` / `recipe` / `note` / `kind` 做不分大小寫的子字串比對；篩選條件是 AND；`season=summer` 會同時撈 `summer` 和 `all`（`winter` 同理）。
 - `POST /api/meals` → 201 + 那筆。
@@ -80,6 +84,8 @@
 ### 畫面（`frontend/src/meals/`，繁體中文）
 - **列表頁（第一個畫面）**：頂端搜尋框 + 「用問的」切換；下面四組篩選標籤（分類 / 來源 / 季節 / 煮法）；卡片列出名稱、四個標籤、食譜與備註（有才顯示）；每張卡有「編輯」「刪除」。
   「用問的」模式：送 `POST /api/meals/search`，把回來的 `filters` 直接套成標籤（你看得到它理解成什麼，可以再點掉）；`fallback` 時顯示一行「沒問到 AI，用關鍵字搜」。
+- **哪家店？**（外食才問）：打店名，Google Places 自動完成列建議；點一下店名／地址／電話／座標／Maps 連結全填好；也可跳過。金鑰是瀏覽器金鑰、限 heydearmyself.com 和 localhost。
+- **離我最近**：列表一顆鈕，按了要瀏覽器定位 → 重新載入帶 `near` → 有座標的店卡片顯示公尺／公里和「導航」（開 Google Maps）。定位被拒就提示一行。
 - **依類型看**：列表頁多一個檢視切換「全部 / 依類型」。依類型先列每個類型和數量，點一個就變成那類的列表（上面有一顆「← 全部類型」）。
 - **刪除**：按下後那張卡變成「確定刪除？／取消」兩顆鈕，不用瀏覽器 confirm。為什麼：瀏覽器 confirm 會擋住自動化測試，也不好看。
 - **心得頁**：`MealsApp` 上方兩個切換「餐點」「心得」，預設「餐點」。
@@ -105,7 +111,7 @@
 - **熱量／營養素目標**：到時在 `meals` 加 `calories` / `protein` / `carbs` / `fat` 欄位（一支 migration），目標存在使用者設定，每日加總在 `plan_slots` 那邊算。
 
 ## 不做
-一週規劃、拖拉、熱量與營養素、AI 推薦、心得濃縮、心得編輯、圖片、分享、Dear Me 的 tab 連到 `/meals`、資料匯入。
+一週規劃、拖拉、熱量與營養素、AI 推薦、心得濃縮、心得編輯、圖片、分享、Dear Me 的 tab 連到 `/meals`、資料匯入、地圖畫面、營業時間。
 
 ## 怎麼證明做完了（end-to-end check）
 1. `uv run ruff check . && uv run pytest -q` 全綠（含新測試）。

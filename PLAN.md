@@ -115,6 +115,24 @@
 - Check: `cd frontend && npm run lint && npm test && npm run build`
 - Status: done
 
+### 18. feat: shop fields on eat-out meals
+- Files: `app/models/meal.py`, `migrations/versions/b8c9d0e1f2a3_add_meal_place.py`, `app/services/meals.py`, `app/schemas/meal.py`, `app/api/routes/meals.py`, tests
+- Test: 外食存店家、自煮清空店家、lat/lng 範圍檢查、API 回 place
+- Check: `uv run pytest tests/test_meals.py tests/test_meals_api.py -q && uv run ruff check .` ＋ scratch DB
+- Status: done
+
+### 19. feat: nearest first with ?near=
+- Files: `app/services/meals.py`, `app/api/routes/meals.py`, `app/services/meal_search.py`, tests
+- Test: haversine 已知兩點、near 排序有座標在前、沒座標照舊、壞座標 422、search 帶 near
+- Check: `uv run pytest -q && uv run ruff check .`
+- Status: done
+
+### 20. feat(web): pick the shop from Google Places, nearest button
+- Files: `frontend/src/meals/places.js`, `flow.js`, `flow.test.js`, `QuickAdd.jsx`, `MealList.jsx`, `meals.css`, `frontend/.env*`
+- Test: `formatDistance`、步驟數（外食 8 / 自煮 9）、payload 自煮不帶店家
+- Check: `cd frontend && npm run lint && npm test && npm run build`
+- Status: done
+
 ## 收工前
 1. `uv run ruff check . && uv run pytest -q`；`cd frontend && npm run lint && npm test && npm run build`
 2. `/verify-tests` 看新測試

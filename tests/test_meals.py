@@ -20,6 +20,15 @@ CHICKEN = dict(
     recipe="雞胸抹鹽\n氣炸 180 度 15 分",
 )
 EGG = dict(name="7-11 茶葉蛋", category="snack", source="eat_out", season="all")
+SHOP = dict(
+    place_id="ChIJxyz",
+    place_name="石二鍋 後山埤店",
+    address="台北市信義區忠孝東路五段",
+    phone="02-1234-5678",
+    lat=25.0447,
+    lng=121.5824,
+    maps_url="https://maps.google.com/?cid=1",
+)
 
 
 def test_a_meal_round_trips_through_the_table(sqlite_db):
@@ -107,6 +116,40 @@ def test_kind_is_trimmed_and_optional(sqlite_db):
     assert meals.create_meal("u1", **CHICKEN).kind is None
     assert meals.create_meal("u1", **CHICKEN, kind="  火鍋 ").kind == "火鍋"
     assert meals.create_meal("u1", **CHICKEN, kind="   ").kind is None
+
+
+# --- the shop ---
+
+def test_eating_out_keeps_the_shop(sqlite_db):
+    meal = meals.create_meal("u1", **EGG, **SHOP)
+
+    assert meal.place_name == "石二鍋 後山埤店"
+    assert meal.lat == 25.0447
+    assert meal.maps_url == "https://maps.google.com/?cid=1"
+
+
+def test_home_cooked_has_no_shop_whatever_was_sent(sqlite_db):
+    meal = meals.create_meal("u1", **CHICKEN, **SHOP)
+
+    assert meal.place_name is None
+    assert meal.lat is None
+    assert meal.maps_url is None
+
+
+def test_switching_to_home_cooked_clears_the_shop(sqlite_db):
+    meal = meals.create_meal("u1", **EGG, **SHOP)
+
+    updated = meals.update_meal("u1", meal.id, **CHICKEN)
+
+    assert updated.place_name is None
+    assert updated.lng is None
+
+
+def test_a_location_is_both_coordinates_in_range_or_none(sqlite_db):
+    assert meals.create_meal("u1", **EGG, place_name="無座標的店").lat is None
+    for bad in (dict(lat=25.0), dict(lng=121.0), dict(lat=91.0, lng=0.0), dict(lat=0.0, lng=181.0)):
+        with pytest.raises(MealError):
+            meals.create_meal("u1", **EGG, **bad)
 
 
 def test_blank_recipe_and_note_are_stored_as_none(sqlite_db):
@@ -273,6 +316,38 @@ def test_kinds_are_counted_per_person_most_first(sqlite_db):
     assert meals.kinds("u1") == [("火鍋", 2), ("牛排", 1)]
     assert meals.kinds("u2") == [("海鮮", 1)]
     assert meals.kinds("") == []
+
+
+# --- nearest first ---
+
+def test_distance_between_two_known_points():
+    # Taipei 101 to Taipei Main Station: about 4.3 km as the crow flies.
+    d = meals.distance_m(25.0339, 121.5645, 25.0478, 121.5170)
+    assert 4_200 <= d <= 4_400
+    assert meals.distance_m(25.0, 121.5, 25.0, 121.5) == 0
+
+
+def test_near_puts_located_meals_first_nearest_first(sqlite_db):
+    meals.create_meal("u1", **{**EGG, "name": "遠的"}, lat=25.0478, lng=121.5170)
+    meals.create_meal("u1", **{**EGG, "name": "沒座標"})
+    meals.create_meal("u1", **{**EGG, "name": "近的"}, lat=25.0350, lng=121.5650)
+    meals.create_meal("u1", **CHICKEN)  # home-cooked, newest
+
+    rows = meals.list_meals("u1", near=(25.0339, 121.5645))
+
+    assert [m.name for m in rows] == ["近的", "遠的", "氣炸鍋雞胸", "沒座標"]
+    assert rows[0].distance_m < rows[1].distance_m
+    assert rows[2].distance_m is None
+
+
+def test_without_near_the_order_is_newest_first(sqlite_db):
+    meals.create_meal("u1", **{**EGG, "name": "近的"}, lat=25.0350, lng=121.5650)
+    meals.create_meal("u1", **CHICKEN)
+
+    rows = meals.list_meals("u1")
+
+    assert [m.name for m in rows] == ["氣炸鍋雞胸", "近的"]
+    assert not hasattr(rows[1], "distance_m")
 
 
 def test_filters_never_cross_accounts(a_few_meals):
