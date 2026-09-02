@@ -19,6 +19,7 @@ import {
   stars,
   toPayload,
   toQuery,
+  toggleIn,
   visibleSteps,
 } from "./flow";
 
@@ -35,15 +36,15 @@ const chicken = {
 const egg = { ...EMPTY, name: "茶葉蛋", category: "snack", source: "eat_out", season: "all" };
 
 describe("visibleSteps", () => {
-  it("asks ten questions for a home-cooked meal", () => {
+  it("asks eleven questions for a home-cooked meal", () => {
     expect(visibleSteps(chicken).map((s) => s.key)).toEqual([
-      "name", "kind", "category", "source", "season", "method", "recipe", "rating", "video_url", "note",
+      "name", "kind", "proteins", "category", "source", "season", "method", "recipe", "rating", "video_url", "note",
     ]);
   });
 
   it("asks for the shop instead of method and recipe when eating out", () => {
     expect(visibleSteps(egg).map((s) => s.key)).toEqual([
-      "name", "kind", "category", "source", "season", "place", "rating", "video_url", "note",
+      "name", "kind", "proteins", "category", "source", "season", "place", "rating", "video_url", "note",
     ]);
   });
 
@@ -54,12 +55,12 @@ describe("visibleSteps", () => {
 
 describe("clampStep", () => {
   it("pulls the index back when a step disappears", () => {
-    // On the note step (index 9) of a home-cooked meal, then switch to eat out.
-    expect(clampStep(9, egg)).toBe(8);
+    // On the note step (index 10) of a home-cooked meal, then switch to eat out.
+    expect(clampStep(10, egg)).toBe(9);
   });
 
   it("leaves an index that still exists alone", () => {
-    expect(clampStep(9, chicken)).toBe(9);
+    expect(clampStep(10, chicken)).toBe(10);
     expect(clampStep(0, egg)).toBe(0);
   });
 
@@ -79,7 +80,7 @@ describe("firstMissing", () => {
   });
 
   it("points at the method for a home-cooked meal without one", () => {
-    expect(firstMissing({ ...chicken, method: null })).toBe(5);
+    expect(firstMissing({ ...chicken, method: null })).toBe(6);
   });
 
   it("does not require a kind, a recipe, a rating or a note", () => {
@@ -100,8 +101,13 @@ describe("toPayload", () => {
       rating: null,
       kind: "自煮",
       video_url: null,
+      proteins: [],
       ...NO_PLACE, // home-cooked always sends the shop as nothing
     });
+  });
+
+  it("sends the proteins picked", () => {
+    expect(toPayload({ ...egg, proteins: ["beef", "seafood"] }).proteins).toEqual(["beef", "seafood"]);
   });
 
   it("sends the video link trimmed", () => {
@@ -139,6 +145,8 @@ describe("fromMeal", () => {
     expect(fromMeal({ ...egg, kind: "超商" }).kind).toBe("超商");
     expect(fromMeal({ ...egg, video_url: "https://youtu.be/x" }).video_url).toBe("https://youtu.be/x");
     expect(fromMeal({ ...egg }).video_url).toBe("");
+    expect(fromMeal({ ...egg, proteins: ["chicken"] }).proteins).toEqual(["chicken"]);
+    expect(fromMeal({ ...egg }).proteins).toEqual([]);
     expect(fromMeal({ ...egg, place: { place_name: "石二鍋", lat: 25.03 } })).toMatchObject({
       place_name: "石二鍋", lat: 25.03, phone: null,
     });
@@ -182,9 +190,9 @@ describe("labelOf", () => {
 
 describe("isLast", () => {
   it("is the note step, wherever that falls", () => {
-    expect(isLast(9, chicken)).toBe(true);
-    expect(isLast(8, chicken)).toBe(false);
-    expect(isLast(8, egg)).toBe(true); // eating out has nine steps
+    expect(isLast(10, chicken)).toBe(true);
+    expect(isLast(9, chicken)).toBe(false);
+    expect(isLast(9, egg)).toBe(true); // eating out has ten steps
   });
 });
 
@@ -306,8 +314,17 @@ describe("isVideoUrl", () => {
 
 describe("goFilters", () => {
   it("is eating out plus the chosen kind, or any kind", () => {
-    expect(goFilters("火鍋")).toEqual({ category: null, source: "eat_out", season: null, method: null, kind: "火鍋" });
+    expect(goFilters("火鍋")).toEqual({ category: null, source: "eat_out", season: null, method: null, protein: null, kind: "火鍋" });
     expect(goFilters("")).toMatchObject({ source: "eat_out", kind: null });
     expect(goFilters(null)).toMatchObject({ source: "eat_out", kind: null });
+  });
+});
+
+describe("toggleIn", () => {
+  it("adds, removes, and keeps the buttons' order", () => {
+    expect(toggleIn([], "chicken")).toEqual(["chicken"]);
+    expect(toggleIn(["chicken"], "beef")).toEqual(["beef", "chicken"]);
+    expect(toggleIn(["beef", "chicken"], "chicken")).toEqual(["beef"]);
+    expect(toggleIn(null, "pork")).toEqual(["pork"]);
   });
 });

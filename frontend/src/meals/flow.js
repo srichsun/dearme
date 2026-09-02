@@ -19,6 +19,12 @@ export const OPTIONS = {
     ["winter", { zh: "冬天", en: "Winter" }],
     ["all", { zh: "四季", en: "Any season" }],
   ],
+  protein: [
+    ["beef", { zh: "牛", en: "Beef" }],
+    ["pork", { zh: "豬", en: "Pork" }],
+    ["chicken", { zh: "雞", en: "Chicken" }],
+    ["seafood", { zh: "海鮮", en: "Seafood" }],
+  ],
   method: [
     ["stir_fry", { zh: "炒", en: "Stir-fry" }],
     ["air_fryer", { zh: "氣炸鍋", en: "Air fryer" }],
@@ -27,7 +33,7 @@ export const OPTIONS = {
   ],
 };
 
-export const FILTER_FIELDS = ["category", "source", "season", "method"];
+export const FILTER_FIELDS = ["category", "source", "season", "method", "protein"];
 
 const homeCooked = (answers) => answers.source === "home_cooked";
 const eatOut = (answers) => answers.source === "eat_out";
@@ -47,6 +53,14 @@ export const STEPS = [
       en: "Hot pot, steak, seafood, convenience store… your own words; you can browse by kind later. Skip if none.",
     },
     type: "kind",
+    optional: true,
+  },
+  {
+    key: "proteins",
+    ask: { zh: "什麼肉？", en: "Which protein?" },
+    hint: { zh: "可以複選。數字鍵切換，Enter 下一題。", en: "Pick any number. Number keys toggle, Enter moves on." },
+    type: "multi",
+    field: "protein",
     optional: true,
   },
   { key: "category", ask: { zh: "哪一餐？", en: "Which meal?" }, type: "choice" },
@@ -116,6 +130,7 @@ export function stepText(step, lang = "zh") {
 export const EMPTY = {
   name: "",
   kind: "",
+  proteins: [],
   category: null,
   source: null,
   season: null,
@@ -166,6 +181,7 @@ export function toPayload(answers) {
     rating: answers.rating ?? null,
     kind: answers.kind.trim() || null,
     video_url: answers.video_url.trim() || null,
+    proteins: answers.proteins || [],
     ...NO_PLACE,
   };
   if (homeCooked(answers)) {
@@ -183,6 +199,7 @@ export function fromMeal(meal) {
   return {
     name: meal.name || "",
     kind: meal.kind || "",
+    proteins: meal.proteins || [],
     category: meal.category,
     source: meal.source,
     season: meal.season,
@@ -305,5 +322,13 @@ export function nearParam(pos) {
 // the list's own doing once it has a position.
 export function goFilters(kind) {
   const k = (kind || "").trim();
-  return { category: null, source: "eat_out", season: null, method: null, kind: k || null };
+  return { category: null, source: "eat_out", season: null, method: null, protein: null, kind: k || null };
+}
+
+// Toggle one protein in the set, keeping the buttons' order.
+export function toggleIn(list, code) {
+  const set = new Set(list || []);
+  if (set.has(code)) set.delete(code);
+  else set.add(code);
+  return OPTIONS.protein.map(([c]) => c).filter((c) => set.has(c));
 }

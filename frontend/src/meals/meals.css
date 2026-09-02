@@ -460,3 +460,4 @@ body.meals-body { background: #0d0e10; }
 .starterrow { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; margin: 0.3rem 0; }
 .starterrow .hint { margin: 0; }
 .addrow { margin-top: 0.8rem; }
+.tag.protein { border-color: var(--clay); color: var(--clay); }

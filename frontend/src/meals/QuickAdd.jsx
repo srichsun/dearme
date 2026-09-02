@@ -20,6 +20,7 @@ import {
   keyToRating,
   stepText,
   toPayload,
+  toggleIn,
   visibleSteps,
 } from "./flow";
 
@@ -181,6 +182,15 @@ export default function QuickAdd({ meal, onClose, onSaved }) {
       }
       return;
     }
+    if (step.type === "multi") {
+      const code = keyToChoice(e.key, step.field);
+      if (code) {
+        e.preventDefault();
+        set(step.key, toggleIn(answers[step.key], code));
+      }
+      if (e.key === "Enter") next();
+      return;
+    }
     if (step.type === "choice") {
       const code = keyToChoice(e.key, step.key);
       if (code) {
@@ -326,6 +336,23 @@ export default function QuickAdd({ meal, onClose, onSaved }) {
             onChange={(e) => set(step.key, e.target.value)}
             placeholder={t("videoPh")}
           />
+        )}
+        {step.type === "multi" && (
+          <div className="choices">
+            {OPTIONS[step.field].map(([code, label], i) => (
+              <button
+                type="button"
+                key={code}
+                className={"choice" + ((answers[step.key] || []).includes(code) ? " on" : "")}
+                onClick={() => set(step.key, toggleIn(answers[step.key], code))}
+                ref={i === 0 ? inputRef : null}
+                aria-pressed={(answers[step.key] || []).includes(code)}
+              >
+                <span className="keycap">{i + 1}</span>
+                {label[lang] ?? label.zh}
+              </button>
+            ))}
+          </div>
         )}
         {step.type === "text" && (
           <input
