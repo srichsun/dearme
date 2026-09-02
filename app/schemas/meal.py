@@ -21,3 +21,9 @@ class MealWrite(BaseModel):
 
 class NoteWrite(BaseModel):
     text: str
+
+
+class SearchRequest(BaseModel):
+    """A sentence about what to eat, to be turned into filters."""
+
+    text: str

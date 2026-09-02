@@ -33,7 +33,7 @@
 - Test: `test_meals_api.py` — POST 201、PATCH 整筆、DELETE、422 每一種、別人的 404、`GET /meals/notes` 不被吃成 `/meals/{id}`、notes 的 201/422/404
 - Check: `uv run pytest tests/test_meals_api.py -q && uv run ruff check .`
 - Done when: 所有端點登入後可用、錯誤碼照 SPEC
-- Status: todo
+- Status: done
 
 ### 6. feat: turn a sentence into meal filters
 - Files: `app/services/meal_search.py`, `app/api/routes/meals.py`, `tests/test_meal_search.py`

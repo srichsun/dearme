@@ -7,8 +7,8 @@ from fastapi import APIRouter, HTTPException, Query
 
 from app.api.deps import CurrentUid
 from app.models import Meal, MealNote
-from app.schemas.meal import MealWrite, NoteWrite
-from app.services import meal_notes, meals
+from app.schemas.meal import MealWrite, NoteWrite, SearchRequest
+from app.services import meal_notes, meal_search, meals
 from app.services.meals import MealError
 
 router = APIRouter(prefix="/meals", tags=["meals"])
@@ -55,6 +55,21 @@ def delete_note(note_id: int, uid: CurrentUid):
     if not meal_notes.delete_note(uid, note_id):
         raise HTTPException(status_code=404, detail="No such note")
     return {"deleted": note_id}
+
+
+# --- asking in a sentence ---
+
+
+@router.post("/search")
+def search_meals(req: SearchRequest, uid: CurrentUid):
+    """Filters the sentence was read as, and the meals they match. Never
+    fails on the model: `fallback` says the sentence was used as a keyword."""
+    result = meal_search.search(uid, req.text)
+    return {
+        "filters": result["filters"],
+        "meals": [_meal(m) for m in result["meals"]],
+        "fallback": result["fallback"],
+    }
 
 
 # --- meals ---
