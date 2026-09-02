@@ -30,13 +30,14 @@ export default function ShopFromLink({ onSaved, onClose }) {
   async function add() {
     if (!shop || busy) return;
     setBusy(true);
-    const { kind_hint: kind, ...place } = shop;
+    const { kind_hint: kind, price_hint: price, ...place } = shop;
     const { ok, data } = await postJSON("/api/meals", {
       name: shop.place_name,
       category: "meal",
       source: "eat_out",
       season: "all",
       kind: kind || null,
+      price: price || null,
       ...place,
     });
     setBusy(false);
@@ -85,6 +86,7 @@ export default function ShopFromLink({ onSaved, onClose }) {
           <div className="picked">
             <b>{shop.place_name}</b>
             {shop.kind_hint && <span className="tag kind">{shop.kind_hint}</span>}
+            {shop.price_hint && <span className="tag price">{"$".repeat(shop.price_hint)}</span>}
             {shop.address && <span>{shop.address}</span>}
             {shop.phone && <span>{shop.phone}</span>}
             {shop.lat != null && <small className="hint">{shop.lat.toFixed(4)}, {shop.lng.toFixed(4)}</small>}

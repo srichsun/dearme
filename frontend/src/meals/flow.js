@@ -25,6 +25,11 @@ export const OPTIONS = {
     ["chicken", { zh: "雞", en: "Chicken" }],
     ["seafood", { zh: "海鮮", en: "Seafood" }],
   ],
+  price: [
+    ["1", { zh: "$ 300 內", en: "$ under 300" }],
+    ["2", { zh: "$$ 400–600", en: "$$ 400–600" }],
+    ["3", { zh: "$$$ 800 以上", en: "$$$ 800 and up" }],
+  ],
   method: [
     ["stir_fry", { zh: "炒", en: "Stir-fry" }],
     ["air_fryer", { zh: "氣炸鍋", en: "Air fryer" }],
@@ -33,7 +38,7 @@ export const OPTIONS = {
   ],
 };
 
-export const FILTER_FIELDS = ["category", "source", "season", "method", "protein"];
+export const FILTER_FIELDS = ["category", "source", "season", "method", "protein", "price"];
 
 const homeCooked = (answers) => answers.source === "home_cooked";
 const eatOut = (answers) => answers.source === "eat_out";
@@ -74,6 +79,14 @@ export const STEPS = [
       en: "Type the name and pick one of Google's suggestions; skip if none.",
     },
     type: "place",
+    optional: true,
+    when: eatOut,
+  },
+  {
+    key: "price",
+    ask: { zh: "大概多少錢？", en: "Roughly how much?" },
+    hint: { zh: "一個人一餐。沒概念就直接下一步。", en: "One person, one meal. Skip if unsure." },
+    type: "choice",
     optional: true,
     when: eatOut,
   },
@@ -139,6 +152,7 @@ export const EMPTY = {
   note: "",
   rating: null,
   video_url: "",
+  price: null,
   ...NO_PLACE,
 };
 
@@ -182,6 +196,7 @@ export function toPayload(answers) {
     kind: answers.kind.trim() || null,
     video_url: answers.video_url.trim() || null,
     proteins: answers.proteins || [],
+    price: null,
     ...NO_PLACE,
   };
   if (homeCooked(answers)) {
@@ -189,6 +204,7 @@ export function toPayload(answers) {
     out.recipe = answers.recipe.trim() || null;
   } else {
     for (const f of PLACE_FIELDS) out[f] = answers[f] ?? null;
+    out.price = answers.price ? Number(answers.price) : null;
   }
   return out;
 }
@@ -208,6 +224,7 @@ export function fromMeal(meal) {
     note: meal.note || "",
     rating: meal.rating ?? null,
     video_url: meal.video_url || "",
+    price: meal.price ? String(meal.price) : null,
     ...NO_PLACE,
     ...(meal.place || {}),
   };
@@ -322,7 +339,7 @@ export function nearParam(pos) {
 // the list's own doing once it has a position.
 export function goFilters(kind) {
   const k = (kind || "").trim();
-  return { category: null, source: "eat_out", season: null, method: null, protein: null, kind: k || null };
+  return { category: null, source: "eat_out", season: null, method: null, protein: null, price: null, kind: k || null };
 }
 
 // Toggle one protein in the set, keeping the buttons' order.
@@ -331,4 +348,9 @@ export function toggleIn(list, code) {
   if (set.has(code)) set.delete(code);
   else set.add(code);
   return OPTIONS.protein.map(([c]) => c).filter((c) => set.has(c));
+}
+
+// "$$" for a price level; empty when there is none.
+export function dollars(price) {
+  return price >= 1 && price <= 3 ? "$".repeat(price) : "";
 }

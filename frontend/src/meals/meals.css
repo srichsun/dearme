@@ -461,3 +461,4 @@ body.meals-body { background: #0d0e10; }
 .starterrow .hint { margin: 0; }
 .addrow { margin-top: 0.8rem; }
 .tag.protein { border-color: var(--clay); color: var(--clay); }
+.tag.price { border-color: var(--ink-soft); color: var(--ink); font-weight: 600; }

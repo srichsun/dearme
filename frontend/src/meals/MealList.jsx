@@ -3,6 +3,7 @@ import { authFetch, getJSON, postJSON } from "../api";
 import {
   FILTER_FIELDS,
   OPTIONS,
+  dollars,
   formatDistance,
   goFilters,
   labelOf,
@@ -13,7 +14,7 @@ import {
 } from "./flow";
 import { useLang } from "./i18n";
 
-const NO_FILTERS = { category: null, source: null, season: null, method: null, protein: null, kind: null };
+const NO_FILTERS = { category: null, source: null, season: null, method: null, protein: null, price: null, kind: null };
 
 // The first screen: a search box, four rows of filter tags, the meals that
 // match. Typing searches as you go; "用問的" sends the sentence to the model,
@@ -107,6 +108,7 @@ export default function MealList({ refreshKey, onEdit, goRequest }) {
       season: got.season || null,
       method: got.method || null,
       protein: got.protein || null,
+      price: got.price ? String(got.price) : null,
       kind: f.kind,
     }));
   }
@@ -262,6 +264,7 @@ export default function MealList({ refreshKey, onEdit, goRequest }) {
                   <span className="tag">{labelOf("source", m.source, lang)}</span>
                   <span className="tag">{labelOf("season", m.season, lang)}</span>
                   {m.method && <span className="tag">{labelOf("method", m.method, lang)}</span>}
+                  {m.price && <span className="tag price">{dollars(m.price)}</span>}
                   {(m.proteins || []).map((p) => (
                     <span className="tag protein" key={p}>{labelOf("protein", p, lang)}</span>
                   ))}

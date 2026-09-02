@@ -4,6 +4,7 @@ import {
   NO_PLACE,
   appendSpoken,
   clampStep,
+  dollars,
   firstMissing,
   formatDistance,
   fromMeal,
@@ -44,7 +45,7 @@ describe("visibleSteps", () => {
 
   it("asks for the shop instead of method and recipe when eating out", () => {
     expect(visibleSteps(egg).map((s) => s.key)).toEqual([
-      "name", "kind", "proteins", "category", "source", "season", "place", "rating", "video_url", "note",
+      "name", "kind", "proteins", "category", "source", "season", "place", "price", "rating", "video_url", "note",
     ]);
   });
 
@@ -56,7 +57,8 @@ describe("visibleSteps", () => {
 describe("clampStep", () => {
   it("pulls the index back when a step disappears", () => {
     // On the note step (index 10) of a home-cooked meal, then switch to eat out.
-    expect(clampStep(10, egg)).toBe(9);
+    expect(clampStep(10, egg)).toBe(10); // eating out now has eleven steps too
+    expect(clampStep(12, egg)).toBe(10);
   });
 
   it("leaves an index that still exists alone", () => {
@@ -102,8 +104,15 @@ describe("toPayload", () => {
       kind: "自煮",
       video_url: null,
       proteins: [],
+      price: null,
       ...NO_PLACE, // home-cooked always sends the shop as nothing
     });
+  });
+
+  it("sends the price as a number for eating out, never for home", () => {
+    expect(toPayload({ ...egg, price: "2" }).price).toBe(2);
+    expect(toPayload({ ...egg }).price).toBeNull();
+    expect(toPayload({ ...chicken, price: "2" }).price).toBeNull();
   });
 
   it("sends the proteins picked", () => {
@@ -147,6 +156,8 @@ describe("fromMeal", () => {
     expect(fromMeal({ ...egg }).video_url).toBe("");
     expect(fromMeal({ ...egg, proteins: ["chicken"] }).proteins).toEqual(["chicken"]);
     expect(fromMeal({ ...egg }).proteins).toEqual([]);
+    expect(fromMeal({ ...egg, price: 3 }).price).toBe("3");
+    expect(fromMeal({ ...egg }).price).toBeNull();
     expect(fromMeal({ ...egg, place: { place_name: "石二鍋", lat: 25.03 } })).toMatchObject({
       place_name: "石二鍋", lat: 25.03, phone: null,
     });
@@ -192,7 +203,7 @@ describe("isLast", () => {
   it("is the note step, wherever that falls", () => {
     expect(isLast(10, chicken)).toBe(true);
     expect(isLast(9, chicken)).toBe(false);
-    expect(isLast(9, egg)).toBe(true); // eating out has ten steps
+    expect(isLast(10, egg)).toBe(true); // eating out has eleven steps
   });
 });
 
@@ -314,7 +325,7 @@ describe("isVideoUrl", () => {
 
 describe("goFilters", () => {
   it("is eating out plus the chosen kind, or any kind", () => {
-    expect(goFilters("火鍋")).toEqual({ category: null, source: "eat_out", season: null, method: null, protein: null, kind: "火鍋" });
+    expect(goFilters("火鍋")).toEqual({ category: null, source: "eat_out", season: null, method: null, protein: null, price: null, kind: "火鍋" });
     expect(goFilters("")).toMatchObject({ source: "eat_out", kind: null });
     expect(goFilters(null)).toMatchObject({ source: "eat_out", kind: null });
   });
@@ -326,5 +337,14 @@ describe("toggleIn", () => {
     expect(toggleIn(["chicken"], "beef")).toEqual(["beef", "chicken"]);
     expect(toggleIn(["beef", "chicken"], "chicken")).toEqual(["beef"]);
     expect(toggleIn(null, "pork")).toEqual(["pork"]);
+  });
+});
+
+describe("dollars", () => {
+  it("is one to three signs, or nothing", () => {
+    expect(dollars(1)).toBe("$");
+    expect(dollars(3)).toBe("$$$");
+    expect(dollars(null)).toBe("");
+    expect(dollars(0)).toBe("");
   });
 });
