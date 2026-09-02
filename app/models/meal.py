@@ -54,6 +54,8 @@ class Meal(Base):
     # Free text the person groups by — 火鍋, 牛排, 超商 — so the list can be
     # browsed by kind. A string, not a table: the kinds are theirs to invent.
     kind: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)
+    # Eating out: 1 = under 300, 2 = 400-600, 3 = 800 and up. NULL for home.
+    price: Mapped[int | None] = mapped_column(Integer, nullable=True)
     # 1-10 stars, or NULL until it has been eaten and judged.
     rating: Mapped[int | None] = mapped_column(Integer, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
