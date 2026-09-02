@@ -21,6 +21,14 @@ class MealWrite(BaseModel):
     # service could refuse them, and the rule says a whole number.
     rating: StrictInt | None = None
     kind: str | None = None
+    # The shop, from Google Places; only kept for eating out.
+    place_id: str | None = None
+    place_name: str | None = None
+    address: str | None = None
+    phone: str | None = None
+    lat: float | None = None
+    lng: float | None = None
+    maps_url: str | None = None
 
 
 class NoteWrite(BaseModel):
@@ -28,6 +36,8 @@ class NoteWrite(BaseModel):
 
 
 class SearchRequest(BaseModel):
-    """A sentence about what to eat, to be turned into filters."""
+    """A sentence about what to eat, to be turned into filters. `near` is
+    "lat,lng" — where the person is, so the answer can be sorted by distance."""
 
     text: str
+    near: str | None = None

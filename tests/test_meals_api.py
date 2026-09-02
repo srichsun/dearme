@@ -74,6 +74,27 @@ def test_a_rating_comes_back_and_a_bad_one_is_422(sqlite_db):
         assert client.post("/api/meals", json={**CHICKEN, "rating": bad}).status_code == 422, bad
 
 
+def test_the_shop_comes_back_and_near_sorts(sqlite_db):
+    shop = {"place_id": "x", "place_name": "石二鍋", "address": "信義區", "phone": "02",
+            "lat": 25.0350, "lng": 121.5650, "maps_url": "https://maps.google.com/?cid=1"}
+    client.post("/api/meals", json={**EGG, "name": "近的", **shop})
+    client.post("/api/meals", json=CHICKEN)
+
+    plain = client.get("/api/meals").json()["meals"]
+    assert plain[0]["place"] is None and plain[0]["distance_m"] is None
+    assert plain[1]["place"]["place_name"] == "石二鍋"
+
+    near = client.get("/api/meals", params={"near": "25.0339,121.5645"}).json()["meals"]
+    assert near[0]["name"] == "近的"
+    assert 0 < near[0]["distance_m"] < 200
+    assert near[1]["distance_m"] is None
+
+
+def test_a_bad_near_is_422(sqlite_db):
+    for bad in ("taipei", "25.0", "91,0", "25,181"):
+        assert client.get("/api/meals", params={"near": bad}).status_code == 422, bad
+
+
 def test_kinds_and_the_kind_filter(sqlite_db):
     client.post("/api/meals", json={**EGG, "name": "石二鍋", "kind": "火鍋"})
     client.post("/api/meals", json={**EGG, "name": "涮乃葉", "kind": "火鍋"})

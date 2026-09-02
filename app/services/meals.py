@@ -8,11 +8,14 @@ without HTTP and a future caller (the week planner) gets the same answers:
 - home-cooked needs a method — it is the axis this list gets searched on;
 - a rating, if given, is a whole number from 1 to 10;
 - eating out has no method and no recipe, whatever was sent. Keeping a stale
-  method on an eat-out row would make it show up under "air fryer".
+  method on an eat-out row would make it show up under "air fryer";
+- home-cooked has no shop, for the same reason in the other direction.
 
 Every read, update and delete filters on user_id as well as id, so a guessed
 id never reaches someone else's row.
 """
+from math import asin, cos, radians, sin, sqrt
+
 from sqlalchemy import func, or_, select
 
 from app.core import db
@@ -21,6 +24,9 @@ from app.models import MEAL_CATEGORIES, METHODS, SEASONS, SOURCES, Meal
 
 class MealError(ValueError):
     """The input breaks one of the rules above; the message says which."""
+
+
+PLACE_FIELDS = ("place_id", "place_name", "address", "phone", "lat", "lng", "maps_url")
 
 
 def _text(value: str | None) -> str | None:
@@ -40,6 +46,13 @@ def _clean(
     note: str | None = None,
     rating: int | None = None,
     kind: str | None = None,
+    place_id: str | None = None,
+    place_name: str | None = None,
+    address: str | None = None,
+    phone: str | None = None,
+    lat: float | None = None,
+    lng: float | None = None,
+    maps_url: str | None = None,
 ) -> dict:
     """Apply the rules and return the column values to store."""
     name = (name or "").strip()
@@ -57,12 +70,27 @@ def _clean(
     ):
         raise MealError("A rating is a whole number from 1 to 10")
 
+    place = {
+        "place_id": _text(place_id),
+        "place_name": _text(place_name),
+        "address": _text(address),
+        "phone": _text(phone),
+        "lat": lat,
+        "lng": lng,
+        "maps_url": _text(maps_url),
+    }
     if source == "eat_out":
         method, recipe = None, None
+        # Both or neither: one coordinate is not a location.
+        if (lat is None) != (lng is None):
+            raise MealError("A location needs both lat and lng")
+        if lat is not None and not (-90 <= lat <= 90 and -180 <= lng <= 180):
+            raise MealError("lat/lng out of range")
     else:
         if method not in METHODS:
             raise MealError("A home-cooked meal needs a cooking method")
         recipe = _text(recipe)
+        place = dict.fromkeys(PLACE_FIELDS)
 
     return {
         "name": name,
@@ -74,7 +102,17 @@ def _clean(
         "note": _text(note),
         "rating": rating,
         "kind": _text(kind),
+        **place,
     }
+
+
+def distance_m(lat1: float, lng1: float, lat2: float, lng2: float) -> int:
+    """Straight-line metres between two points (haversine). Not the walk —
+    close enough to rank a list of restaurants."""
+    p1, p2 = radians(lat1), radians(lat2)
+    dp, dl = radians(lat2 - lat1), radians(lng2 - lng1)
+    a = sin(dp / 2) ** 2 + cos(p1) * cos(p2) * sin(dl / 2) ** 2
+    return int(round(2 * 6_371_000 * asin(sqrt(a))))
 
 
 def list_meals(
@@ -86,6 +124,7 @@ def list_meals(
     season: str | None = None,
     method: str | None = None,
     kind: str | None = None,
+    near: tuple[float, float] | None = None,
 ) -> list[Meal]:
     """One person's meals, newest first, narrowed by whichever filters are set.
 
@@ -93,6 +132,9 @@ def list_meals(
     meals — a boiled egg is a summer meal too. `q` is a case-insensitive
     substring match over name, recipe and note. Unknown codes match nothing
     rather than raising: a filter is a question, not an input to store.
+
+    With `near=(lat, lng)`, every meal that has a location gets `distance_m`
+    and those come first, nearest first; the rest keep their order after.
     """
     if not user_id:
         return []
@@ -124,7 +166,17 @@ def list_meals(
         )
     stmt = stmt.order_by(Meal.created_at.desc(), Meal.id.desc())
     with db.get_session() as s:
-        return list(s.scalars(stmt))
+        rows = list(s.scalars(stmt))
+    if near is None:
+        return rows
+    lat, lng = near
+    for m in rows:
+        m.distance_m = (
+            distance_m(lat, lng, m.lat, m.lng) if m.lat is not None else None
+        )
+    # Stable sort: located meals by distance, unlocated after, both keeping
+    # newest-first within.
+    return sorted(rows, key=lambda m: (m.distance_m is None, m.distance_m or 0))
 
 
 def kinds(user_id: str) -> list[tuple[str, int]]:
