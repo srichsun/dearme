@@ -124,6 +124,11 @@
 - **預設五項**：清單是空的時候給一顆「加入預設」→ `POST /api/today/habits/starter` 塞進：不要給自己壓力，專注感恩今天／吃 2500 大卡／重訓／10 點關機準備睡覺／10000 步。只在空的時候有效。
 - API（prefix `/api/today`，要登入）：`GET /` → `{goal, day, habits:[{id,text,done}]}`；`PUT /goal`；`POST /habits`、`PATCH /habits/{id}`、`DELETE /habits/{id}`；`POST /habits/{id}/check`、`DELETE /habits/{id}/check`；`POST /habits/starter`。別人的 habit 一律 404。
 
+### 採買（2026-09-02 加）
+- 第四個切換「採買」：五個區塊 蛋白質 `protein`／碳水 `carbs`／飲料 `drinks`／點心 `snacks`／水果 `fruit`。
+- `shopping_items`（user_id / section / text / done / position）。買到打勾（持續，不歸零）；「清掉已買」一次刪掉打勾的。
+- API（prefix `/api/shopping`）：`GET /` → `{items:[{id,section,text,done}]}` 依區塊、位置排；`POST /` `{section,text}`；`PATCH /{id}` `{text?, done?}`；`DELETE /{id}`；`POST /clear-done`。未知區塊 422，別人的 404。
+
 ## 不做
 一週規劃、拖拉、熱量與營養素、AI 推薦、心得濃縮、心得編輯、圖片、分享、Dear Me 的 tab 連到 `/meals`、資料匯入、地圖畫面、營業時間。
 

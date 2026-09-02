@@ -14,6 +14,7 @@ from app.models.meal import METHODS, PROTEINS, SEASONS, SOURCES, Meal
 from app.models.meal_note import MealNote
 from app.models.profile import Profile
 from app.models.question import Question
+from app.models.shopping import SECTIONS, ShoppingItem
 from app.models.today import Goal, Habit, HabitCheck
 
 # Marks these as deliberate re-exports, so the linter doesn't read them as
@@ -37,4 +38,6 @@ __all__ = [
     "SOURCES",
     "Profile",
     "Question",
+    "SECTIONS",
+    "ShoppingItem",
 ]
