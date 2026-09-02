@@ -46,6 +46,20 @@ class Principle(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
 
 
+class RewardVideo(Base):
+    """A clip to play when the day's list is all ticked. The bytes live in
+    the bucket; this row is the URL and the name to delete it by."""
+
+    __tablename__ = "reward_videos"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[str] = mapped_column(String(128), index=True)
+    title: Mapped[str] = mapped_column(String(200))
+    url: Mapped[str] = mapped_column(Text)
+    object_name: Mapped[str] = mapped_column(String(255))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+
+
 class HabitCheck(Base):
     __tablename__ = "habit_checks"
     __table_args__ = (UniqueConstraint("habit_id", "day", name="uq_habit_checks_habit_day"),)

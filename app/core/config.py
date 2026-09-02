@@ -56,6 +56,10 @@ ELEVENLABS_MODEL = os.getenv("ELEVENLABS_MODEL", "eleven_flash_v2_5")
 # API only; the browser uses a separate, referrer-restricted key.
 PLACES_SERVER_KEY = os.getenv("PLACES_SERVER_KEY", "")
 
+# --- Reward videos ---
+# Public-read bucket the uploaded clips live in; empty means uploads are off.
+REWARD_BUCKET = os.getenv("REWARD_BUCKET", "")
+
 # --- Firebase ---
 # Admin service-account file, used to verify sign-in tokens.
 FIREBASE_CREDENTIALS = os.getenv(

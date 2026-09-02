@@ -122,6 +122,11 @@
 - 煮法（炒／氣炸鍋／電鍋／微波爐）只在食譜頁出現（篩選與卡片標籤）；GO、離我最近、餐廳貼連結只在餐點頁。
 - 新增時不再問「外食還是自己煮」：由所在頁決定（`fixedSource`），問答少一題。資料模型不變。
 
+### 激勵影片（2026-09-02 加）
+- 今天頁的清單**從沒全勾變成全勾的那一刻**，全螢幕跳一支影片；一天只自動跳一次（localStorage `meals.rewarded.<day>`），「今天都做到了」旁有「再看一次」。
+- 影片由他從相簿上傳（`POST /api/today/rewards` multipart，≤ 25MB，video/*）→ 存 GCS bucket `heydearmyself-videos`（公開讀、Cloud Run SA 可寫、CORS 給網域）→ `reward_videos`（user_id / url / title / object_name）。`GET /api/today/rewards` 列表、`DELETE /{id}`（連檔案一起刪）、`GET /api/today/rewards/pick` 隨機挑一支。
+- 為什麼不用嵌 IG：iOS 上常要登入、不能自動播、IG 改版就壞。
+
 ### 今天（第一頁，2026-09-02 加）
 - 三個切換：**今天**（預設）／餐點／反思。
 - **目標 Goal**：一段自己寫的文字，點一下就能改，Enter 或離開就存（`goals` 表，每人一筆）。
