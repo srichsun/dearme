@@ -305,3 +305,59 @@ body.meals-body { background: #0d0e10; }
 .kindcount { font-family: var(--mono); color: var(--ink-faint); font-size: 0.8rem; }
 .tag.kind { border-color: var(--sage); color: var(--sage); }
 .qa .chips { margin-top: 0.6rem; }
+
+/* --- the shop ------------------------------------------------------------ */
+
+.nearrow { display: flex; align-items: center; gap: 0.6rem; margin-top: 0.6rem; }
+.chip.near { border-color: var(--edge-strong); color: var(--ink-soft); }
+.chip.near.on { background: var(--clay); border-color: var(--clay); color: #0d0e10; font-weight: 600; }
+.shop {
+  margin: 0.55rem 0 0;
+  padding: 0.55rem 0.7rem;
+  border-left: 2px solid var(--sage);
+  background: var(--well);
+  display: grid;
+  gap: 0.1rem;
+  font-size: 0.86rem;
+  color: var(--ink-soft);
+}
+.shop b { color: var(--ink); font-weight: 600; }
+.shop a { color: var(--ink-soft); text-decoration: none; }
+.shopgo { display: flex; gap: 0.8rem; align-items: baseline; margin-top: 0.2rem; }
+.shopgo em { font-style: normal; font-family: var(--mono); color: var(--clay); font-size: 0.78rem; letter-spacing: 0.06em; }
+.shopgo a { color: var(--sage); font-weight: 600; }
+.placepick { position: relative; }
+.suggest {
+  list-style: none; margin: 0.3rem 0 0; padding: 0;
+  border: 1px solid var(--edge-strong);
+  border-radius: 4px;
+  background: var(--well);
+  max-height: 14rem;
+  overflow-y: auto;
+}
+.suggest li + li { border-top: 1px solid var(--edge); }
+.suggest button {
+  width: 100%;
+  display: grid;
+  gap: 0.05rem;
+  border: none;
+  background: none;
+  color: var(--ink);
+  text-align: left;
+  padding: 0.55rem 0.8rem;
+}
+.suggest button:hover { background: var(--linen); }
+.sugmain { font-size: 0.95rem; }
+.sugsub { font-size: 0.76rem; color: var(--ink-faint); }
+.picked {
+  margin-top: 0.6rem;
+  padding: 0.6rem 0.8rem;
+  border-left: 2px solid var(--sage);
+  background: var(--well);
+  display: grid;
+  gap: 0.1rem;
+  font-size: 0.86rem;
+  color: var(--ink-soft);
+}
+.picked b { color: var(--ink); }
+.picked .clear { margin-top: 0.3rem; justify-self: start; }

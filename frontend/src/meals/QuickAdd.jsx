@@ -2,8 +2,10 @@ import { useEffect, useRef, useState } from "react";
 import { authFetch, getJSON } from "../api";
 import { MicIcon, StopIcon } from "../icons";
 import { transcribe, useRecorder } from "../speech";
+import { placeDetails, placesEnabled, suggestPlaces } from "./places";
 import {
   EMPTY,
+  NO_PLACE,
   appendSpoken,
   OPTIONS,
   RATINGS,
@@ -50,9 +52,47 @@ export default function QuickAdd({ meal, onClose, onSaved }) {
     }
   });
 
+  // The shop: what they typed, what Google suggested, and whether we are
+  // waiting on it. The answer itself lives in `answers` (place_* fields).
+  const [placeQuery, setPlaceQuery] = useState(() => (isNew ? "" : meal.place?.place_name || ""));
+  const [suggestions, setSuggestions] = useState([]);
+  const [placeBusy, setPlaceBusy] = useState(false);
+
   const steps = visibleSteps(answers);
   const at = clampStep(index, answers);
   const step = steps[at];
+
+  useEffect(() => {
+    if (step?.type !== "place" || !placesEnabled) return;
+    const text = placeQuery.trim();
+    if (!text || text === answers.place_name) {
+      setSuggestions([]);
+      return;
+    }
+    const timer = setTimeout(async () => {
+      setSuggestions(await suggestPlaces(text));
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [placeQuery, step?.type, answers.place_name]);
+
+  async function pickPlace(sug) {
+    setPlaceBusy(true);
+    setSuggestions([]);
+    const fields = await placeDetails(sug.placeId);
+    setPlaceBusy(false);
+    if (!fields) {
+      setError("拿不到這家店的資料，再點一次或跳過。");
+      return;
+    }
+    setError("");
+    setAnswers((a) => ({ ...a, ...fields }));
+    setPlaceQuery(fields.place_name || sug.main);
+  }
+
+  function clearPlace() {
+    setAnswers((a) => ({ ...a, ...NO_PLACE }));
+    setPlaceQuery("");
+  }
 
   // Each new question starts with the cursor in its box.
   useEffect(() => {
@@ -126,7 +166,7 @@ export default function QuickAdd({ meal, onClose, onSaved }) {
       if (e.key === "Enter") next();
       return;
     }
-    if (step.type === "kind") {
+    if (step.type === "kind" || step.type === "place") {
       if (e.key === "Enter") {
         e.preventDefault();
         next();
@@ -236,6 +276,38 @@ export default function QuickAdd({ meal, onClose, onSaved }) {
               </div>
             )}
           </>
+        )}
+        {step.type === "place" && (
+          <div className="placepick">
+            <input
+              ref={inputRef}
+              value={placeQuery}
+              onChange={(e) => setPlaceQuery(e.target.value)}
+              placeholder={placesEnabled ? "例如：石二鍋 後山埤" : "沒有設定 Google 金鑰"}
+              disabled={!placesEnabled}
+            />
+            {suggestions.length > 0 && (
+              <ul className="suggest">
+                {suggestions.map((sug) => (
+                  <li key={sug.placeId}>
+                    <button type="button" onClick={() => pickPlace(sug)}>
+                      <span className="sugmain">{sug.main}</span>
+                      <span className="sugsub">{sug.secondary}</span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+            {placeBusy && <p className="hint">查店家資料…</p>}
+            {answers.place_name && (
+              <div className="picked">
+                <b>{answers.place_name}</b>
+                {answers.address && <span>{answers.address}</span>}
+                {answers.phone && <span>{answers.phone}</span>}
+                <button type="button" className="clear" onClick={clearPlace}>清除</button>
+              </div>
+            )}
+          </div>
         )}
         {step.type === "text" && (
           <input

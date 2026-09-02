@@ -1,6 +1,15 @@
 import { useEffect, useRef, useState } from "react";
 import { authFetch, getJSON, postJSON } from "../api";
-import { FILTER_FIELDS, OPTIONS, labelOf, stars, toQuery } from "./flow";
+import {
+  FILTER_FIELDS,
+  OPTIONS,
+  formatDistance,
+  labelOf,
+  mapsLink,
+  nearParam,
+  stars,
+  toQuery,
+} from "./flow";
 
 const NO_FILTERS = { category: null, source: null, season: null, method: null, kind: null };
 
@@ -21,7 +30,31 @@ export default function MealList({ refreshKey, onEdit }) {
   // list to it and shows the way back.
   const [view, setView] = useState("all");
   const [kinds, setKinds] = useState(null);
+  // Where the person is, once they asked for "nearest"; null until then.
+  const [pos, setPos] = useState(null);
+  const [posNote, setPosNote] = useState("");
   const latest = useRef(0);
+
+  function locate() {
+    if (pos) {
+      setPos(null);
+      setPosNote("");
+      return;
+    }
+    if (!navigator.geolocation) {
+      setPosNote("這個瀏覽器沒有定位。");
+      return;
+    }
+    setPosNote("定位中…");
+    navigator.geolocation.getCurrentPosition(
+      (p) => {
+        setPos({ lat: p.coords.latitude, lng: p.coords.longitude });
+        setPosNote("");
+      },
+      () => setPosNote("拿不到位置，檢查瀏覽器的定位權限。"),
+      { enableHighAccuracy: true, timeout: 10_000 },
+    );
+  }
 
   useEffect(() => {
     if (view !== "kinds") return;
@@ -33,17 +66,17 @@ export default function MealList({ refreshKey, onEdit }) {
   useEffect(() => {
     const id = ++latest.current;
     const timer = setTimeout(async () => {
-      const data = await getJSON(`/api/meals${toQuery({ q, ...filters })}`);
+      const data = await getJSON(`/api/meals${toQuery({ q, ...filters, near: nearParam(pos) })}`);
       if (id === latest.current) setMeals(data?.meals || []);
     }, q ? 250 : 0);
     return () => clearTimeout(timer);
-  }, [q, filters, refreshKey]);
+  }, [q, filters, refreshKey, pos]);
 
   async function ask() {
     const text = sentence.trim();
     if (!text || busy) return;
     setBusy(true);
-    const { ok, data } = await postJSON("/api/meals/search", { text });
+    const { ok, data } = await postJSON("/api/meals/search", { text, near: nearParam(pos) });
     setBusy(false);
     if (!ok) return;
     // Land the model's reading on the ordinary controls. The list itself is
@@ -168,6 +201,12 @@ export default function MealList({ refreshKey, onEdit }) {
           )}
         </div>
         {fallback && <p className="fallback">沒問到 AI，先用關鍵字搜。</p>}
+        <div className="nearrow">
+          <button type="button" className={"chip near" + (pos ? " on" : "")} onClick={locate}>
+            {pos ? "◉ 離我最近（關）" : "◎ 離我最近"}
+          </button>
+          {posNote && <span className="hint">{posNote}</span>}
+        </div>
 
         {FILTER_FIELDS.map((field) => (
           <div className="chips" key={field}>
@@ -208,6 +247,21 @@ export default function MealList({ refreshKey, onEdit }) {
                   {m.kind && <span className="tag kind">{m.kind}</span>}
                 </div>
               </div>
+              {m.place && (
+                <div className="shop">
+                  <b>{m.place.place_name}</b>
+                  {m.place.address && <span>{m.place.address}</span>}
+                  {m.place.phone && (
+                    <a href={`tel:${m.place.phone.replace(/\s/g, "")}`}>{m.place.phone}</a>
+                  )}
+                  <span className="shopgo">
+                    {m.distance_m != null && <em>{formatDistance(m.distance_m)}</em>}
+                    {mapsLink(m.place) && (
+                      <a href={mapsLink(m.place)} target="_blank" rel="noreferrer">導航 ↗</a>
+                    )}
+                  </span>
+                </div>
+              )}
               {m.rating != null && (
                 <p className="rating" aria-label={`${m.rating} 星`}>
                   <span className="starrow">{stars(m.rating)}</span>

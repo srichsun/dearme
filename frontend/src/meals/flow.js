@@ -30,6 +30,10 @@ export const OPTIONS = {
 export const FILTER_FIELDS = ["category", "source", "season", "method"];
 
 const homeCooked = (answers) => answers.source === "home_cooked";
+const eatOut = (answers) => answers.source === "eat_out";
+
+export const PLACE_FIELDS = ["place_id", "place_name", "address", "phone", "lat", "lng", "maps_url"];
+export const NO_PLACE = Object.fromEntries(PLACE_FIELDS.map((f) => [f, null]));
 
 // One question per step. `when` hides a step for some answers: eating out has
 // no cooking method and no recipe, so those two never come up.
@@ -45,6 +49,14 @@ export const STEPS = [
   { key: "category", ask: "哪一餐？", type: "choice" },
   { key: "source", ask: "外食還是自己煮？", type: "choice" },
   { key: "season", ask: "適合什麼季節？", type: "choice" },
+  {
+    key: "place",
+    ask: "哪家店？",
+    hint: "打店名，從 Google 的建議裡點一家；沒有就直接下一步。",
+    type: "place",
+    optional: true,
+    when: eatOut,
+  },
   { key: "method", ask: "怎麼煮？", type: "choice", when: homeCooked },
   {
     key: "recipe",
@@ -80,6 +92,7 @@ export const EMPTY = {
   recipe: "",
   note: "",
   rating: null,
+  ...NO_PLACE,
 };
 
 // The steps that apply to these answers, in order.
@@ -120,10 +133,13 @@ export function toPayload(answers) {
     note: answers.note.trim() || null,
     rating: answers.rating ?? null,
     kind: answers.kind.trim() || null,
+    ...NO_PLACE,
   };
   if (homeCooked(answers)) {
     out.method = answers.method;
     out.recipe = answers.recipe.trim() || null;
+  } else {
+    for (const f of PLACE_FIELDS) out[f] = answers[f] ?? null;
   }
   return out;
 }
@@ -141,6 +157,8 @@ export function fromMeal(meal) {
     recipe: meal.recipe || "",
     note: meal.note || "",
     rating: meal.rating ?? null,
+    ...NO_PLACE,
+    ...(meal.place || {}),
   };
 }
 
@@ -163,7 +181,7 @@ export function stars(rating) {
 // {q, category, ...} → "?q=..&category=..", leaving out anything empty.
 export function toQuery(filters) {
   const params = new URLSearchParams();
-  for (const key of ["q", ...FILTER_FIELDS, "kind"]) {
+  for (const key of ["q", ...FILTER_FIELDS, "kind", "near"]) {
     const value = filters?.[key];
     if (value == null) continue;
     const text = String(value).trim();
@@ -217,4 +235,27 @@ export function appendSpoken(existing, heard) {
   if (!text) return existing;
   const before = (existing || "").trim();
   return before ? `${before} ${text}` : text;
+}
+
+// Metres as people say them: "350 m" up to a kilometre, then "1.2 km".
+export function formatDistance(m) {
+  if (!Number.isFinite(m) || m < 0) return "";
+  if (m < 1000) return `${Math.round(m)} m`;
+  return `${(m / 1000).toFixed(m < 10_000 ? 1 : 0)} km`;
+}
+
+// Where "導航" goes: Google's own link for the place if we have it, else
+// directions to the coordinates. Null when there is nowhere to go.
+export function mapsLink(place) {
+  if (!place) return null;
+  if (place.maps_url) return place.maps_url;
+  if (place.lat != null && place.lng != null) {
+    return `https://www.google.com/maps/dir/?api=1&destination=${place.lat},${place.lng}`;
+  }
+  return null;
+}
+
+// "lat,lng" for the API, from the browser's position.
+export function nearParam(pos) {
+  return pos ? `${pos.lat.toFixed(5)},${pos.lng.toFixed(5)}` : null;
 }

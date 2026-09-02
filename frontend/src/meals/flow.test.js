@@ -4,12 +4,15 @@ import {
   appendSpoken,
   clampStep,
   firstMissing,
+  formatDistance,
   fromMeal,
   isLast,
   keyToChoice,
   keyToRating,
   labelOf,
   localDate,
+  mapsLink,
+  nearParam,
   stars,
   toPayload,
   toQuery,
@@ -35,9 +38,9 @@ describe("visibleSteps", () => {
     ]);
   });
 
-  it("skips method and recipe when eating out", () => {
+  it("asks for the shop instead of method and recipe when eating out", () => {
     expect(visibleSteps(egg).map((s) => s.key)).toEqual([
-      "name", "kind", "category", "source", "season", "rating", "note",
+      "name", "kind", "category", "source", "season", "place", "rating", "note",
     ]);
   });
 
@@ -49,7 +52,7 @@ describe("visibleSteps", () => {
 describe("clampStep", () => {
   it("pulls the index back when a step disappears", () => {
     // On the note step (index 8) of a home-cooked meal, then switch to eat out.
-    expect(clampStep(8, egg)).toBe(6);
+    expect(clampStep(8, egg)).toBe(7);
   });
 
   it("leaves an index that still exists alone", () => {
@@ -108,6 +111,15 @@ describe("toPayload", () => {
     const stale = { ...egg, method: "air_fryer", recipe: "left over from before" };
     expect(toPayload(stale)).toMatchObject({ method: null, recipe: null });
   });
+
+  it("sends the shop for eating out and nothing for home-cooked", () => {
+    const shop = { place_id: "x", place_name: "石二鍋", address: "信義區", phone: "02",
+                   lat: 25.03, lng: 121.56, maps_url: "https://maps.google.com/?cid=1" };
+    expect(toPayload({ ...egg, ...shop })).toMatchObject(shop);
+    expect(toPayload({ ...chicken, ...shop })).toMatchObject({
+      place_name: null, lat: null, maps_url: null,
+    });
+  });
 });
 
 describe("fromMeal", () => {
@@ -116,6 +128,9 @@ describe("fromMeal", () => {
                                season: "all", method: null, recipe: null, note: null });
     expect(answers).toEqual({ ...egg, method: null, rating: null, kind: "" });
     expect(fromMeal({ ...egg, kind: "超商" }).kind).toBe("超商");
+    expect(fromMeal({ ...egg, place: { place_name: "石二鍋", lat: 25.03 } })).toMatchObject({
+      place_name: "石二鍋", lat: 25.03, phone: null,
+    });
     expect(fromMeal({ ...egg, rating: 4 }).rating).toBe(4);
   });
 });
@@ -157,7 +172,7 @@ describe("isLast", () => {
   it("is the note step, wherever that falls", () => {
     expect(isLast(8, chicken)).toBe(true);
     expect(isLast(7, chicken)).toBe(false);
-    expect(isLast(6, egg)).toBe(true); // eating out has seven steps
+    expect(isLast(7, egg)).toBe(true); // eating out has eight steps
   });
 });
 
@@ -225,5 +240,39 @@ describe("appendSpoken", () => {
   it("leaves the box alone when nothing was heard", () => {
     expect(appendSpoken("週日備餐", "   ")).toBe("週日備餐");
     expect(appendSpoken("", undefined)).toBe("");
+  });
+});
+
+describe("formatDistance", () => {
+  it("says metres under a kilometre and kilometres after", () => {
+    expect(formatDistance(350)).toBe("350 m");
+    expect(formatDistance(999)).toBe("999 m");
+    expect(formatDistance(1234)).toBe("1.2 km");
+    expect(formatDistance(12_345)).toBe("12 km");
+  });
+
+  it("is blank for nothing", () => {
+    expect(formatDistance(null)).toBe("");
+    expect(formatDistance(-1)).toBe("");
+  });
+});
+
+describe("mapsLink", () => {
+  it("prefers Google's own link, falls back to directions, else nothing", () => {
+    expect(mapsLink({ maps_url: "https://maps.google.com/?cid=1", lat: 1, lng: 2 })).toBe(
+      "https://maps.google.com/?cid=1",
+    );
+    expect(mapsLink({ lat: 25.03, lng: 121.56 })).toBe(
+      "https://www.google.com/maps/dir/?api=1&destination=25.03,121.56",
+    );
+    expect(mapsLink({ place_name: "無座標" })).toBeNull();
+    expect(mapsLink(null)).toBeNull();
+  });
+});
+
+describe("nearParam", () => {
+  it("rounds to five decimals, which is about a metre", () => {
+    expect(nearParam({ lat: 25.033964, lng: 121.564468 })).toBe("25.03396,121.56447");
+    expect(nearParam(null)).toBeNull();
   });
 });
