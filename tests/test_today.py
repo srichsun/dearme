@@ -99,6 +99,27 @@ def test_starter_fills_an_empty_list_once(sqlite_db):
     assert [h["text"] for h in today.add_starter("u2")] == ["自己的"]
 
 
+# --- golden rules ---
+
+def test_principles_are_kept_in_order_and_edited(sqlite_db):
+    a = today.add_principle("u1", "先睡飽")
+    today.add_principle("u1", " 不吃到撐 ")
+    assert today.add_principle("u1", "  ") is None
+
+    assert [p["text"] for p in today.list_principles("u1")] == ["先睡飽", "不吃到撐"]
+    assert today.rename_principle("u1", a.id, "先睡飽再說").text == "先睡飽再說"
+    assert today.rename_principle("u1", a.id, " ") is None
+    assert today.delete_principle("u1", a.id) is True
+    assert [p["text"] for p in today.list_principles("u1")] == ["不吃到撐"]
+
+
+def test_someone_elses_principle_is_out_of_reach(sqlite_db):
+    theirs = today.add_principle("u2", "theirs")
+    assert today.rename_principle("u1", theirs.id, "x") is None
+    assert today.delete_principle("u1", theirs.id) is False
+    assert today.list_principles("u1") == []
+
+
 # --- one account never reaches another's ---
 
 def test_someone_elses_habit_is_out_of_reach(sqlite_db):
@@ -147,6 +168,17 @@ def test_someone_elses_habit_is_404(signed_in):
     assert client.patch(f"/api/today/habits/{theirs.id}", json={"text": "x"}).status_code == 404
     assert client.post(f"/api/today/habits/{theirs.id}/check").status_code == 404
     assert client.delete(f"/api/today/habits/{theirs.id}").status_code == 404
+
+
+def test_principle_routes(signed_in):
+    made = client.post("/api/today/principles", json={"text": "先睡飽"})
+    assert made.status_code == 201
+    pid = made.json()["id"]
+    assert client.get("/api/today").json()["principles"] == [{"id": pid, "text": "先睡飽"}]
+    assert client.patch(f"/api/today/principles/{pid}", json={"text": "睡飽"}).json()["text"] == "睡飽"
+    assert client.post("/api/today/principles", json={"text": " "}).status_code == 422
+    assert client.delete(f"/api/today/principles/{pid}").json() == {"deleted": pid}
+    assert client.delete(f"/api/today/principles/{pid}").status_code == 404
 
 
 def test_today_needs_a_sign_in(sqlite_db):

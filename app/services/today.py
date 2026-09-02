@@ -7,7 +7,7 @@ Every habit query filters on user_id as well as id.
 from sqlalchemy import delete, select
 
 from app.core import clock, db
-from app.models import Goal, Habit, HabitCheck
+from app.models import Goal, Habit, HabitCheck, Principle
 
 # What a new list starts with, when the person asks for it.
 STARTER = (
@@ -128,6 +128,57 @@ def set_done(user_id: str, habit_id: int, done: bool) -> bool | None:
             s.delete(existing)
         s.commit()
         return done
+
+
+# --- golden rules ---
+
+
+def list_principles(user_id: str) -> list[dict]:
+    if not user_id:
+        return []
+    with db.get_session() as s:
+        rows = s.scalars(
+            select(Principle).where(Principle.user_id == user_id).order_by(Principle.position, Principle.id)
+        )
+        return [{"id": p.id, "text": p.text} for p in rows]
+
+
+def add_principle(user_id: str, text: str) -> Principle | None:
+    text = (text or "").strip()
+    if not text:
+        return None
+    with db.get_session() as s:
+        last = s.scalar(
+            select(Principle.position).where(Principle.user_id == user_id)
+            .order_by(Principle.position.desc()).limit(1)
+        )
+        p = Principle(user_id=user_id, text=text, position=(last or 0) + 1)
+        s.add(p)
+        s.commit()
+        return p
+
+
+def rename_principle(user_id: str, principle_id: int, text: str) -> Principle | None:
+    text = (text or "").strip()
+    if not text:
+        return None
+    with db.get_session() as s:
+        p = s.scalar(select(Principle).where(Principle.id == principle_id, Principle.user_id == user_id))
+        if p is None:
+            return None
+        p.text = text
+        s.commit()
+        return p
+
+
+def delete_principle(user_id: str, principle_id: int) -> bool:
+    with db.get_session() as s:
+        p = s.scalar(select(Principle).where(Principle.id == principle_id, Principle.user_id == user_id))
+        if p is None:
+            return False
+        s.delete(p)
+        s.commit()
+        return True
 
 
 def add_starter(user_id: str) -> list[dict]:

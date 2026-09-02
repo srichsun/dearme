@@ -15,7 +15,38 @@ def get_today(uid: CurrentUid):
         "goal": today.get_goal(uid),
         "day": clock.today().isoformat(),
         "habits": today.list_habits(uid),
+        "principles": today.list_principles(uid),
     }
+
+
+@router.get("/principles")
+def list_principles(uid: CurrentUid):
+    return {"principles": today.list_principles(uid)}
+
+
+@router.post("/principles", status_code=201)
+def add_principle(req: HabitWrite, uid: CurrentUid):
+    p = today.add_principle(uid, req.text)
+    if p is None:
+        raise HTTPException(status_code=422, detail="A principle can't be empty")
+    return {"id": p.id, "text": p.text}
+
+
+@router.patch("/principles/{principle_id}")
+def rename_principle(principle_id: int, req: HabitWrite, uid: CurrentUid):
+    if not (req.text or "").strip():
+        raise HTTPException(status_code=422, detail="A principle can't be empty")
+    p = today.rename_principle(uid, principle_id, req.text)
+    if p is None:
+        raise HTTPException(status_code=404, detail="No such principle")
+    return {"id": p.id, "text": p.text}
+
+
+@router.delete("/principles/{principle_id}")
+def delete_principle(principle_id: int, uid: CurrentUid):
+    if not today.delete_principle(uid, principle_id):
+        raise HTTPException(status_code=404, detail="No such principle")
+    return {"deleted": principle_id}
 
 
 @router.put("/goal")
