@@ -46,7 +46,7 @@ export const STRINGS = {
   confirmDel: { zh: "確定刪除？", en: "Really delete?" },
   cancel: { zh: "取消", en: "Cancel" },
   // GO
-  go: { zh: "GO", en: "GO" },
+  go: { zh: "WHAT TO EAT", en: "WHAT TO EAT" },
   goTitle: { zh: "現在想吃什麼外食？", en: "What do you feel like eating out?" },
   goHint: { zh: "按距離：定位後近到遠。按分類：先挑一類。", en: "By distance: locate, nearest first. By kind: pick a kind first." },
   goByDistance: { zh: "按距離", en: "By distance" },

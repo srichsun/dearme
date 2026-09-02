@@ -91,7 +91,7 @@ export default function MealList({ refreshKey, onEdit, goRequest, source, showMe
       if (id === latest.current) setMeals(data?.meals || []);
     }, q ? 250 : 0);
     return () => clearTimeout(timer);
-  }, [q, filters, refreshKey, pos]);
+  }, [q, filters, refreshKey, pos, source]);
 
   async function ask() {
     const text = sentence.trim();

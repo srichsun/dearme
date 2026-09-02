@@ -388,15 +388,16 @@ body.meals-body { background: #0d0e10; }
 /* --- GO ------------------------------------------------------------------- */
 
 .meals .go {
+  --red: #e5322d;
   border: none;
-  background: var(--sage);
-  color: #0d0e10;
+  background: var(--red);
+  color: #fff;
   border-radius: 4px;
   padding: 0.4rem 1rem;
   font-weight: 800;
   font-size: 0.9rem;
   letter-spacing: 0.18em;
-  box-shadow: 0 0 0 1px var(--sage), 0 0 18px -6px var(--sage);
+  box-shadow: 0 0 0 1px var(--red), 0 0 22px -6px var(--red);
 }
 .meals .go:hover { filter: brightness(1.08); }
 .meals .go:disabled { opacity: 0.35; box-shadow: none; }
