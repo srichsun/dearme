@@ -6,8 +6,10 @@ import {
   fromMeal,
   isLast,
   keyToChoice,
+  keyToRating,
   labelOf,
   localDate,
+  stars,
   toPayload,
   toQuery,
   visibleSteps,
@@ -25,15 +27,15 @@ const chicken = {
 const egg = { ...EMPTY, name: "茶葉蛋", category: "snack", source: "eat_out", season: "all" };
 
 describe("visibleSteps", () => {
-  it("asks seven questions for a home-cooked meal", () => {
+  it("asks eight questions for a home-cooked meal", () => {
     expect(visibleSteps(chicken).map((s) => s.key)).toEqual([
-      "name", "category", "source", "season", "method", "recipe", "note",
+      "name", "category", "source", "season", "method", "recipe", "rating", "note",
     ]);
   });
 
   it("skips method and recipe when eating out", () => {
     expect(visibleSteps(egg).map((s) => s.key)).toEqual([
-      "name", "category", "source", "season", "note",
+      "name", "category", "source", "season", "rating", "note",
     ]);
   });
 
@@ -44,12 +46,12 @@ describe("visibleSteps", () => {
 
 describe("clampStep", () => {
   it("pulls the index back when a step disappears", () => {
-    // On the recipe step (index 5) of a home-cooked meal, then switch to eat out.
-    expect(clampStep(5, egg)).toBe(4);
+    // On the note step (index 7) of a home-cooked meal, then switch to eat out.
+    expect(clampStep(7, egg)).toBe(5);
   });
 
   it("leaves an index that still exists alone", () => {
-    expect(clampStep(5, chicken)).toBe(5);
+    expect(clampStep(7, chicken)).toBe(7);
     expect(clampStep(0, egg)).toBe(0);
   });
 
@@ -72,8 +74,8 @@ describe("firstMissing", () => {
     expect(firstMissing({ ...chicken, method: null })).toBe(4);
   });
 
-  it("does not require a recipe or a note", () => {
-    expect(firstMissing({ ...chicken, recipe: "", note: "" })).toBe(-1);
+  it("does not require a recipe, a rating or a note", () => {
+    expect(firstMissing({ ...chicken, recipe: "", note: "", rating: null })).toBe(-1);
   });
 });
 
@@ -87,7 +89,12 @@ describe("toPayload", () => {
       method: "air_fryer",
       recipe: "抹鹽\n氣炸 15 分",
       note: null,
+      rating: null,
     });
+  });
+
+  it("sends the rating when there is one", () => {
+    expect(toPayload({ ...chicken, rating: 9 }).rating).toBe(9);
   });
 
   it("never sends a method or recipe for eating out", () => {
@@ -100,7 +107,8 @@ describe("fromMeal", () => {
   it("turns stored nulls into empty strings for the inputs", () => {
     const answers = fromMeal({ name: "茶葉蛋", category: "snack", source: "eat_out",
                                season: "all", method: null, recipe: null, note: null });
-    expect(answers).toEqual({ ...egg, method: null });
+    expect(answers).toEqual({ ...egg, method: null, rating: null });
+    expect(fromMeal({ ...egg, rating: 4 }).rating).toBe(4);
   });
 });
 
@@ -135,9 +143,9 @@ describe("labelOf", () => {
 
 describe("isLast", () => {
   it("is the note step, wherever that falls", () => {
-    expect(isLast(6, chicken)).toBe(true);
-    expect(isLast(5, chicken)).toBe(false);
-    expect(isLast(4, egg)).toBe(true); // eating out has five steps
+    expect(isLast(7, chicken)).toBe(true);
+    expect(isLast(6, chicken)).toBe(false);
+    expect(isLast(5, egg)).toBe(true); // eating out has six steps
   });
 });
 
@@ -165,5 +173,33 @@ describe("localDate", () => {
 
   it("is blank for something that is not a date", () => {
     expect(localDate("nope", "UTC")).toBe("");
+  });
+});
+
+describe("keyToRating", () => {
+  it("maps 1-9 to themselves and 0 to ten", () => {
+    expect(keyToRating("1")).toBe(1);
+    expect(keyToRating("9")).toBe(9);
+    expect(keyToRating("0")).toBe(10);
+  });
+
+  it("ignores anything else", () => {
+    expect(keyToRating("a")).toBeNull();
+    expect(keyToRating("10")).toBeNull();
+    expect(keyToRating("Enter")).toBeNull();
+  });
+});
+
+describe("stars", () => {
+  it("fills as many as the rating", () => {
+    expect(stars(7)).toBe("★★★★★★★☆☆☆");
+    expect(stars(10)).toBe("★★★★★★★★★★");
+    expect(stars(1)).toBe("★☆☆☆☆☆☆☆☆☆");
+  });
+
+  it("is empty when unrated or nonsense", () => {
+    expect(stars(null)).toBe("");
+    expect(stars(0)).toBe("");
+    expect(stars(11)).toBe("");
   });
 });

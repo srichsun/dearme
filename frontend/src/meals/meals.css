@@ -237,3 +237,23 @@ body.meals-body { background: #0d0e10; }
 .notedate { margin-right: auto; color: var(--ink-faint); font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.1em; }
 .meals .writer .mic { background: var(--well); border-color: var(--edge-strong); color: var(--ink-soft); border-radius: 4px; }
 .meals .writer .mic.on { background: var(--clay); border-color: var(--clay); color: #0d0e10; }
+
+/* --- stars -------------------------------------------------------------- */
+
+.rating { margin: 0.45rem 0 0; display: flex; align-items: baseline; gap: 0.5rem; }
+.starrow { color: var(--sage); letter-spacing: 0.08em; font-size: 0.95rem; }
+.starnum { color: var(--ink-faint); font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.08em; }
+.stars { display: flex; flex-wrap: wrap; align-items: center; gap: 0.15rem; margin-top: 0.7rem; }
+.star {
+  border: none;
+  background: none;
+  padding: 0.1rem 0.05rem;
+  font-size: 1.7rem;
+  line-height: 1;
+  color: var(--edge-strong);
+  transition: color 0.08s ease, transform 0.08s ease;
+}
+.star:hover { transform: scale(1.12); }
+.star.on { color: var(--sage); }
+.stars .starnum { margin-left: 0.5rem; }
+.stars .clear { margin: 0 0 0 0.6rem; }

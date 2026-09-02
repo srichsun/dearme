@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { authFetch, getJSON, postJSON } from "../api";
-import { FILTER_FIELDS, OPTIONS, labelOf, toQuery } from "./flow";
+import { FILTER_FIELDS, OPTIONS, labelOf, stars, toQuery } from "./flow";
 
 const NO_FILTERS = { category: null, source: null, season: null, method: null };
 
@@ -147,6 +147,12 @@ export default function MealList({ refreshKey, onEdit }) {
                   {m.method && <span className="tag">{labelOf("method", m.method)}</span>}
                 </div>
               </div>
+              {m.rating != null && (
+                <p className="rating" aria-label={`${m.rating} 星`}>
+                  <span className="starrow">{stars(m.rating)}</span>
+                  <span className="starnum">{m.rating}/10</span>
+                </p>
+              )}
               {m.recipe && <p className="recipe">{m.recipe}</p>}
               {m.note && <p className="mealnote">{m.note}</p>}
               <div className="cardactions">

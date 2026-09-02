@@ -48,6 +48,13 @@ export const STEPS = [
     when: homeCooked,
   },
   {
+    key: "rating",
+    ask: "幾顆星？",
+    hint: "吃過再評。數字鍵 1–9，0 是 10 顆；沒有就直接下一步。",
+    type: "stars",
+    optional: true,
+  },
+  {
     key: "note",
     ask: "備註？",
     hint: "想寫熱量、哪裡買都可以。沒有就直接送出。",
@@ -64,6 +71,7 @@ export const EMPTY = {
   method: null,
   recipe: "",
   note: "",
+  rating: null,
 };
 
 // The steps that apply to these answers, in order.
@@ -102,6 +110,7 @@ export function toPayload(answers) {
     method: null,
     recipe: null,
     note: answers.note.trim() || null,
+    rating: answers.rating ?? null,
   };
   if (homeCooked(answers)) {
     out.method = answers.method;
@@ -121,7 +130,24 @@ export function fromMeal(meal) {
     method: meal.method,
     recipe: meal.recipe || "",
     note: meal.note || "",
+    rating: meal.rating ?? null,
   };
+}
+
+// The stars 1-10, as buttons and as a row on the card.
+export const RATINGS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+
+// A number key on the rating step: "1".."9" are those stars, "0" is ten.
+export function keyToRating(key) {
+  if (key === "0") return 10;
+  const n = Number(key);
+  return Number.isInteger(n) && n >= 1 && n <= 9 && key.length === 1 ? n : null;
+}
+
+// "★★★★★★★☆☆☆" for 7; empty when unrated, so the card shows nothing.
+export function stars(rating) {
+  if (!Number.isInteger(rating) || rating < 1 || rating > 10) return "";
+  return "★".repeat(rating) + "☆".repeat(10 - rating);
 }
 
 // {q, category, ...} → "?q=..&category=..", leaving out anything empty.

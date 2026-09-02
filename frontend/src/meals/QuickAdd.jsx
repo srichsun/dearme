@@ -3,12 +3,14 @@ import { authFetch } from "../api";
 import {
   EMPTY,
   OPTIONS,
+  RATINGS,
   clampStep,
   firstMissing,
   fromMeal,
   isAnswered,
   isLast,
   keyToChoice,
+  keyToRating,
   toPayload,
   visibleSteps,
 } from "./flow";
@@ -91,6 +93,15 @@ export default function QuickAdd({ meal, onClose, onSaved }) {
 
   function onKey(e) {
     if (e.key === "Escape") return onClose();
+    if (step.type === "stars") {
+      const n = keyToRating(e.key);
+      if (n) {
+        e.preventDefault();
+        choose(n);
+      }
+      if (e.key === "Enter") next();
+      return;
+    }
     if (step.type === "choice") {
       const code = keyToChoice(e.key, step.key);
       if (code) {
@@ -147,6 +158,28 @@ export default function QuickAdd({ meal, onClose, onSaved }) {
                 {label}
               </button>
             ))}
+          </div>
+        )}
+        {step.type === "stars" && (
+          <div className="stars" role="radiogroup" aria-label="幾顆星">
+            {RATINGS.map((n) => (
+              <button
+                type="button"
+                key={n}
+                className={"star" + (answers.rating != null && n <= answers.rating ? " on" : "")}
+                onClick={() => choose(n)}
+                aria-label={`${n} 星`}
+                ref={n === 1 ? inputRef : null}
+              >
+                ★
+              </button>
+            ))}
+            <span className="starnum">{answers.rating ? `${answers.rating} / 10` : "未評"}</span>
+            {answers.rating != null && (
+              <button type="button" className="clear" onClick={() => set("rating", null)}>
+                清除
+              </button>
+            )}
           </div>
         )}
         {step.type === "text" && (
