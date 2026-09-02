@@ -33,6 +33,19 @@ class Habit(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
 
 
+class Principle(Base):
+    """A golden rule the person lives by, in their own words. No ticking —
+    a rule is not done, it is kept."""
+
+    __tablename__ = "principles"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[str] = mapped_column(String(128), index=True)
+    text: Mapped[str] = mapped_column(Text)
+    position: Mapped[int] = mapped_column(Integer, default=0)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+
+
 class HabitCheck(Base):
     __tablename__ = "habit_checks"
     __table_args__ = (UniqueConstraint("habit_id", "day", name="uq_habit_checks_habit_day"),)
