@@ -51,7 +51,8 @@ export default function ShopFromLink({ onSaved, onClose }) {
     if (e.key === "Escape") onClose();
     if (e.key === "Enter") {
       e.preventDefault();
-      shop ? add() : fetchShop();
+      if (shop) add();
+      else fetchShop();
     }
   }
 
