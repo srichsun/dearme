@@ -99,12 +99,13 @@ def list_meals(
         stmt = stmt.where(Meal.method == method)
     q = (q or "").strip()
     if q:
-        needle = f"%{q}%"
+        # autoescape: "100%" in a note is matched by typing "100%", not by
+        # anything at all — the person is searching text, not writing LIKE.
         stmt = stmt.where(
             or_(
-                Meal.name.ilike(needle),
-                Meal.recipe.ilike(needle),
-                Meal.note.ilike(needle),
+                Meal.name.icontains(q, autoescape=True),
+                Meal.recipe.icontains(q, autoescape=True),
+                Meal.note.icontains(q, autoescape=True),
             )
         )
     stmt = stmt.order_by(Meal.created_at.desc(), Meal.id.desc())

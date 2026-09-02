@@ -202,6 +202,16 @@ def test_keyword_ignores_case_and_stray_space(a_few_meals):
     assert names(q="subway") == ["Subway 沙拉"]
 
 
+def test_keyword_wildcards_are_plain_characters(a_few_meals):
+    """% and _ mean something to LIKE; to the person they are just text."""
+    assert names(q="%") == []
+    assert names(q="_") == []
+    meals.create_meal("u1", **{**EGG, "name": "全家 100% 純雞胸"}, note="under_score")
+    assert names(q="100%") == ["全家 100% 純雞胸"]
+    assert names(q="r_s") == ["全家 100% 純雞胸"]
+    assert names(q="rXs") == []
+
+
 def test_keyword_combines_with_filters(a_few_meals):
     assert names(q="雞", method="air_fryer") == ["氣炸鍋雞胸"]
     assert names(q="雞", source="eat_out") == []
