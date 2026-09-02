@@ -42,7 +42,7 @@ export default function MealsApp() {
     let alive = true;
     const check = async () => {
       if (document.visibilityState !== "visible") return;
-      if (await newerBuildExists()) alive && setStale(true);
+      if ((await newerBuildExists()) && alive) setStale(true);
     };
     check();
     document.addEventListener("visibilitychange", check);
