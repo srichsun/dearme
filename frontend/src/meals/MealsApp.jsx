@@ -101,10 +101,10 @@ export default function MealsApp() {
       {going && (
         <GoDialog
           onClose={() => setGoing(false)}
-          onPick={(kind) => {
+          onPick={({ mode, kind }) => {
             setGoing(false);
             setScreen("meals");
-            setGoRequest((g) => ({ kind, seq: (g?.seq || 0) + 1 }));
+            setGoRequest((g) => ({ mode, kind, seq: (g?.seq || 0) + 1 }));
           }}
         />
       )}

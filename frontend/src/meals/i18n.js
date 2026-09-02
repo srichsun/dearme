@@ -24,9 +24,13 @@ export const STRINGS = {
   // GO
   go: { zh: "GO", en: "GO" },
   goTitle: { zh: "現在想吃什麼外食？", en: "What do you feel like eating out?" },
-  goHint: { zh: "選一類，會照離你的距離近到遠排。", en: "Pick a kind; places are listed nearest first." },
-  goNearest: { zh: "隨便，離我最近的", en: "Anything — nearest to me" },
-  goNoKinds: { zh: "外食餐點還沒填類型，先看離你最近的。", en: "No eat-out meal has a kind yet — start with what's nearest." },
+  goHint: { zh: "按距離：定位後近到遠。按分類：先挑一類。", en: "By distance: locate, nearest first. By kind: pick a kind first." },
+  goByDistance: { zh: "按距離", en: "By distance" },
+  goByDistanceSub: { zh: "離我最近的外食，近到遠", en: "Places to eat out, nearest first" },
+  goByKind: { zh: "按分類", en: "By kind" },
+  goByKindSub: { zh: "火鍋、牛排、超商……先挑一類", en: "Hot pot, steak, convenience store… pick one" },
+  goKindTitle: { zh: "哪一類？", en: "Which kind?" },
+  goNoKinds: { zh: "外食餐點還沒填類型。新增或編輯時填「什麼類型？」那題。", en: "No eat-out meal has a kind yet. Fill in “What kind?” when adding or editing." },
   // list
   searchPh: { zh: "找名字、食材、備註…", en: "Search names, ingredients, notes…" },
   askPh: { zh: "例如：夏天自己煮的點心，用氣炸鍋", en: "e.g. a summer snack I cook in the air fryer" },

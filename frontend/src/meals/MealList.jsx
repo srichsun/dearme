@@ -59,8 +59,9 @@ export default function MealList({ refreshKey, onEdit, goRequest }) {
     );
   }
 
-  // GO: eating out, that kind, nearest first — on the ordinary controls, so
-  // every tag and the "nearest" toggle show what was asked and can be undone.
+  // GO lands on the ordinary controls, so every tag and the "nearest" toggle
+  // show what was asked and can be undone. By distance: eating out, locate.
+  // By kind: eating out, that kind; distance only if they press nearest.
   useEffect(() => {
     if (!goRequest) return;
     setView("all");
@@ -68,7 +69,7 @@ export default function MealList({ refreshKey, onEdit, goRequest }) {
     setQ("");
     setFallback(false);
     setFilters(goFilters(goRequest.kind));
-    locate(true);
+    if (goRequest.mode === "distance") locate(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [goRequest?.seq]);
 

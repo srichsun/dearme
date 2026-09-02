@@ -395,3 +395,7 @@ body.meals-body { background: #0d0e10; }
 .meals .go:disabled { opacity: 0.35; box-shadow: none; }
 .qa.go .choice { justify-content: space-between; }
 .qa.go .choice.nearest { border-color: var(--clay); color: var(--clay); font-weight: 600; }
+.gochoice { display: grid; gap: 0.05rem; }
+.gochoice b { font-weight: 600; }
+.gochoice small { color: var(--ink-faint); font-size: 0.78rem; }
+.qa.go .choice.nearest .gochoice small { color: var(--ink-soft); }
