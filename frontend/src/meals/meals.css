@@ -364,3 +364,16 @@ body.meals-body { background: #0d0e10; }
 
 .meals .signin .langtoggle { position: absolute; top: 1.2rem; right: 1.2rem; }
 .meals .signin { position: relative; }
+
+.watch {
+  display: inline-block;
+  margin-top: 0.55rem;
+  border: 1px solid var(--edge-strong);
+  border-radius: 4px;
+  padding: 0.25rem 0.7rem;
+  color: var(--ink);
+  text-decoration: none;
+  font-size: 0.8rem;
+  letter-spacing: 0.06em;
+}
+.watch:hover { border-color: var(--sage); color: var(--sage); }

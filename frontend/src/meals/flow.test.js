@@ -8,6 +8,7 @@ import {
   formatDistance,
   fromMeal,
   isLast,
+  isVideoUrl,
   keyToChoice,
   keyToRating,
   labelOf,
@@ -33,15 +34,15 @@ const chicken = {
 const egg = { ...EMPTY, name: "茶葉蛋", category: "snack", source: "eat_out", season: "all" };
 
 describe("visibleSteps", () => {
-  it("asks nine questions for a home-cooked meal", () => {
+  it("asks ten questions for a home-cooked meal", () => {
     expect(visibleSteps(chicken).map((s) => s.key)).toEqual([
-      "name", "kind", "category", "source", "season", "method", "recipe", "rating", "note",
+      "name", "kind", "category", "source", "season", "method", "recipe", "rating", "video_url", "note",
     ]);
   });
 
   it("asks for the shop instead of method and recipe when eating out", () => {
     expect(visibleSteps(egg).map((s) => s.key)).toEqual([
-      "name", "kind", "category", "source", "season", "place", "rating", "note",
+      "name", "kind", "category", "source", "season", "place", "rating", "video_url", "note",
     ]);
   });
 
@@ -52,12 +53,12 @@ describe("visibleSteps", () => {
 
 describe("clampStep", () => {
   it("pulls the index back when a step disappears", () => {
-    // On the note step (index 8) of a home-cooked meal, then switch to eat out.
-    expect(clampStep(8, egg)).toBe(7);
+    // On the note step (index 9) of a home-cooked meal, then switch to eat out.
+    expect(clampStep(9, egg)).toBe(8);
   });
 
   it("leaves an index that still exists alone", () => {
-    expect(clampStep(8, chicken)).toBe(8);
+    expect(clampStep(9, chicken)).toBe(9);
     expect(clampStep(0, egg)).toBe(0);
   });
 
@@ -97,8 +98,13 @@ describe("toPayload", () => {
       note: null,
       rating: null,
       kind: "自煮",
+      video_url: null,
       ...NO_PLACE, // home-cooked always sends the shop as nothing
     });
+  });
+
+  it("sends the video link trimmed", () => {
+    expect(toPayload({ ...egg, video_url: " https://youtu.be/x " }).video_url).toBe("https://youtu.be/x");
   });
 
   it("sends a blank kind as null", () => {
@@ -130,6 +136,8 @@ describe("fromMeal", () => {
                                season: "all", method: null, recipe: null, note: null });
     expect(answers).toEqual({ ...egg, method: null, rating: null, kind: "" });
     expect(fromMeal({ ...egg, kind: "超商" }).kind).toBe("超商");
+    expect(fromMeal({ ...egg, video_url: "https://youtu.be/x" }).video_url).toBe("https://youtu.be/x");
+    expect(fromMeal({ ...egg }).video_url).toBe("");
     expect(fromMeal({ ...egg, place: { place_name: "石二鍋", lat: 25.03 } })).toMatchObject({
       place_name: "石二鍋", lat: 25.03, phone: null,
     });
@@ -173,9 +181,9 @@ describe("labelOf", () => {
 
 describe("isLast", () => {
   it("is the note step, wherever that falls", () => {
-    expect(isLast(8, chicken)).toBe(true);
-    expect(isLast(7, chicken)).toBe(false);
-    expect(isLast(7, egg)).toBe(true); // eating out has eight steps
+    expect(isLast(9, chicken)).toBe(true);
+    expect(isLast(8, chicken)).toBe(false);
+    expect(isLast(8, egg)).toBe(true); // eating out has nine steps
   });
 });
 
@@ -277,5 +285,20 @@ describe("nearParam", () => {
   it("rounds to five decimals, which is about a metre", () => {
     expect(nearParam({ lat: 25.033964, lng: 121.564468 })).toBe("25.03396,121.56447");
     expect(nearParam(null)).toBeNull();
+  });
+});
+
+describe("isVideoUrl", () => {
+  it("accepts a web address or nothing", () => {
+    expect(isVideoUrl("https://www.instagram.com/reel/abc/")).toBe(true);
+    expect(isVideoUrl("HTTP://youtu.be/x")).toBe(true);
+    expect(isVideoUrl("")).toBe(true);
+    expect(isVideoUrl("   ")).toBe(true);
+  });
+
+  it("refuses anything else", () => {
+    expect(isVideoUrl("instagram.com/reel/abc")).toBe(false);
+    expect(isVideoUrl("javascript:alert(1)")).toBe(false);
+    expect(isVideoUrl("https://a b")).toBe(false);
   });
 });

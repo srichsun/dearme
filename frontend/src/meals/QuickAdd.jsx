@@ -15,6 +15,7 @@ import {
   fromMeal,
   isAnswered,
   isLast,
+  isVideoUrl,
   keyToChoice,
   keyToRating,
   stepText,
@@ -144,6 +145,10 @@ export default function QuickAdd({ meal, onClose, onSaved }) {
       setError(t("answerFirst"));
       return;
     }
+    if (step.type === "url" && !isVideoUrl(answers[step.key])) {
+      setError(t("badUrl"));
+      return;
+    }
     if (isLast(at, answers)) save();
     else go(at + 1);
   }
@@ -169,7 +174,7 @@ export default function QuickAdd({ meal, onClose, onSaved }) {
       if (e.key === "Enter") next();
       return;
     }
-    if (step.type === "kind" || step.type === "place") {
+    if (step.type === "kind" || step.type === "place" || step.type === "url") {
       if (e.key === "Enter") {
         e.preventDefault();
         next();
@@ -311,6 +316,16 @@ export default function QuickAdd({ meal, onClose, onSaved }) {
               </div>
             )}
           </div>
+        )}
+        {step.type === "url" && (
+          <input
+            ref={inputRef}
+            type="url"
+            inputMode="url"
+            value={answers[step.key]}
+            onChange={(e) => set(step.key, e.target.value)}
+            placeholder={t("videoPh")}
+          />
         )}
         {step.type === "text" && (
           <input

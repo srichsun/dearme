@@ -271,6 +271,11 @@ export default function MealList({ refreshKey, onEdit }) {
                 </p>
               )}
               {m.recipe && <p className="recipe">{m.recipe}</p>}
+              {m.video_url && (
+                <a className="watch" href={m.video_url} target="_blank" rel="noreferrer">
+                  {t("watch")}
+                </a>
+              )}
               {m.note && <p className="mealnote">{m.note}</p>}
               <div className="cardactions">
                 {confirming === m.id ? (

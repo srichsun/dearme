@@ -86,6 +86,16 @@ export const STEPS = [
     optional: true,
   },
   {
+    key: "video_url",
+    ask: { zh: "影片連結？", en: "Video link?" },
+    hint: {
+      zh: "IG、YouTube 都可以，貼上就好。沒有就直接下一步。",
+      en: "Instagram, YouTube, anything — just paste it. Skip if none.",
+    },
+    type: "url",
+    optional: true,
+  },
+  {
     key: "note",
     ask: { zh: "備註？", en: "Notes?" },
     hint: {
@@ -113,6 +123,7 @@ export const EMPTY = {
   recipe: "",
   note: "",
   rating: null,
+  video_url: "",
   ...NO_PLACE,
 };
 
@@ -154,6 +165,7 @@ export function toPayload(answers) {
     note: answers.note.trim() || null,
     rating: answers.rating ?? null,
     kind: answers.kind.trim() || null,
+    video_url: answers.video_url.trim() || null,
     ...NO_PLACE,
   };
   if (homeCooked(answers)) {
@@ -178,9 +190,17 @@ export function fromMeal(meal) {
     recipe: meal.recipe || "",
     note: meal.note || "",
     rating: meal.rating ?? null,
+    video_url: meal.video_url || "",
     ...NO_PLACE,
     ...(meal.place || {}),
   };
+}
+
+// Only a web address goes out as a video link; the backend refuses the rest,
+// but saying so on the step is kinder than a 422 at the end.
+export function isVideoUrl(text) {
+  const t = (text || "").trim();
+  return t === "" || /^https?:\/\/\S+$/i.test(t);
 }
 
 // The stars 1-10, as buttons and as a row on the card.
