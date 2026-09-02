@@ -11,6 +11,7 @@ import MealList from "./MealList";
 import Notes from "./Notes";
 import Shopping from "./Shopping";
 import Today from "./Today";
+import { newerBuildExists } from "./update";
 import QuickAdd from "./QuickAdd";
 
 // The "what can I eat" list, at /meals. Same sign-in as the journal, its own
@@ -32,6 +33,26 @@ export default function MealsApp() {
   const [going, setGoing] = useState(false);
   // What GO chose, with a counter so choosing the same kind twice still fires.
   const [goRequest, setGoRequest] = useState(null);
+  const [stale, setStale] = useState(false);
+
+  // A phone with the site on its home screen can hold an old build for days.
+  // Check for a newer one whenever the app comes to the front, and every few
+  // minutes while it stays open; offer a reload rather than forcing one.
+  useEffect(() => {
+    let alive = true;
+    const check = async () => {
+      if (document.visibilityState !== "visible") return;
+      if (await newerBuildExists()) alive && setStale(true);
+    };
+    check();
+    document.addEventListener("visibilitychange", check);
+    const timer = setInterval(check, 5 * 60 * 1000);
+    return () => {
+      alive = false;
+      document.removeEventListener("visibilitychange", check);
+      clearInterval(timer);
+    };
+  }, []);
   // Bumped after a meal is added or edited, so the list reloads.
   const [version, setVersion] = useState(0);
 
@@ -65,6 +86,11 @@ export default function MealsApp() {
   return (
     <LangProvider value={langState}>
     <div className="app meals">
+      {stale && (
+        <button type="button" className="updatebar" onClick={() => window.location.reload()}>
+          {t("newVersion")}
+        </button>
+      )}
       <header className="head">
         <h1>{t("title")}</h1>
         <button className="signout" onClick={toggle} aria-label="Language">
