@@ -61,7 +61,7 @@
 - Test: `flow.test.js` 補 `nextStep`/`prevStep` 與答案變動時步驟重算（改成外食後當前題落在被跳過的題要往前縮）
 - Check: `cd frontend && npm run lint && npm test && npm run build`
 - Done when: 鍵盤走完七題新增一筆；編輯預填、點進度點跳題；失敗留在彈窗
-- Status: todo
+- Status: done
 
 ### 10. feat(web): notes screen with voice input
 - Files: `frontend/src/meals/MealsApp.jsx`, `frontend/src/meals/Notes.jsx`, `frontend/src/meals/meals.css`

@@ -182,3 +182,10 @@
 .qerror { margin: 0.7rem 0 0; color: var(--clay); font-size: 0.85rem; }
 .qafoot { display: flex; align-items: center; gap: 0.5rem; margin-top: 1rem; }
 .qhint { margin-left: auto; color: var(--ink-faint); font-size: 0.74rem; }
+
+/* --- notes ---------------------------------------------------------------- */
+
+.notecard { padding: 1rem 1.1rem; }
+.notetext { margin: 0; white-space: pre-wrap; font-size: 1rem; line-height: 1.65; }
+.notecard .cardactions { align-items: center; }
+.notedate { margin-right: auto; color: var(--ink-faint); font-size: 0.78rem; letter-spacing: 0.04em; }

@@ -4,6 +4,7 @@ import "./meals.css";
 import { onAuthChange, signInWithGoogle, signOutUser } from "../firebase";
 import { useTheme } from "../theme";
 import MealList from "./MealList";
+import Notes from "./Notes";
 import QuickAdd from "./QuickAdd";
 
 // The "what can I eat" list, at /meals. Same sign-in as the journal, its own
@@ -70,7 +71,7 @@ export default function MealsApp() {
         {screen === "meals" ? (
           <MealList refreshKey={version} onEdit={setEditing} />
         ) : (
-          <p className="hint centred">心得下一步做。</p>
+          <Notes />
         )}
       </main>
       {editing && (
