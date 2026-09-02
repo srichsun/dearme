@@ -9,6 +9,9 @@ from app.models.base import Base
 from app.models.entry import Entry
 from app.models.fact import CATEGORIES, Category, Fact
 from app.models.mantra import Mantra
+from app.models.meal import CATEGORIES as MEAL_CATEGORIES
+from app.models.meal import METHODS, SEASONS, SOURCES, Meal
+from app.models.meal_note import MealNote
 from app.models.profile import Profile
 from app.models.question import Question
 
@@ -21,6 +24,12 @@ __all__ = [
     "Entry",
     "Fact",
     "Mantra",
+    "Meal",
+    "MealNote",
+    "MEAL_CATEGORIES",
+    "METHODS",
+    "SEASONS",
+    "SOURCES",
     "Profile",
     "Question",
 ]
