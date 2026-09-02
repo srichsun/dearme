@@ -45,6 +45,7 @@ def test_creating_a_meal(sqlite_db):
     assert resp.status_code == 201
     body = resp.json()
     assert body["name"] == "氣炸鍋雞胸"
+    assert body["categories"] == ["meal"]
     assert body["method"] == "air_fryer"
     assert body["note"] is None
     assert body["id"] == meals.list_meals(UID)[0].id
@@ -133,6 +134,13 @@ def test_kinds_and_the_kind_filter(sqlite_db):
     hotpot = client.get("/api/meals", params={"kind": "火鍋"}).json()["meals"]
     assert [m["name"] for m in hotpot] == ["涮乃葉", "石二鍋"]
     assert hotpot[0]["kind"] == "火鍋"
+
+
+def test_categories_go_in_and_out_as_a_list(sqlite_db):
+    made = client.post("/api/meals", json={**EGG, "category": None, "categories": ["meal", "breakfast"]}).json()
+    assert made["categories"] == ["breakfast", "meal"]
+    assert client.post("/api/meals", json={**EGG, "category": None, "categories": []}).status_code == 422
+    assert [m["name"] for m in client.get("/api/meals", params={"category": "breakfast"}).json()["meals"]] == ["7-11 茶葉蛋"]
 
 
 def test_a_missing_field_answers_422(sqlite_db):

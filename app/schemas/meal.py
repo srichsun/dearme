@@ -11,7 +11,9 @@ class MealWrite(BaseModel):
     """A whole meal, as the dialog sends it — for both create and update."""
 
     name: str
-    category: str
+    # One or more of breakfast / meal / snack. `category` alone still works.
+    categories: list[str] = []
+    category: str | None = None
     source: str
     season: str
     method: str | None = None

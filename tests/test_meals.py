@@ -54,10 +54,21 @@ def test_creating_stores_every_field(sqlite_db):
     meal = meals.create_meal("u1", **CHICKEN, note="  週日備餐  ")
 
     assert meal.id is not None
-    assert meal.category == "meal"
+    assert meals.unpack_categories(meal.category) == ["meal"]
     assert meal.season == "summer"
     assert meal.recipe == "雞胸抹鹽\n氣炸 180 度 15 分"
     assert meal.note == "週日備餐"
+
+
+def test_categories_are_a_set_with_at_least_one(sqlite_db):
+    both = meals.create_meal("u1", **{**EGG, "category": None}, categories=["meal", "breakfast"])
+    assert both.category == ",breakfast,meal,"
+    assert meals.unpack_categories(both.category) == ["breakfast", "meal"]
+    assert meals.create_meal("u1", **EGG).category == ",snack,"  # the single form still works
+    with pytest.raises(MealError):
+        meals.create_meal("u1", **{**EGG, "category": None})
+    with pytest.raises(MealError):
+        meals.create_meal("u1", **{**EGG, "category": None}, categories=["lunch"])
 
 
 def test_name_is_trimmed_and_required(sqlite_db):
@@ -267,6 +278,9 @@ def test_no_filters_returns_everything_newest_first(a_few_meals):
 def test_filter_by_category(a_few_meals):
     assert names(category="breakfast") == ["燕麥高蛋白"]
     assert names(category="meal") == ["電鍋雞湯", "氣炸鍋雞胸"]
+    meals.create_meal("u1", **{**EGG, "name": "兩餐都行", "category": None}, categories=["breakfast", "meal"])
+    assert names(category="breakfast") == ["兩餐都行", "燕麥高蛋白"]
+    assert names(category="meal")[0] == "兩餐都行"
 
 
 def test_filter_by_source(a_few_meals):

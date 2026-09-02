@@ -4,7 +4,8 @@ Plain CRUD. The rules live here, not in the routes, so a test can hit them
 without HTTP and a future caller (the week planner) gets the same answers:
 
 - a name is required;
-- category / source / season / method must be one of the known codes;
+- at least one category (breakfast / meal / snack); source / season / method
+  must be one of the known codes;
 - home-cooked needs a method — it is the axis this list gets searched on;
 - a rating, if given, is a whole number from 1 to 10;
 - a video link, if given, is an http(s) URL;
@@ -48,6 +49,20 @@ def unpack_proteins(packed: str | None) -> list[str]:
     return [c for c in (packed or "").split(",") if c]
 
 
+def pack_categories(codes) -> str:
+    """["meal","breakfast"] → ",breakfast,meal,". At least one, all known."""
+    picked = sorted({(c or "").strip() for c in (codes or []) if (c or "").strip()})
+    if not picked:
+        raise MealError("A meal needs at least one category")
+    for c in picked:
+        if c not in MEAL_CATEGORIES:
+            raise MealError(f"Unknown category {c!r}")
+    return "," + ",".join(picked) + ","
+
+
+unpack_categories = unpack_proteins
+
+
 def _text(value: str | None) -> str | None:
     """Trim free text; empty becomes None so the column stays clean."""
     value = (value or "").strip()
@@ -57,8 +72,9 @@ def _text(value: str | None) -> str | None:
 def _clean(
     *,
     name: str,
-    category: str,
     source: str,
+    category: str | None = None,
+    categories=None,
     season: str,
     method: str | None = None,
     recipe: str | None = None,
@@ -80,8 +96,7 @@ def _clean(
     name = (name or "").strip()
     if not name:
         raise MealError("A meal needs a name")
-    if category not in MEAL_CATEGORIES:
-        raise MealError(f"Unknown category {category!r}")
+    packed_category = pack_categories(categories or ([category] if category else []))
     if source not in SOURCES:
         raise MealError(f"Unknown source {source!r}")
     if season not in SEASONS:
@@ -122,7 +137,7 @@ def _clean(
 
     return {
         "name": name,
-        "category": category,
+        "category": packed_category,
         "source": source,
         "season": season,
         "method": method,
@@ -173,7 +188,7 @@ def list_meals(
         return []
     stmt = select(Meal).where(Meal.user_id == user_id)
     if category:
-        stmt = stmt.where(Meal.category == category)
+        stmt = stmt.where(Meal.category.like(f"%,{category},%"))
     if source:
         stmt = stmt.where(Meal.source == source)
     if season:

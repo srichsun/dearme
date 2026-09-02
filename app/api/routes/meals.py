@@ -9,7 +9,7 @@ from app.api.deps import CurrentUid
 from app.models import Meal, MealNote
 from app.schemas.meal import LinkRequest, MealWrite, NoteWrite, SearchRequest
 from app.services import meal_notes, meal_search, meals, places
-from app.services.meals import PLACE_FIELDS, MealError, unpack_proteins
+from app.services.meals import PLACE_FIELDS, MealError, unpack_categories, unpack_proteins
 
 # Under /api so the page at /meals (see app/main.py) and this JSON can't
 # collide — the other routers predate the second app and keep their paths.
@@ -20,7 +20,7 @@ def _meal(m: Meal) -> dict:
     return {
         "id": m.id,
         "name": m.name,
-        "category": m.category,
+        "categories": unpack_categories(m.category),
         "source": m.source,
         "season": m.season,
         "method": m.method,
