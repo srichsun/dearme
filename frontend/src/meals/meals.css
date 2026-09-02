@@ -174,25 +174,30 @@ body.meals-body { background: #0d0e10; }
 
 /* --- the dialog --------------------------------------------------------- */
 
+/* Every dialog (add, GO, the shop from a link, the questions) shares this:
+ * centred on the screen at any size, never a sheet stuck to the bottom, and
+ * it scrolls inside itself when a question runs long on a small phone. */
 .dialog {
   position: fixed;
   inset: 0;
   z-index: 40;
   display: grid;
-  place-items: end center;
+  place-items: center;
+  padding: 1rem;
   background: rgba(6, 7, 8, 0.7);
   backdrop-filter: blur(2px);
 }
-@media (min-width: 560px) { .dialog { place-items: center; padding: 2rem; } }
 .qa {
   width: 100%;
   max-width: 560px;
+  max-height: calc(100dvh - 2rem);
+  overflow-y: auto;
   background: var(--linen);
   border: 1px solid var(--edge-strong);
-  border-radius: var(--radius) var(--radius) 0 0;
+  border-radius: var(--radius);
   padding: 1rem 1.2rem 1.2rem;
+  box-shadow: 0 30px 60px -30px rgba(0, 0, 0, 0.8);
 }
-@media (min-width: 560px) { .qa { border-radius: var(--radius); } }
 .qahead { display: flex; align-items: center; justify-content: space-between; }
 .dots { display: flex; gap: 0.35rem; }
 .dot { width: 18px; height: 3px; border: none; border-radius: 1px; background: var(--edge); padding: 0; }
@@ -313,17 +318,19 @@ body.meals-body { background: #0d0e10; }
 .chip.near.on { background: var(--clay); border-color: var(--clay); color: #0d0e10; font-weight: 600; }
 .shop {
   margin: 0.55rem 0 0;
-  padding: 0.55rem 0.7rem;
+  padding: 0.45rem 0.7rem;
   border-left: 2px solid var(--sage);
   background: var(--well);
-  display: grid;
-  gap: 0.1rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.2rem 0.9rem;
   font-size: 0.86rem;
   color: var(--ink-soft);
 }
 .shop b { color: var(--ink); font-weight: 600; }
 .shop a { color: var(--ink-soft); text-decoration: none; }
-.shopgo { display: flex; gap: 0.8rem; align-items: baseline; margin-top: 0.2rem; }
+.shopgo { display: flex; gap: 0.8rem; align-items: baseline; margin-left: auto; }
 .shopgo em { font-style: normal; font-family: var(--mono); color: var(--clay); font-size: 0.78rem; letter-spacing: 0.06em; }
 .shopgo a { color: var(--sage); font-weight: 600; }
 .placepick { position: relative; }

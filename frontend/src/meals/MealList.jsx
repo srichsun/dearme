@@ -274,7 +274,6 @@ export default function MealList({ refreshKey, onEdit, goRequest }) {
               {m.place && (
                 <div className="shop">
                   <b>{m.place.place_name}</b>
-                  {m.place.address && <span>{m.place.address}</span>}
                   {m.place.phone && (
                     <a href={`tel:${m.place.phone.replace(/\s/g, "")}`}>{m.place.phone}</a>
                   )}
