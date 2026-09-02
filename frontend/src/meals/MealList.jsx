@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { authFetch, getJSON, postJSON } from "../api";
 import { FILTER_FIELDS, OPTIONS, labelOf, stars, toQuery } from "./flow";
 
-const NO_FILTERS = { category: null, source: null, season: null, method: null };
+const NO_FILTERS = { category: null, source: null, season: null, method: null, kind: null };
 
 // The first screen: a search box, four rows of filter tags, the meals that
 // match. Typing searches as you go; "用問的" sends the sentence to the model,
@@ -17,7 +17,16 @@ export default function MealList({ refreshKey, onEdit }) {
   const [fallback, setFallback] = useState(false);
   const [busy, setBusy] = useState(false);
   const [confirming, setConfirming] = useState(null);
+  // "all": the list. "kinds": the kinds with counts; picking one narrows the
+  // list to it and shows the way back.
+  const [view, setView] = useState("all");
+  const [kinds, setKinds] = useState(null);
   const latest = useRef(0);
+
+  useEffect(() => {
+    if (view !== "kinds") return;
+    getJSON("/api/meals/kinds").then((d) => setKinds(d?.kinds || []));
+  }, [view, refreshKey]);
 
   // Reload whenever the question changes. The counter drops a slow reply
   // that arrives after a newer one, so the list never shows a stale answer.
@@ -42,12 +51,13 @@ export default function MealList({ refreshKey, onEdit }) {
     const got = data.filters || {};
     setFallback(Boolean(data.fallback));
     setQ(got.q || "");
-    setFilters({
+    setFilters((f) => ({
       category: got.category || null,
       source: got.source || null,
       season: got.season || null,
       method: got.method || null,
-    });
+      kind: f.kind,
+    }));
   }
 
   function toggle(field, code) {
@@ -72,8 +82,58 @@ export default function MealList({ refreshKey, onEdit }) {
 
   const anything = q || Object.values(filters).some(Boolean);
 
+  function pickKind(kind) {
+    setFilters((f) => ({ ...f, kind }));
+    setView("all");
+  }
+
+  function backToKinds() {
+    setFilters((f) => ({ ...f, kind: null }));
+    setView("kinds");
+  }
+
+  if (view === "kinds") {
+    return (
+      <section className="screen">
+        <div className="viewswitch">
+          <button type="button" onClick={() => setView("all")}>全部</button>
+          <button type="button" className="on">依類型</button>
+        </div>
+        {kinds === null ? (
+          <p className="hint centred">載入中…</p>
+        ) : kinds.length === 0 ? (
+          <p className="hint centred">還沒有餐點填類型。新增或編輯時填「什麼類型？」那題。</p>
+        ) : (
+          <ul className="kindgrid">
+            {kinds.map((k) => (
+              <li key={k.kind}>
+                <button type="button" className="kindtile" onClick={() => pickKind(k.kind)}>
+                  <span className="kindname">{k.kind}</span>
+                  <span className="kindcount">{k.count}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+    );
+  }
+
   return (
     <section className="screen">
+      <div className="viewswitch">
+        <button type="button" className={filters.kind ? "" : "on"} onClick={() => setFilters((f) => ({ ...f, kind: null }))}>
+          全部
+        </button>
+        <button type="button" className={filters.kind ? "on" : ""} onClick={backToKinds}>
+          依類型
+        </button>
+      </div>
+      {filters.kind && (
+        <button type="button" className="kindback" onClick={backToKinds}>
+          ← 全部類型 · <b>{filters.kind}</b>
+        </button>
+      )}
       <div className="panel searchpanel">
         <div className="searchrow">
           {asking ? (
@@ -145,6 +205,7 @@ export default function MealList({ refreshKey, onEdit }) {
                   <span className="tag">{labelOf("source", m.source)}</span>
                   <span className="tag">{labelOf("season", m.season)}</span>
                   {m.method && <span className="tag">{labelOf("method", m.method)}</span>}
+                  {m.kind && <span className="tag kind">{m.kind}</span>}
                 </div>
               </div>
               {m.rating != null && (

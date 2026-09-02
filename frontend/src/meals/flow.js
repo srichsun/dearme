@@ -35,6 +35,13 @@ const homeCooked = (answers) => answers.source === "home_cooked";
 // no cooking method and no recipe, so those two never come up.
 export const STEPS = [
   { key: "name", ask: "這道叫什麼？", type: "text" },
+  {
+    key: "kind",
+    ask: "什麼類型？",
+    hint: "火鍋、牛排、海鮮、超商……自己取，之後可以依類型看。沒有就直接下一步。",
+    type: "kind",
+    optional: true,
+  },
   { key: "category", ask: "哪一餐？", type: "choice" },
   { key: "source", ask: "外食還是自己煮？", type: "choice" },
   { key: "season", ask: "適合什麼季節？", type: "choice" },
@@ -65,6 +72,7 @@ export const STEPS = [
 
 export const EMPTY = {
   name: "",
+  kind: "",
   category: null,
   source: null,
   season: null,
@@ -111,6 +119,7 @@ export function toPayload(answers) {
     recipe: null,
     note: answers.note.trim() || null,
     rating: answers.rating ?? null,
+    kind: answers.kind.trim() || null,
   };
   if (homeCooked(answers)) {
     out.method = answers.method;
@@ -124,6 +133,7 @@ export function toPayload(answers) {
 export function fromMeal(meal) {
   return {
     name: meal.name || "",
+    kind: meal.kind || "",
     category: meal.category,
     source: meal.source,
     season: meal.season,
@@ -153,7 +163,7 @@ export function stars(rating) {
 // {q, category, ...} → "?q=..&category=..", leaving out anything empty.
 export function toQuery(filters) {
   const params = new URLSearchParams();
-  for (const key of ["q", ...FILTER_FIELDS]) {
+  for (const key of ["q", ...FILTER_FIELDS, "kind"]) {
     const value = filters?.[key];
     if (value == null) continue;
     const text = String(value).trim();

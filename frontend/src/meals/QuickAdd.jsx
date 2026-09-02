@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { authFetch } from "../api";
+import { authFetch, getJSON } from "../api";
 import { MicIcon, StopIcon } from "../icons";
 import { transcribe, useRecorder } from "../speech";
 import {
@@ -29,6 +29,12 @@ export default function QuickAdd({ meal, onClose, onSaved }) {
   const [saving, setSaving] = useState(false);
   const inputRef = useRef(null);
   const [listening, setListening] = useState(false);
+  // The kinds already in use, so a new meal joins an existing group with one
+  // tap instead of a near-miss spelling that splits it.
+  const [kinds, setKinds] = useState([]);
+  useEffect(() => {
+    getJSON("/api/meals/kinds").then((d) => setKinds((d?.kinds || []).map((k) => k.kind)));
+  }, []);
 
   // The note can be spoken. What is heard lands in the box, not in the
   // meal: transcription mis-hears, and a glance fixes it before saving.
@@ -120,6 +126,13 @@ export default function QuickAdd({ meal, onClose, onSaved }) {
       if (e.key === "Enter") next();
       return;
     }
+    if (step.type === "kind") {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        next();
+      }
+      return;
+    }
     if (step.type === "choice") {
       const code = keyToChoice(e.key, step.key);
       if (code) {
@@ -199,6 +212,30 @@ export default function QuickAdd({ meal, onClose, onSaved }) {
               </button>
             )}
           </div>
+        )}
+        {step.type === "kind" && (
+          <>
+            <input
+              ref={inputRef}
+              value={answers.kind}
+              onChange={(e) => set("kind", e.target.value)}
+              placeholder="例如：火鍋"
+            />
+            {kinds.length > 0 && (
+              <div className="chips">
+                {kinds.map((k) => (
+                  <button
+                    type="button"
+                    key={k}
+                    className={"chip" + (answers.kind.trim() === k ? " on" : "")}
+                    onClick={() => set("kind", answers.kind.trim() === k ? "" : k)}
+                  >
+                    {k}
+                  </button>
+                ))}
+              </div>
+            )}
+          </>
         )}
         {step.type === "text" && (
           <input

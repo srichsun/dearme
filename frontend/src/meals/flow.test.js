@@ -19,6 +19,7 @@ import {
 const chicken = {
   ...EMPTY,
   name: "氣炸鍋雞胸",
+  kind: "自煮",
   category: "meal",
   source: "home_cooked",
   season: "summer",
@@ -28,15 +29,15 @@ const chicken = {
 const egg = { ...EMPTY, name: "茶葉蛋", category: "snack", source: "eat_out", season: "all" };
 
 describe("visibleSteps", () => {
-  it("asks eight questions for a home-cooked meal", () => {
+  it("asks nine questions for a home-cooked meal", () => {
     expect(visibleSteps(chicken).map((s) => s.key)).toEqual([
-      "name", "category", "source", "season", "method", "recipe", "rating", "note",
+      "name", "kind", "category", "source", "season", "method", "recipe", "rating", "note",
     ]);
   });
 
   it("skips method and recipe when eating out", () => {
     expect(visibleSteps(egg).map((s) => s.key)).toEqual([
-      "name", "category", "source", "season", "rating", "note",
+      "name", "kind", "category", "source", "season", "rating", "note",
     ]);
   });
 
@@ -47,12 +48,12 @@ describe("visibleSteps", () => {
 
 describe("clampStep", () => {
   it("pulls the index back when a step disappears", () => {
-    // On the note step (index 7) of a home-cooked meal, then switch to eat out.
-    expect(clampStep(7, egg)).toBe(5);
+    // On the note step (index 8) of a home-cooked meal, then switch to eat out.
+    expect(clampStep(8, egg)).toBe(6);
   });
 
   it("leaves an index that still exists alone", () => {
-    expect(clampStep(7, chicken)).toBe(7);
+    expect(clampStep(8, chicken)).toBe(8);
     expect(clampStep(0, egg)).toBe(0);
   });
 
@@ -72,11 +73,11 @@ describe("firstMissing", () => {
   });
 
   it("points at the method for a home-cooked meal without one", () => {
-    expect(firstMissing({ ...chicken, method: null })).toBe(4);
+    expect(firstMissing({ ...chicken, method: null })).toBe(5);
   });
 
-  it("does not require a recipe, a rating or a note", () => {
-    expect(firstMissing({ ...chicken, recipe: "", note: "", rating: null })).toBe(-1);
+  it("does not require a kind, a recipe, a rating or a note", () => {
+    expect(firstMissing({ ...chicken, kind: "", recipe: "", note: "", rating: null })).toBe(-1);
   });
 });
 
@@ -91,7 +92,12 @@ describe("toPayload", () => {
       recipe: "抹鹽\n氣炸 15 分",
       note: null,
       rating: null,
+      kind: "自煮",
     });
+  });
+
+  it("sends a blank kind as null", () => {
+    expect(toPayload({ ...egg, kind: "  " }).kind).toBeNull();
   });
 
   it("sends the rating when there is one", () => {
@@ -108,7 +114,8 @@ describe("fromMeal", () => {
   it("turns stored nulls into empty strings for the inputs", () => {
     const answers = fromMeal({ name: "茶葉蛋", category: "snack", source: "eat_out",
                                season: "all", method: null, recipe: null, note: null });
-    expect(answers).toEqual({ ...egg, method: null, rating: null });
+    expect(answers).toEqual({ ...egg, method: null, rating: null, kind: "" });
+    expect(fromMeal({ ...egg, kind: "超商" }).kind).toBe("超商");
     expect(fromMeal({ ...egg, rating: 4 }).rating).toBe(4);
   });
 });
@@ -128,6 +135,10 @@ describe("toQuery", () => {
   it("trims the keyword", () => {
     expect(toQuery({ q: " 7-11 " })).toBe("?q=7-11");
   });
+
+  it("carries the kind", () => {
+    expect(toQuery({ kind: "火鍋" })).toBe(`?kind=${encodeURIComponent("火鍋")}`);
+  });
 });
 
 describe("labelOf", () => {
@@ -144,9 +155,9 @@ describe("labelOf", () => {
 
 describe("isLast", () => {
   it("is the note step, wherever that falls", () => {
-    expect(isLast(7, chicken)).toBe(true);
-    expect(isLast(6, chicken)).toBe(false);
-    expect(isLast(5, egg)).toBe(true); // eating out has six steps
+    expect(isLast(8, chicken)).toBe(true);
+    expect(isLast(7, chicken)).toBe(false);
+    expect(isLast(6, egg)).toBe(true); // eating out has seven steps
   });
 });
 

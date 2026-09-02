@@ -261,3 +261,47 @@ body.meals-body { background: #0d0e10; }
 .qa .writer { position: relative; }
 .qa .writer textarea { padding-right: 3.4rem; }
 .qa .writer .mic { position: absolute; right: 0.6rem; bottom: 0.7rem; }
+
+/* --- browsing by kind --------------------------------------------------- */
+
+.viewswitch { display: flex; gap: 0.25rem; margin: 0 0 0.6rem; }
+.viewswitch button {
+  border: 1px solid var(--edge);
+  background: transparent;
+  color: var(--ink-faint);
+  border-radius: 4px;
+  padding: 0.3rem 0.8rem;
+  font-size: 0.78rem;
+  letter-spacing: 0.12em;
+}
+.viewswitch button.on { border-color: var(--ink); color: var(--ink); }
+.kindback {
+  align-self: flex-start;
+  border: none;
+  background: none;
+  color: var(--ink-soft);
+  font-size: 0.85rem;
+  padding: 0 0 0.2rem;
+}
+.kindback b { color: var(--sage); font-weight: 600; }
+.kindgrid {
+  list-style: none; margin: 0; padding: 0;
+  display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem;
+}
+@media (min-width: 480px) { .kindgrid { grid-template-columns: repeat(3, 1fr); } }
+.kindtile {
+  width: 100%;
+  display: flex; align-items: baseline; justify-content: space-between; gap: 0.5rem;
+  border: 1px solid var(--edge);
+  border-radius: var(--radius);
+  background: var(--linen);
+  color: var(--ink);
+  padding: 1.1rem 1rem;
+  text-align: left;
+  transition: border-color 0.12s ease;
+}
+.kindtile:hover { border-color: var(--sage); }
+.kindname { font-weight: 600; font-size: 1.05rem; letter-spacing: -0.01em; }
+.kindcount { font-family: var(--mono); color: var(--ink-faint); font-size: 0.8rem; }
+.tag.kind { border-color: var(--sage); color: var(--sage); }
+.qa .chips { margin-top: 0.6rem; }
