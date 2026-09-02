@@ -47,7 +47,7 @@
 - Test: `flow.test.js` — `visibleSteps` 外食 5 題／自煮 7 題；`toQuery` 空值不帶、有值編碼；`labelOf` 未知代碼原樣回傳
 - Check: `cd frontend && npm run lint && npm test && npm run build`
 - Done when: `/meals` 看得到登入鈕、登入後看得到空殼；Dear Me 首頁不變；CI 多一步 test
-- Status: todo
+- Status: done
 
 ### 8. feat(web): meals list with search and filters
 - Files: `frontend/src/meals/MealsApp.jsx`, `frontend/src/meals/MealList.jsx`, `frontend/src/meals/meals.css`
