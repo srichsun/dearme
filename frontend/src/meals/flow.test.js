@@ -11,6 +11,7 @@ import {
   fromMeal,
   goFilters,
   isLast,
+  isMapsLink,
   isVideoUrl,
   keyToChoice,
   keyToRating,
@@ -46,7 +47,7 @@ describe("visibleSteps", () => {
 
   it("asks for the shop instead of method and recipe when eating out", () => {
     expect(visibleSteps(egg).map((s) => s.key)).toEqual([
-      "name", "kind", "proteins", "categories", "source", "season", "place", "price", "rating", "video_url", "note",
+      "name", "kind", "proteins", "categories", "source", "season", "place", "price", "rating", "note",
     ]);
   });
 
@@ -74,8 +75,8 @@ describe("emptyFor", () => {
 describe("clampStep", () => {
   it("pulls the index back when a step disappears", () => {
     // On the note step (index 10) of a home-cooked meal, then switch to eat out.
-    expect(clampStep(10, egg)).toBe(10); // eating out now has eleven steps too
-    expect(clampStep(12, egg)).toBe(10);
+    expect(clampStep(10, egg)).toBe(9); // eating out has ten steps
+    expect(clampStep(12, egg)).toBe(9);
   });
 
   it("leaves an index that still exists alone", () => {
@@ -225,7 +226,7 @@ describe("isLast", () => {
   it("is the note step, wherever that falls", () => {
     expect(isLast(10, chicken)).toBe(true);
     expect(isLast(9, chicken)).toBe(false);
-    expect(isLast(10, egg)).toBe(true); // eating out has eleven steps
+    expect(isLast(9, egg)).toBe(true); // eating out has ten steps
   });
 });
 
@@ -369,5 +370,15 @@ describe("dollars", () => {
     expect(dollars(3)).toBe("$$$");
     expect(dollars(null)).toBe("");
     expect(dollars(0)).toBe("");
+  });
+});
+
+describe("isMapsLink", () => {
+  it("knows a Google Maps link from a shop name", () => {
+    expect(isMapsLink("https://maps.app.goo.gl/WSFK2Ks6UXYF6txq5?g_st=ic")).toBe(true);
+    expect(isMapsLink("https://www.google.com/maps/place/Hala+Chicken")).toBe(true);
+    expect(isMapsLink("https://maps.google.com/?q=x")).toBe(true);
+    expect(isMapsLink("石二鍋 後山埤")).toBe(false);
+    expect(isMapsLink("")).toBe(false);
   });
 });

@@ -113,6 +113,7 @@ export const STRINGS = {
   namePh: { zh: "例如：氣炸鍋雞胸", en: "e.g. air-fryer chicken breast" },
   kindPh: { zh: "例如：火鍋", en: "e.g. hot pot" },
   placePh: { zh: "例如：石二鍋 後山埤", en: "e.g. Shi Er Guo, Houshanpi" },
+  placePhOrLink: { zh: "店名，或貼 Google Maps 連結", en: "Shop name, or paste a Google Maps link" },
   noPlacesKey: { zh: "沒有設定 Google 金鑰", en: "No Google key configured" },
   placeBusy: { zh: "查店家資料…", en: "Fetching the shop…" },
   placeFailed: { zh: "拿不到這家店的資料，再點一次或跳過。", en: "Couldn't fetch that shop; pick again or skip." },

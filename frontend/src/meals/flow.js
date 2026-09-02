@@ -134,6 +134,7 @@ export const STEPS = [
     },
     type: "url",
     optional: true,
+    when: homeCooked, // a recipe has a video; a restaurant does not
   },
   {
     key: "note",
@@ -372,4 +373,9 @@ export function dollars(price) {
 // Answers for a new meal on a tab that already knows the source.
 export function emptyFor(source) {
   return source ? { ...EMPTY, source, fixedSource: true } : EMPTY;
+}
+
+// Is this a Google Maps link rather than a shop name to search for?
+export function isMapsLink(text) {
+  return /maps\.app\.goo\.gl|google\.[a-z.]+\/maps|maps\.google\./i.test(text || "");
 }

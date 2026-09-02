@@ -263,14 +263,17 @@ export default function MealList({ refreshKey, onEdit, goRequest, source, showMe
           {meals.map((m) => (
             <li className="panel mealcard" key={m.id}>
               <div className="mealhead">
-                <h3>{m.name}</h3>
+                <h3>
+                  {m.name}
+                  {source === "eat_out" && m.price && <span className="pricebig">{dollars(m.price)}</span>}
+                </h3>
                 <div className="tags">
                   {(m.categories || []).map((c) => (
                     <span className="tag" key={c}>{labelOf("category", c, lang)}</span>
                   ))}
                   <span className="tag">{labelOf("season", m.season, lang)}</span>
                   {showMethods && m.method && <span className="tag">{labelOf("method", m.method, lang)}</span>}
-                  {m.price && <span className="tag price">{dollars(m.price)}</span>}
+                  {source !== "eat_out" && m.price && <span className="tag price">{dollars(m.price)}</span>}
                   {(m.proteins || []).map((p) => (
                     <span className="tag protein" key={p}>{labelOf("protein", p, lang)}</span>
                   ))}
@@ -279,7 +282,7 @@ export default function MealList({ refreshKey, onEdit, goRequest, source, showMe
               </div>
               {m.place && (
                 <div className="shop">
-                  <b>{m.place.place_name}</b>
+                  {m.place.place_name !== m.name && <b>{m.place.place_name}</b>}
                   {m.place.phone && (
                     <a href={`tel:${m.place.phone.replace(/\s/g, "")}`}>{m.place.phone}</a>
                   )}
@@ -291,7 +294,7 @@ export default function MealList({ refreshKey, onEdit, goRequest, source, showMe
                   </span>
                 </div>
               )}
-              {m.rating != null && (
+              {source !== "eat_out" && m.rating != null && (
                 <p className="rating" aria-label={`${m.rating} ${t("star")}`}>
                   <span className="starrow">{stars(m.rating)}</span>
                   <span className="starnum">{m.rating}/10</span>

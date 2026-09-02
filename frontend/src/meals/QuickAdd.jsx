@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { authFetch, getJSON } from "../api";
+import { authFetch, getJSON, postJSON } from "../api";
 import { MicIcon, StopIcon } from "../icons";
 import { transcribe, useRecorder } from "../speech";
 import { placeDetails, placesEnabled, suggestPlaces } from "./places";
@@ -15,6 +15,7 @@ import {
   fromMeal,
   isAnswered,
   isLast,
+  isMapsLink,
   isVideoUrl,
   keyToChoice,
   keyToRating,
@@ -73,7 +74,7 @@ export default function QuickAdd({ meal, source, onClose, onSaved }) {
   useEffect(() => {
     if (step?.type !== "place" || !placesEnabled) return;
     const text = placeQuery.trim();
-    if (!text || text === answers.place_name) {
+    if (!text || text === answers.place_name || isMapsLink(text)) {
       setSuggestions([]);
       return;
     }
@@ -82,6 +83,36 @@ export default function QuickAdd({ meal, source, onClose, onSaved }) {
     }, 300);
     return () => clearTimeout(timer);
   }, [placeQuery, step?.type, answers.place_name, lang]);
+
+  // A pasted Google Maps link goes to the server, which knows how to read it.
+  useEffect(() => {
+    const text = placeQuery.trim();
+    if (step?.type !== "place" || !isMapsLink(text)) return;
+    let alive = true;
+    (async () => {
+      setPlaceBusy(true);
+      const { ok, data } = await postJSON("/api/meals/resolve-link", { url: text });
+      if (!alive) return;
+      setPlaceBusy(false);
+      if (!ok) {
+        setError(t("linkFailed"));
+        return;
+      }
+      const { kind_hint: kind, price_hint: price, ...fields } = data;
+      setError("");
+      setAnswers((a) => ({
+        ...a,
+        ...fields,
+        kind: a.kind || kind || "",
+        price: a.price || (price ? String(price) : null),
+      }));
+      setPlaceQuery(fields.place_name || "");
+    })();
+    return () => {
+      alive = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [placeQuery, step?.type]);
 
   async function pickPlace(sug) {
     setPlaceBusy(true);
@@ -304,7 +335,7 @@ export default function QuickAdd({ meal, source, onClose, onSaved }) {
               ref={inputRef}
               value={placeQuery}
               onChange={(e) => setPlaceQuery(e.target.value)}
-              placeholder={placesEnabled ? t("placePh") : t("noPlacesKey")}
+              placeholder={placesEnabled ? t("placePhOrLink") : t("noPlacesKey")}
               disabled={!placesEnabled}
             />
             {suggestions.length > 0 && (
