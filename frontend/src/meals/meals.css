@@ -462,3 +462,12 @@ body.meals-body { background: #0d0e10; }
 .addrow { margin-top: 0.8rem; }
 .tag.protein { border-color: var(--clay); color: var(--clay); }
 .tag.price { border-color: var(--ink-soft); color: var(--ink); font-weight: 600; }
+
+/* --- shopping ------------------------------------------------------------ */
+
+.shopsection { padding: 0.9rem 1rem; }
+.shopsection .addrow { margin-top: 0.5rem; }
+.shopsection .addrow input { padding: 0.45rem 0.75rem; font-size: 0.92rem; }
+.shopsection .addrow .primary { padding: 0 0.8rem; }
+.clearbought { align-self: flex-end; padding: 0.35rem 0.85rem; font-size: 0.78rem; }
+.meals .switch button { padding: 0.5rem 0.2rem; font-size: 0.78rem; letter-spacing: 0.08em; }

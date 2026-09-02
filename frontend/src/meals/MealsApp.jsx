@@ -9,6 +9,7 @@ import GoDialog from "./GoDialog";
 import ShopFromLink from "./ShopFromLink";
 import MealList from "./MealList";
 import Notes from "./Notes";
+import Shopping from "./Shopping";
 import Today from "./Today";
 import QuickAdd from "./QuickAdd";
 
@@ -97,6 +98,9 @@ export default function MealsApp() {
         <button className={screen === "notes" ? "on" : ""} onClick={() => setScreen("notes")}>
           {t("tabNotes")}
         </button>
+        <button className={screen === "shop" ? "on" : ""} onClick={() => setScreen("shop")}>
+          {t("tabShop")}
+        </button>
       </nav>
       <main>
         {screen === "today" && <Today />}
@@ -104,6 +108,7 @@ export default function MealsApp() {
           <MealList refreshKey={version} onEdit={setEditing} goRequest={goRequest} />
         )}
         {screen === "notes" && <Notes />}
+        {screen === "shop" && <Shopping />}
       </main>
       {adding === "choose" && (
         <AddChooser
