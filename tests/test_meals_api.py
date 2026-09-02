@@ -74,6 +74,19 @@ def test_a_rating_comes_back_and_a_bad_one_is_422(sqlite_db):
         assert client.post("/api/meals", json={**CHICKEN, "rating": bad}).status_code == 422, bad
 
 
+def test_kinds_and_the_kind_filter(sqlite_db):
+    client.post("/api/meals", json={**EGG, "name": "石二鍋", "kind": "火鍋"})
+    client.post("/api/meals", json={**EGG, "name": "涮乃葉", "kind": "火鍋"})
+    client.post("/api/meals", json={**CHICKEN, "kind": " 自煮 "})
+
+    assert client.get("/api/meals/kinds").json() == {
+        "kinds": [{"kind": "火鍋", "count": 2}, {"kind": "自煮", "count": 1}]
+    }
+    hotpot = client.get("/api/meals", params={"kind": "火鍋"}).json()["meals"]
+    assert [m["name"] for m in hotpot] == ["涮乃葉", "石二鍋"]
+    assert hotpot[0]["kind"] == "火鍋"
+
+
 def test_a_missing_field_answers_422(sqlite_db):
     assert client.post("/api/meals", json={"name": "只有名字"}).status_code == 422
 

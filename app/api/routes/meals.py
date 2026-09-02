@@ -27,6 +27,7 @@ def _meal(m: Meal) -> dict:
         "recipe": m.recipe,
         "note": m.note,
         "rating": m.rating,
+        "kind": m.kind,
         "created_at": m.created_at.isoformat(),
         "updated_at": m.updated_at.isoformat(),
     }
@@ -62,6 +63,15 @@ def delete_note(note_id: int, uid: CurrentUid):
     return {"deleted": note_id}
 
 
+# --- browsing by kind ---
+
+
+@router.get("/kinds")
+def list_kinds(uid: CurrentUid):
+    """Every kind in use and its count, most first — the browse screen."""
+    return {"kinds": [{"kind": k, "count": n} for k, n in meals.kinds(uid)]}
+
+
 # --- asking in a sentence ---
 
 
@@ -88,9 +98,11 @@ def list_meals(
     source: str | None = Query(default=None),
     season: str | None = Query(default=None),
     method: str | None = Query(default=None),
+    kind: str | None = Query(default=None),
 ):
     rows = meals.list_meals(
-        uid, q=q, category=category, source=source, season=season, method=method
+        uid, q=q, category=category, source=source, season=season, method=method,
+        kind=kind,
     )
     return {"meals": [_meal(m) for m in rows]}
 

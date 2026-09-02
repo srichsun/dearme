@@ -103,6 +103,12 @@ def test_updating_can_set_and_clear_the_rating(sqlite_db):
     assert meals.update_meal("u1", meal.id, **CHICKEN).rating is None
 
 
+def test_kind_is_trimmed_and_optional(sqlite_db):
+    assert meals.create_meal("u1", **CHICKEN).kind is None
+    assert meals.create_meal("u1", **CHICKEN, kind="  火鍋 ").kind == "火鍋"
+    assert meals.create_meal("u1", **CHICKEN, kind="   ").kind is None
+
+
 def test_blank_recipe_and_note_are_stored_as_none(sqlite_db):
     meal = meals.create_meal("u1", **{**CHICKEN, "recipe": "  "}, note="")
 
@@ -239,6 +245,34 @@ def test_keyword_combines_with_filters(a_few_meals):
 def test_unknown_codes_match_nothing(a_few_meals):
     assert names(category="lunch") == []
     assert names(season="spring") == []
+
+
+def test_filter_by_kind_is_exact(a_few_meals):
+    meals.create_meal("u1", **{**EGG, "name": "石二鍋"}, kind="火鍋")
+    meals.create_meal("u1", **{**EGG, "name": "涮乃葉"}, kind="火鍋")
+    meals.create_meal("u1", **{**EGG, "name": "火鍋料"}, kind="超商")
+
+    assert names(kind="火鍋") == ["涮乃葉", "石二鍋"]
+    assert names(kind="鍋") == []
+    assert names(kind="  ") == names()
+
+
+def test_keyword_matches_the_kind_too(a_few_meals):
+    meals.create_meal("u1", **{**EGG, "name": "石二鍋"}, kind="火鍋")
+
+    assert names(q="火鍋") == ["石二鍋"]
+
+
+def test_kinds_are_counted_per_person_most_first(sqlite_db):
+    meals.create_meal("u1", **{**EGG, "name": "a"}, kind="火鍋")
+    meals.create_meal("u1", **{**EGG, "name": "b"}, kind="火鍋")
+    meals.create_meal("u1", **{**EGG, "name": "c"}, kind="牛排")
+    meals.create_meal("u1", **{**EGG, "name": "d"})  # no kind: not a kind
+    meals.create_meal("u2", **{**EGG, "name": "e"}, kind="海鮮")
+
+    assert meals.kinds("u1") == [("火鍋", 2), ("牛排", 1)]
+    assert meals.kinds("u2") == [("海鮮", 1)]
+    assert meals.kinds("") == []
 
 
 def test_filters_never_cross_accounts(a_few_meals):

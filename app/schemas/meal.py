@@ -20,6 +20,7 @@ class MealWrite(BaseModel):
     # Strict: lax int would turn true into 1 and "8" into 8 before the
     # service could refuse them, and the rule says a whole number.
     rating: StrictInt | None = None
+    kind: str | None = None
 
 
 class NoteWrite(BaseModel):

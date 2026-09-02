@@ -13,7 +13,7 @@ without HTTP and a future caller (the week planner) gets the same answers:
 Every read, update and delete filters on user_id as well as id, so a guessed
 id never reaches someone else's row.
 """
-from sqlalchemy import or_, select
+from sqlalchemy import func, or_, select
 
 from app.core import db
 from app.models import MEAL_CATEGORIES, METHODS, SEASONS, SOURCES, Meal
@@ -39,6 +39,7 @@ def _clean(
     recipe: str | None = None,
     note: str | None = None,
     rating: int | None = None,
+    kind: str | None = None,
 ) -> dict:
     """Apply the rules and return the column values to store."""
     name = (name or "").strip()
@@ -72,6 +73,7 @@ def _clean(
         "recipe": recipe,
         "note": _text(note),
         "rating": rating,
+        "kind": _text(kind),
     }
 
 
@@ -83,6 +85,7 @@ def list_meals(
     source: str | None = None,
     season: str | None = None,
     method: str | None = None,
+    kind: str | None = None,
 ) -> list[Meal]:
     """One person's meals, newest first, narrowed by whichever filters are set.
 
@@ -105,6 +108,8 @@ def list_meals(
         stmt = stmt.where(Meal.season.in_(wanted))
     if method:
         stmt = stmt.where(Meal.method == method)
+    if kind and kind.strip():
+        stmt = stmt.where(Meal.kind == kind.strip())
     q = (q or "").strip()
     if q:
         # autoescape: "100%" in a note is matched by typing "100%", not by
@@ -114,11 +119,27 @@ def list_meals(
                 Meal.name.icontains(q, autoescape=True),
                 Meal.recipe.icontains(q, autoescape=True),
                 Meal.note.icontains(q, autoescape=True),
+                Meal.kind.icontains(q, autoescape=True),
             )
         )
     stmt = stmt.order_by(Meal.created_at.desc(), Meal.id.desc())
     with db.get_session() as s:
         return list(s.scalars(stmt))
+
+
+def kinds(user_id: str) -> list[tuple[str, int]]:
+    """Each kind this person uses and how many meals carry it, most first.
+    Meals with no kind are not a kind."""
+    if not user_id:
+        return []
+    stmt = (
+        select(Meal.kind, func.count())
+        .where(Meal.user_id == user_id, Meal.kind.is_not(None))
+        .group_by(Meal.kind)
+        .order_by(func.count().desc(), Meal.kind)
+    )
+    with db.get_session() as s:
+        return [(k, n) for k, n in s.execute(stmt)]
 
 
 def get_meal(user_id: str, meal_id: int) -> Meal | None:
