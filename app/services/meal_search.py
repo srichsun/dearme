@@ -50,7 +50,7 @@ _parser = chat_model.build_chat_model(
 _PROMPT = """Translate this request about what to eat into search filters. Use only the codes listed; leave a field empty when the sentence doesn't mention it.
 
 - category: 早餐/breakfast → breakfast; 正餐/午餐/晚餐/lunch/dinner → meal; 點心/零食/snack → snack
-- source: 外食/買的/便利商店/超商/eat out → eat_out; 自己煮/自煮/home-made → home_cooked
+- source: 外食/買的/便利商店/超商/eat out → eat_out; 自己煮/自煮/home-made → home_cooked. 附近/最近/離我/現在可以吃 (asking what is around them now) → eat_out
 - season: 夏天/熱天/summer → summer; 冬天/冷天/winter → winter. Never "all".
 - method: 炒 → stir_fry; 氣炸鍋/氣炸 → air_fryer; 電鍋 → rice_cooker; 微波 → microwave
 - q: one keyword for anything else worth matching (a food like 雞胸, a brand like 7-11), in the sentence's own language. Empty if nothing is left over.
@@ -83,9 +83,11 @@ def parse(text: str) -> dict:
     return filters
 
 
-def search(user_id: str, text: str) -> dict:
+def search(
+    user_id: str, text: str, near: tuple[float, float] | None = None
+) -> dict:
     """The sentence's filters, the meals they match, and whether the model
-    was actually consulted."""
+    was actually consulted. `near` sorts the answer by distance."""
     text = (text or "").strip()
     fallback = False
     try:
@@ -93,5 +95,5 @@ def search(user_id: str, text: str) -> dict:
     except Exception:
         log.exception("Could not parse a meal search; using it as a keyword")
         filters, fallback = {"q": text}, True
-    rows = meals.list_meals(user_id, **filters)
+    rows = meals.list_meals(user_id, near=near, **filters)
     return {"filters": filters, "meals": rows, "fallback": fallback}

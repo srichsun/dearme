@@ -131,3 +131,21 @@ def test_the_route_returns_filters_meals_and_fallback(a_few_meals, monkeypatch):
 
 def test_the_route_needs_a_sign_in(sqlite_db):
     assert client.post("/api/meals/search", json={"text": "雞"}).status_code == 401
+
+
+def test_near_reaches_the_query_through_the_route(sqlite_db, monkeypatch):
+    meals.create_meal(UID, name="遠的", category="meal", source="eat_out", season="all",
+                      lat=25.0478, lng=121.5170)
+    meals.create_meal(UID, name="近的", category="meal", source="eat_out", season="all",
+                      lat=25.0350, lng=121.5650)
+    app.dependency_overrides[auth.current_user_uid] = lambda: UID
+    try:
+        _fake_parser(monkeypatch, meal_search._Filters(source="eat_out"))
+
+        body = client.post("/api/meals/search",
+                           json={"text": "附近有什麼", "near": "25.0339,121.5645"}).json()
+
+        assert [m["name"] for m in body["meals"]] == ["近的", "遠的"]
+        assert body["meals"][0]["distance_m"] < body["meals"][1]["distance_m"]
+    finally:
+        app.dependency_overrides.pop(auth.current_user_uid, None)

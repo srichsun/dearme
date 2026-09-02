@@ -321,10 +321,14 @@ def test_kinds_are_counted_per_person_most_first(sqlite_db):
 # --- nearest first ---
 
 def test_distance_between_two_known_points():
-    # Taipei 101 to Taipei Main Station: about 4.3 km as the crow flies.
-    d = meals.distance_m(25.0339, 121.5645, 25.0478, 121.5170)
-    assert 4_200 <= d <= 4_400
+    # One degree along the equator, or along any meridian, is 111,195 m on
+    # the sphere the formula assumes.
+    assert abs(meals.distance_m(0, 0, 0, 1) - 111_195) <= 5
+    assert abs(meals.distance_m(0, 0, 1, 0) - 111_195) <= 5
     assert meals.distance_m(25.0, 121.5, 25.0, 121.5) == 0
+    # Symmetric, and shorter across a parallel away from the equator.
+    assert meals.distance_m(25, 121, 25, 122) == meals.distance_m(25, 122, 25, 121)
+    assert meals.distance_m(25, 121, 25, 122) < 111_195
 
 
 def test_near_puts_located_meals_first_nearest_first(sqlite_db):
