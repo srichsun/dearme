@@ -63,7 +63,11 @@ async def _cache_headers(request, call_next):
     """
     response = await call_next(request)
     content_type = response.headers.get("content-type", "")
-    if request.url.path.startswith("/assets/"):
+    if request.url.path.startswith("/api/"):
+        # Firebase Hosting sits in front and caches an uncontrolled reply for
+        # ten minutes — a 404 from before a deploy kept answering after it.
+        response.headers["Cache-Control"] = "no-store"
+    elif request.url.path.startswith("/assets/"):
         response.headers["Cache-Control"] = "public, max-age=31536000, immutable"
     elif content_type.startswith("text/html"):
         response.headers["Cache-Control"] = "no-cache"

@@ -145,3 +145,5 @@ def test_html_is_always_rechecked_and_assets_kept(tmp_path, monkeypatch):
 
     api = client.get("/health")
     assert "cache-control" not in api.headers
+    for path in ("/api/today", "/api/meals/kinds", "/api/no-such-thing"):
+        assert client.get(path).headers["cache-control"] == "no-store", path
