@@ -43,6 +43,9 @@ class Meal(Base):
     lat: Mapped[float | None] = mapped_column(Float, nullable=True)
     lng: Mapped[float | None] = mapped_column(Float, nullable=True)
     maps_url: Mapped[str | None] = mapped_column(Text, nullable=True)
+    # Where the recipe came from — an Instagram reel, a YouTube video. Just
+    # the link: the content is not fetched (Instagram has no API for it).
+    video_url: Mapped[str | None] = mapped_column(Text, nullable=True)
     # Free text the person groups by — 火鍋, 牛排, 超商 — so the list can be
     # browsed by kind. A string, not a table: the kinds are theirs to invent.
     kind: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)

@@ -139,6 +139,18 @@
 - Check: `cd frontend && npm run lint && npm test && npm run build`
 - Status: done
 
+### 22. feat: video link on meals
+- Files: `app/models/meal.py`, `migrations/versions/c9d0e1f2a3b4_add_meal_video_url.py`, `app/services/meals.py`, `app/schemas/meal.py`, `app/api/routes/meals.py`, tests
+- Test: http(s) 存、其他拒絕、空白 null、API 回 video_url
+- Check: `uv run pytest -q && uv run ruff check .` ＋ scratch DB
+- Status: done
+
+### 23. feat(web): video link step and "watch" on the card
+- Files: `frontend/src/meals/flow.js`, `flow.test.js`, `i18n.js`, `QuickAdd.jsx`, `MealList.jsx`, `meals.css`
+- Test: 步驟數 10/9、payload/fromMeal 含 video_url、`isVideoUrl`
+- Check: `cd frontend && npm run lint && npm test && npm run build`
+- Status: done
+
 ## 收工前
 1. `uv run ruff check . && uv run pytest -q`；`cd frontend && npm run lint && npm test && npm run build`
 2. `/verify-tests` 看新測試
