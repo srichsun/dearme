@@ -33,6 +33,9 @@ class Meal(Base):
     method: Mapped[str | None] = mapped_column(String(32), nullable=True)
     recipe: Mapped[str | None] = mapped_column(Text, nullable=True)
     note: Mapped[str | None] = mapped_column(Text, nullable=True)
+    # Free text the person groups by — 火鍋, 牛排, 超商 — so the list can be
+    # browsed by kind. A string, not a table: the kinds are theirs to invent.
+    kind: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)
     # 1-10 stars, or NULL until it has been eaten and judged.
     rating: Mapped[int | None] = mapped_column(Integer, nullable=True)
     created_at: Mapped[datetime] = mapped_column(

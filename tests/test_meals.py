@@ -24,7 +24,7 @@ EGG = dict(name="7-11 茶葉蛋", category="snack", source="eat_out", season="al
 
 def test_a_meal_round_trips_through_the_table(sqlite_db):
     with db.get_session() as s:
-        s.add(Meal(user_id="u1", **CHICKEN, rating=8))
+        s.add(Meal(user_id="u1", **CHICKEN, rating=8, kind="氣炸"))
         s.commit()
 
     with db.get_session() as s:
@@ -34,6 +34,7 @@ def test_a_meal_round_trips_through_the_table(sqlite_db):
     assert meal.method == "air_fryer"
     assert meal.note is None
     assert meal.rating == 8
+    assert meal.kind == "氣炸"
     assert meal.created_at is not None
     assert meal.updated_at is not None
 

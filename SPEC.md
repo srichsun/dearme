@@ -31,6 +31,7 @@
 | recipe | text, nullable | 自由文字 | 食材和步驟自己換行寫 |
 | note | text, nullable | 自由文字 | 想寫熱量就寫這裡 |
 | rating | int, nullable | 1–10 | 幾顆星；選填（2026-09-02 加） |
+| kind | str(64), nullable | 自由文字 | 「類型」：火鍋、牛排、海鮮、超商…自己打，選填（2026-09-02 加）。列表可「依類型看」 |
 | created_at / updated_at | tz datetime | | |
 
 - 列舉值存英文代碼、畫面顯示中文。為什麼：DB 和 API 不綁語言，之後改文案不用動資料。
@@ -61,8 +62,9 @@
 - 讀、改、刪都同時比對 `id` 和 `user_id`，別人的餐點一律 404（和不存在同一個答案）。為什麼：照 mantras 的做法，猜 id 猜不到別人的東西。
 
 ### API（prefix `/api/meals`，全部要登入）
-- `GET /api/meals?q=&category=&source=&season=&method=` → `{"meals":[...]}`，新到舊。
-  `q` 對 `name` / `recipe` / `note` 做不分大小寫的子字串比對；篩選條件是 AND；`season=summer` 會同時撈 `summer` 和 `all`（`winter` 同理）。
+- `GET /api/meals?q=&category=&source=&season=&method=&kind=` → `{"meals":[...]}`，新到舊。`kind` 精確比對。
+- `GET /api/meals/kinds` → `{"kinds":[{"kind":"火鍋","count":3},...]}`，多到少；沒填類型的不算。
+  `q` 對 `name` / `recipe` / `note` / `kind` 做不分大小寫的子字串比對；篩選條件是 AND；`season=summer` 會同時撈 `summer` 和 `all`（`winter` 同理）。
 - `POST /api/meals` → 201 + 那筆。
 - `PATCH /api/meals/{id}` → 整筆更新（送完整欄位），200 + 那筆。為什麼：編輯走同一個彈窗、每次都有完整答案，不需要部分更新。
 - `DELETE /api/meals/{id}` → `{"deleted": id}`。
@@ -78,11 +80,12 @@
 ### 畫面（`frontend/src/meals/`，繁體中文）
 - **列表頁（第一個畫面）**：頂端搜尋框 + 「用問的」切換；下面四組篩選標籤（分類 / 來源 / 季節 / 煮法）；卡片列出名稱、四個標籤、食譜與備註（有才顯示）；每張卡有「編輯」「刪除」。
   「用問的」模式：送 `POST /api/meals/search`，把回來的 `filters` 直接套成標籤（你看得到它理解成什麼，可以再點掉）；`fallback` 時顯示一行「沒問到 AI，用關鍵字搜」。
+- **依類型看**：列表頁多一個檢視切換「全部 / 依類型」。依類型先列每個類型和數量，點一個就變成那類的列表（上面有一顆「← 全部類型」）。
 - **刪除**：按下後那張卡變成「確定刪除？／取消」兩顆鈕，不用瀏覽器 confirm。為什麼：瀏覽器 confirm 會擋住自動化測試，也不好看。
 - **心得頁**：`MealsApp` 上方兩個切換「餐點」「心得」，預設「餐點」。
   心得頁：一個文字框 + 麥克風鈕（沿用 `speech.js` 的 `useRecorder` / `transcribe`，轉好的字接在框裡讓你看過再送）+「記下來」；下面新到舊列出每一條，附日期和「刪除」（同樣兩段確認）。
   為什麼轉完先進文字框不直接送：語音辨識會錯字，這些字之後要拿去濃縮，錯的原料會出錯的 pattern。
-- **新增／編輯彈窗（typeform 式）**：一次一題，順序 名稱 → 分類 → 外食/自己煮 → 季節 → 煮法（外食跳過）→ 食譜（外食跳過）→ 幾顆星（選填，數字鍵 1–9，0 = 10）→ 備註（可按麥克風用講的，轉好的字接在框裡看過再送）。卡片上顯示 ★ 和分數。
+- **新增／編輯彈窗（typeform 式）**：一次一題，順序 名稱 → 類型（選填，列出用過的可點）→ 分類 → 外食/自己煮 → 季節 → 煮法（外食跳過）→ 食譜（外食跳過）→ 幾顆星（選填，數字鍵 1–9，0 = 10）→ 備註（可按麥克風用講的，轉好的字接在框裡看過再送）。卡片上顯示 ★ 和分數。
   Enter 下一題、Esc 關閉、選項題可按數字鍵 1-4；上方有進度點，編輯時預先填好、點進度點可直接跳題。
   最後一題送出；失敗就留在彈窗並顯示錯誤。
 - **純邏輯抽到 `frontend/src/meals/flow.js`**：`visibleSteps(answers)`（外食就沒有煮法/食譜兩題）、`toQuery(filters)`（篩選條件 → query string，空值不帶）、`labelOf(field, code)`（代碼 → 中文）。

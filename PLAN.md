@@ -98,6 +98,23 @@
 - Done when: 備註那題有麥克風，講完的字出現在框裡
 - Status: done
 
+### 15. feat: add a kind to meals
+- Files: `app/models/meal.py`, `migrations/versions/a7b8c9d0e1f2_add_meal_kind.py`, `tests/test_meals.py`
+- Check: `uv run pytest tests/test_meals.py -q && uv run ruff check .` ＋ scratch DB upgrade/downgrade
+- Status: done
+
+### 16. feat: kind filter, kinds count, keyword over kind
+- Files: `app/services/meals.py`, `app/schemas/meal.py`, `app/api/routes/meals.py`, `tests/test_meals.py`, `tests/test_meals_api.py`
+- Test: kind 去空白/None、`kind=` 篩選、`kinds()` 每人各自計數多到少、`q` 比對 kind、`GET /api/meals/kinds`
+- Check: `uv run pytest tests/test_meals.py tests/test_meals_api.py -q && uv run ruff check .`
+- Status: done
+
+### 17. feat(web): kind step and browse-by-kind view
+- Files: `frontend/src/meals/flow.js`, `flow.test.js`, `QuickAdd.jsx`, `MealList.jsx`, `meals.css`
+- Test: 步驟數 9/7、payload/fromMeal 含 kind、`toQuery` 帶 kind
+- Check: `cd frontend && npm run lint && npm test && npm run build`
+- Status: done
+
 ## 收工前
 1. `uv run ruff check . && uv run pytest -q`；`cd frontend && npm run lint && npm test && npm run build`
 2. `/verify-tests` 看新測試
