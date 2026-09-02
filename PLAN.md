@@ -70,6 +70,27 @@
 - Done when: 講一句 → 字進框 → 記下來 → 列表出現；刪除兩段確認
 - Status: done
 
+### 11. feat: add a rating to meals
+- Files: `app/models/meal.py`, `migrations/versions/f6a7b8c9d0e1_add_meal_rating.py`, `tests/test_meals.py`
+- Test: `test_a_meal_round_trips_through_the_table` 含 rating
+- Check: `uv run pytest tests/test_meals.py -q && uv run ruff check .` ＋ scratch DB upgrade/downgrade
+- Done when: 欄位存在、可逆
+- Status: done
+
+### 12. feat: rating rule and API
+- Files: `app/services/meals.py`, `app/schemas/meal.py`, `app/api/routes/meals.py`, `tests/test_meals.py`, `tests/test_meals_api.py`
+- Test: 1–10 存、0/11/小數/字串 拒絕、沒給存 null、API 回 rating
+- Check: `uv run pytest tests/test_meals.py tests/test_meals_api.py -q && uv run ruff check .`
+- Done when: rating 走和其他欄位一樣的規則
+- Status: done
+
+### 13. feat(web): stars in the dialog and on the card
+- Files: `frontend/src/meals/flow.js`, `flow.test.js`, `QuickAdd.jsx`, `MealList.jsx`, `meals.css`
+- Test: `keyToRating` 1–9/0/其他、`stars(n)`、步驟數 8/6、payload 含 rating
+- Check: `cd frontend && npm run lint && npm test && npm run build`
+- Done when: 彈窗多一題可跳過、卡片顯示 ★
+- Status: done
+
 ## 收工前
 1. `uv run ruff check . && uv run pytest -q`；`cd frontend && npm run lint && npm test && npm run build`
 2. `/verify-tests` 看新測試

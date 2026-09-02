@@ -30,6 +30,7 @@
 | method | str, nullable | `stir_fry` / `air_fryer` / `rice_cooker` / `microwave` | 炒 / 氣炸鍋 / 電鍋 / 微波爐；只有自己煮才有 |
 | recipe | text, nullable | 自由文字 | 食材和步驟自己換行寫 |
 | note | text, nullable | 自由文字 | 想寫熱量就寫這裡 |
+| rating | int, nullable | 1–10 | 幾顆星；選填（2026-09-02 加） |
 | created_at / updated_at | tz datetime | | |
 
 - 列舉值存英文代碼、畫面顯示中文。為什麼：DB 和 API 不綁語言，之後改文案不用動資料。
@@ -55,6 +56,7 @@
 - `name` 空白 → 拒絕（422）。
 - `category` / `source` / `season` / `method` 不在清單內 → 拒絕（422）。
 - `source = home_cooked` 而 `method` 是空的 → 拒絕（422）。為什麼：自己煮一定有煮法，這是你要搜的維度。
+- `rating` 有給就必須是 1–10 的整數，否則 422；沒給存 null。為什麼：選填，沒吃過的還不能評。
 - `source = eat_out` → `method` 和 `recipe` 一律清空存 null，就算送了也丟掉。為什麼：外食沒有煮法；不清掉的話搜「氣炸鍋」會撈到外食。
 - 讀、改、刪都同時比對 `id` 和 `user_id`，別人的餐點一律 404（和不存在同一個答案）。為什麼：照 mantras 的做法，猜 id 猜不到別人的東西。
 
@@ -80,7 +82,7 @@
 - **心得頁**：`MealsApp` 上方兩個切換「餐點」「心得」，預設「餐點」。
   心得頁：一個文字框 + 麥克風鈕（沿用 `speech.js` 的 `useRecorder` / `transcribe`，轉好的字接在框裡讓你看過再送）+「記下來」；下面新到舊列出每一條，附日期和「刪除」（同樣兩段確認）。
   為什麼轉完先進文字框不直接送：語音辨識會錯字，這些字之後要拿去濃縮，錯的原料會出錯的 pattern。
-- **新增／編輯彈窗（typeform 式）**：一次一題，順序 名稱 → 分類 → 外食/自己煮 → 季節 → 煮法（外食跳過）→ 食譜（外食跳過）→ 備註。
+- **新增／編輯彈窗（typeform 式）**：一次一題，順序 名稱 → 分類 → 外食/自己煮 → 季節 → 煮法（外食跳過）→ 食譜（外食跳過）→ 幾顆星（選填，數字鍵 1–9，0 = 10）→ 備註。卡片上顯示 ★ 和分數。
   Enter 下一題、Esc 關閉、選項題可按數字鍵 1-4；上方有進度點，編輯時預先填好、點進度點可直接跳題。
   最後一題送出；失敗就留在彈窗並顯示錯誤。
 - **純邏輯抽到 `frontend/src/meals/flow.js`**：`visibleSteps(answers)`（外食就沒有煮法/食譜兩題）、`toQuery(filters)`（篩選條件 → query string，空值不帶）、`labelOf(field, code)`（代碼 → 中文）。

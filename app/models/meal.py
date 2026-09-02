@@ -33,6 +33,8 @@ class Meal(Base):
     method: Mapped[str | None] = mapped_column(String(32), nullable=True)
     recipe: Mapped[str | None] = mapped_column(Text, nullable=True)
     note: Mapped[str | None] = mapped_column(Text, nullable=True)
+    # 1-10 stars, or NULL until it has been eaten and judged.
+    rating: Mapped[int | None] = mapped_column(Integer, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=now, index=True
     )
