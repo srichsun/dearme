@@ -15,12 +15,12 @@ import logging
 
 from pydantic import BaseModel, Field
 
-from app.models import MEAL_CATEGORIES, METHODS, SEASONS, SOURCES
+from app.models import MEAL_CATEGORIES, METHODS, PROTEINS, SEASONS, SOURCES
 from app.services import chat_model, meals
 
 log = logging.getLogger(__name__)
 
-FILTER_FIELDS = ("q", "category", "source", "season", "method")
+FILTER_FIELDS = ("q", "category", "source", "season", "method", "protein")
 
 
 class _Filters(BaseModel):
@@ -41,6 +41,7 @@ class _Filters(BaseModel):
     method: str | None = Field(
         default=None, description="stir_fry | air_fryer | rice_cooker | microwave"
     )
+    protein: str | None = Field(default=None, description="beef | pork | chicken | seafood")
 
 
 _parser = chat_model.build_chat_model(
@@ -53,6 +54,7 @@ _PROMPT = """Translate this request about what to eat into search filters. Use o
 - source: 外食/買的/便利商店/超商/eat out → eat_out; 自己煮/自煮/home-made → home_cooked. 附近/最近/離我/現在可以吃 (asking what is around them now) → eat_out
 - season: 夏天/熱天/summer → summer; 冬天/冷天/winter → winter. Never "all".
 - method: 炒 → stir_fry; 氣炸鍋/氣炸 → air_fryer; 電鍋 → rice_cooker; 微波 → microwave
+- protein: 牛/beef → beef; 豬/pork → pork; 雞/chicken → chicken; 海鮮/魚/蝦/seafood/fish → seafood
 - q: one keyword for anything else worth matching (a food like 雞胸, a brand like 7-11), in the sentence's own language. Empty if nothing is left over.
 
 Request: {text}"""
@@ -62,6 +64,7 @@ _KNOWN = {
     "source": SOURCES,
     "season": SEASONS,
     "method": METHODS,
+    "protein": PROTEINS,
 }
 
 

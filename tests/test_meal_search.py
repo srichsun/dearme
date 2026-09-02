@@ -62,6 +62,17 @@ def test_the_models_filters_run_the_ordinary_query(a_few_meals, monkeypatch):
     assert "夏天自己煮的 用氣炸鍋" in seen[0]
 
 
+def test_a_protein_from_the_model_narrows_the_list(a_few_meals, monkeypatch):
+    meals.create_meal(UID, name="Hala Chicken", category="meal", source="eat_out",
+                      season="all", proteins=["chicken"])
+    _fake_parser(monkeypatch, meal_search._Filters(protein="chicken"))
+
+    result = meal_search.search(UID, "想吃雞")
+
+    assert result["filters"] == {"protein": "chicken"}
+    assert names(result) == ["Hala Chicken"]
+
+
 def test_a_keyword_from_the_model_is_searched_too(a_few_meals, monkeypatch):
     _fake_parser(monkeypatch, meal_search._Filters(q="雞", source="home_cooked"))
 

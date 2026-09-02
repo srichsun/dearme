@@ -8,6 +8,7 @@ without HTTP and a future caller (the week planner) gets the same answers:
 - home-cooked needs a method — it is the axis this list gets searched on;
 - a rating, if given, is a whole number from 1 to 10;
 - a video link, if given, is an http(s) URL;
+- proteins are any of beef / pork / chicken / seafood, none or several;
 - eating out has no method and no recipe, whatever was sent. Keeping a stale
   method on an eat-out row would make it show up under "air fryer";
 - home-cooked has no shop, for the same reason in the other direction.
@@ -20,7 +21,7 @@ from math import asin, cos, radians, sin, sqrt
 from sqlalchemy import func, or_, select
 
 from app.core import db
-from app.models import MEAL_CATEGORIES, METHODS, SEASONS, SOURCES, Meal
+from app.models import MEAL_CATEGORIES, METHODS, PROTEINS, SEASONS, SOURCES, Meal
 
 
 class MealError(ValueError):
@@ -28,6 +29,22 @@ class MealError(ValueError):
 
 
 PLACE_FIELDS = ("place_id", "place_name", "address", "phone", "lat", "lng", "maps_url")
+
+
+def pack_proteins(codes) -> str | None:
+    """["chicken","beef"] → ",beef,chicken,"; nothing → None. Unknown codes
+    raise: they are picked from buttons, so one is a bug, not a typo."""
+    picked = sorted({(c or "").strip() for c in (codes or []) if (c or "").strip()})
+    if not picked:
+        return None
+    for c in picked:
+        if c not in PROTEINS:
+            raise MealError(f"Unknown protein {c!r}")
+    return "," + ",".join(picked) + ","
+
+
+def unpack_proteins(packed: str | None) -> list[str]:
+    return [c for c in (packed or "").split(",") if c]
 
 
 def _text(value: str | None) -> str | None:
@@ -55,6 +72,7 @@ def _clean(
     lng: float | None = None,
     maps_url: str | None = None,
     video_url: str | None = None,
+    proteins=None,
 ) -> dict:
     """Apply the rules and return the column values to store."""
     name = (name or "").strip()
@@ -108,6 +126,7 @@ def _clean(
         "rating": rating,
         "kind": _text(kind),
         "video_url": video_url,
+        "proteins": pack_proteins(proteins),
         **place,
     }
 
@@ -130,6 +149,7 @@ def list_meals(
     season: str | None = None,
     method: str | None = None,
     kind: str | None = None,
+    protein: str | None = None,
     near: tuple[float, float] | None = None,
 ) -> list[Meal]:
     """One person's meals, newest first, narrowed by whichever filters are set.
@@ -158,6 +178,8 @@ def list_meals(
         stmt = stmt.where(Meal.method == method)
     if kind and kind.strip():
         stmt = stmt.where(Meal.kind == kind.strip())
+    if protein:
+        stmt = stmt.where(Meal.proteins.like(f"%,{protein},%"))
     q = (q or "").strip()
     if q:
         # autoescape: "100%" in a note is matched by typing "100%", not by

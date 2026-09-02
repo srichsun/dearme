@@ -123,6 +123,16 @@ def test_video_link_is_a_url_or_nothing(sqlite_db):
             meals.create_meal("u1", **CHICKEN, video_url=bad)
 
 
+def test_proteins_are_a_set_of_known_codes_or_nothing(sqlite_db):
+    assert meals.create_meal("u1", **CHICKEN).proteins is None
+    assert meals.create_meal("u1", **CHICKEN, proteins=[]).proteins is None
+    both = meals.create_meal("u1", **EGG, proteins=["chicken", "beef", "chicken"])
+    assert both.proteins == ",beef,chicken,"
+    assert meals.unpack_proteins(both.proteins) == ["beef", "chicken"]
+    with pytest.raises(MealError):
+        meals.create_meal("u1", **CHICKEN, proteins=["lamb"])
+
+
 def test_kind_is_trimmed_and_optional(sqlite_db):
     assert meals.create_meal("u1", **CHICKEN).kind is None
     assert meals.create_meal("u1", **CHICKEN, kind="  火鍋 ").kind == "火鍋"
@@ -309,6 +319,16 @@ def test_filter_by_kind_is_exact(a_few_meals):
     assert names(kind="火鍋") == ["涮乃葉", "石二鍋"]
     assert names(kind="鍋") == []
     assert names(kind="  ") == names()
+
+
+def test_filter_by_protein_means_contains(a_few_meals):
+    meals.create_meal("u1", **{**EGG, "name": "牛肉火鍋"}, proteins=["beef", "seafood"])
+    meals.create_meal("u1", **{**EGG, "name": "Hala Chicken"}, proteins=["chicken"])
+
+    assert names(protein="beef") == ["牛肉火鍋"]
+    assert names(protein="seafood") == ["牛肉火鍋"]
+    assert names(protein="chicken") == ["Hala Chicken"]
+    assert names(protein="pork") == []
 
 
 def test_keyword_matches_the_kind_too(a_few_meals):

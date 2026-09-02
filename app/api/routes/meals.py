@@ -9,7 +9,7 @@ from app.api.deps import CurrentUid
 from app.models import Meal, MealNote
 from app.schemas.meal import LinkRequest, MealWrite, NoteWrite, SearchRequest
 from app.services import meal_notes, meal_search, meals, places
-from app.services.meals import PLACE_FIELDS, MealError
+from app.services.meals import PLACE_FIELDS, MealError, unpack_proteins
 
 # Under /api so the page at /meals (see app/main.py) and this JSON can't
 # collide — the other routers predate the second app and keep their paths.
@@ -29,6 +29,7 @@ def _meal(m: Meal) -> dict:
         "rating": m.rating,
         "kind": m.kind,
         "video_url": m.video_url,
+        "proteins": unpack_proteins(m.proteins),
         "place": (
             {f: getattr(m, f) for f in PLACE_FIELDS} if m.place_name else None
         ),
@@ -131,11 +132,12 @@ def list_meals(
     season: str | None = Query(default=None),
     method: str | None = Query(default=None),
     kind: str | None = Query(default=None),
+    protein: str | None = Query(default=None),
     near: str | None = Query(default=None),
 ):
     rows = meals.list_meals(
         uid, q=q, category=category, source=source, season=season, method=method,
-        kind=kind, near=_near(near),
+        kind=kind, protein=protein, near=_near(near),
     )
     return {"meals": [_meal(m) for m in rows]}
 

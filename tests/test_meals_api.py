@@ -102,6 +102,14 @@ def test_the_video_link_comes_back_and_a_bad_one_is_422(sqlite_db):
     assert client.post("/api/meals", json={**CHICKEN, "video_url": "youtu.be/x"}).status_code == 422
 
 
+def test_proteins_go_in_and_out_as_a_list(sqlite_db):
+    made = client.post("/api/meals", json={**EGG, "name": "牛肉火鍋", "proteins": ["seafood", "beef"]}).json()
+    assert made["proteins"] == ["beef", "seafood"]
+    assert client.post("/api/meals", json=CHICKEN).json()["proteins"] == []
+    assert client.post("/api/meals", json={**CHICKEN, "proteins": ["lamb"]}).status_code == 422
+    assert [m["name"] for m in client.get("/api/meals", params={"protein": "beef"}).json()["meals"]] == ["牛肉火鍋"]
+
+
 def test_kinds_and_the_kind_filter(sqlite_db):
     client.post("/api/meals", json={**EGG, "name": "石二鍋", "kind": "火鍋"})
     client.post("/api/meals", json={**EGG, "name": "涮乃葉", "kind": "火鍋"})
