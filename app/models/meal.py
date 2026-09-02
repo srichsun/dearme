@@ -18,6 +18,7 @@ CATEGORIES = ("breakfast", "meal", "snack")
 SOURCES = ("eat_out", "home_cooked")
 SEASONS = ("summer", "winter", "all")
 METHODS = ("stir_fry", "air_fryer", "rice_cooker", "microwave")
+PROTEINS = ("beef", "pork", "chicken", "seafood")
 
 
 class Meal(Base):
@@ -46,6 +47,10 @@ class Meal(Base):
     # Where the recipe came from — an Instagram reel, a YouTube video. Just
     # the link: the content is not fetched (Instagram has no API for it).
     video_url: Mapped[str | None] = mapped_column(Text, nullable=True)
+    # Which of beef / pork / chicken / seafood it is — several allowed, so a
+    # hot pot can be both. Stored as ",beef,chicken," (commas both ends) so a
+    # LIKE on ",chicken," is exact; NULL when none.
+    proteins: Mapped[str | None] = mapped_column(String(64), nullable=True)
     # Free text the person groups by — 火鍋, 牛排, 超商 — so the list can be
     # browsed by kind. A string, not a table: the kinds are theirs to invent.
     kind: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)

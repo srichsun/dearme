@@ -33,6 +33,7 @@
 | rating | int, nullable | 1–10 | 幾顆星；選填（2026-09-02 加） |
 | place_id / place_name / address / phone / lat / lng / maps_url | nullable | 外食店家（Google Places） | 只有外食才有；自煮一律清空。彈窗打店名 → Google 建議 → 點一下全部填好（2026-09-02 加） |
 | video_url | text, nullable | http(s) 網址 | 影片連結（IG／YouTube）；卡片「▶ 看影片」。只存連結、不抓內容（2026-09-02 決定：IG 沒有 API，抓 caption 靠縫、機房 IP 常被擋，先不做） |
+| proteins | str(64), nullable | `beef` / `pork` / `chicken` / `seafood`，複選 | 牛／豬／雞／海鮮；存成 `,beef,chicken,`（前後都有逗號，篩選用 `LIKE '%,chicken,%'`）；API 收/回陣列（2026-09-02 加） |
 | kind | str(64), nullable | 自由文字 | 「類型」：火鍋、牛排、海鮮、超商…自己打，選填（2026-09-02 加）。列表可「依類型看」 |
 | created_at / updated_at | tz datetime | | |
 
@@ -66,7 +67,7 @@
 - 讀、改、刪都同時比對 `id` 和 `user_id`，別人的餐點一律 404（和不存在同一個答案）。為什麼：照 mantras 的做法，猜 id 猜不到別人的東西。
 
 ### API（prefix `/api/meals`，全部要登入）
-- `GET /api/meals?q=&category=&source=&season=&method=&kind=` → `{"meals":[...]}`，新到舊。`kind` 精確比對。
+- `GET /api/meals?q=&category=&source=&season=&method=&kind=&protein=`（`protein` 單一代碼，含有就算） → `{"meals":[...]}`，新到舊。`kind` 精確比對。
 - `GET /api/meals?near=25.04,121.56` → 有座標的外食依直線距離近到遠排在前面、每筆多 `distance_m`；沒座標的照舊排在後面。座標格式錯 → 422。
 - `POST /api/meals/search` body 可帶 `near`，同上。句子裡有「附近／最近／現在」→ 模型把 source 設成 eat_out。
 - `GET /api/meals/kinds?source=` → `{"kinds":[{"kind":"火鍋","count":3},...]}`，多到少；沒填類型的不算；`source=eat_out` 只算外食。
@@ -96,7 +97,7 @@
 - **心得頁**：`MealsApp` 上方兩個切換「餐點」「心得」，預設「餐點」。
   心得頁：一個文字框 + 麥克風鈕（沿用 `speech.js` 的 `useRecorder` / `transcribe`，轉好的字接在框裡讓你看過再送）+「記下來」；下面新到舊列出每一條，附日期和「刪除」（同樣兩段確認）。
   為什麼轉完先進文字框不直接送：語音辨識會錯字，這些字之後要拿去濃縮，錯的原料會出錯的 pattern。
-- **新增／編輯彈窗（typeform 式）**：一次一題，順序 名稱 → 類型（選填，列出用過的可點）→ 分類 → 外食/自己煮 → 季節 → 煮法（外食跳過）→ 食譜（外食跳過）→ 幾顆星（選填，數字鍵 1–9，0 = 10）→ 影片連結（選填）→ 備註（可按麥克風用講的，轉好的字接在框裡看過再送）。卡片上顯示 ★ 和分數。
+- **新增／編輯彈窗（typeform 式）**：一次一題，順序 名稱 → 類型（選填，列出用過的可點）→ 肉類（複選、選填、數字鍵切換）→ 分類 → 外食/自己煮 → 季節 → 煮法（外食跳過）→ 食譜（外食跳過）→ 幾顆星（選填，數字鍵 1–9，0 = 10）→ 影片連結（選填）→ 備註（可按麥克風用講的，轉好的字接在框裡看過再送）。卡片上顯示 ★ 和分數。
   Enter 下一題、Esc 關閉、選項題可按數字鍵 1-4；上方有進度點，編輯時預先填好、點進度點可直接跳題。
   最後一題送出；失敗就留在彈窗並顯示錯誤。
 - **純邏輯抽到 `frontend/src/meals/flow.js`**：`visibleSteps(answers)`（外食就沒有煮法/食譜兩題）、`toQuery(filters)`（篩選條件 → query string，空值不帶）、`labelOf(field, code)`（代碼 → 中文）。
