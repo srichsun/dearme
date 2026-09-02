@@ -1,0 +1,16 @@
+/* The meals screens. Palette and shell come from App.css; only what is
+ * particular to this list lives here. */
+
+.meals .signin {
+  min-height: 70vh;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 0.6rem;
+  text-align: center;
+}
+.meals .signin h1 {
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: 2rem;
+}

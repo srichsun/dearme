@@ -49,6 +49,12 @@ jobs:
         run: npx oxlint src
         working-directory: frontend
 
+      # The meals screens keep their logic (which questions to ask, how filters
+      # become a query) in plain functions, and those are tested.
+      - name: Test the frontend
+        run: npm test
+        working-directory: frontend
+
   deploy:
     # Only main, and only once the tests are green.
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'

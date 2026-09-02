@@ -40,7 +40,7 @@
 - Test: `test_meal_search.py` — mock 模型回條件 → 走同一個查詢；模型丟例外 → `fallback: true` 且 `q` = 原句；模型回未知代碼 → 丟掉那個條件
 - Check: `uv run pytest tests/test_meal_search.py -q && uv run ruff check .`
 - Done when: `POST /meals/search` 有模型和沒模型都回列表
-- Status: todo
+- Status: done
 
 ### 7. feat(web): /meals entry, flow logic, vitest
 - Files: `frontend/src/main.jsx`, `frontend/src/meals/MealsApp.jsx`（登入牆 + 空殼）, `frontend/src/meals/flow.js`, `frontend/src/meals/flow.test.js`, `frontend/package.json`, `.github/workflows/ci.yml`
