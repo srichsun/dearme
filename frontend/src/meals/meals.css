@@ -361,3 +361,6 @@ body.meals-body { background: #0d0e10; }
 }
 .picked b { color: var(--ink); }
 .picked .clear { margin-top: 0.3rem; justify-self: start; }
+
+.meals .signin .langtoggle { position: absolute; top: 1.2rem; right: 1.2rem; }
+.meals .signin { position: relative; }

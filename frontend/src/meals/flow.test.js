@@ -159,9 +159,10 @@ describe("toQuery", () => {
 });
 
 describe("labelOf", () => {
-  it("names a known code in Chinese", () => {
+  it("names a known code in either language, Chinese by default", () => {
     expect(labelOf("method", "air_fryer")).toBe("氣炸鍋");
     expect(labelOf("season", "all")).toBe("四季");
+    expect(labelOf("method", "air_fryer", "en")).toBe("Air fryer");
   });
 
   it("hands back an unknown code as-is rather than a blank", () => {

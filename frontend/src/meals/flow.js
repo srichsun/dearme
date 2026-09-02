@@ -6,24 +6,24 @@
 // speaks; labels are what the person sees.
 export const OPTIONS = {
   category: [
-    ["breakfast", "早餐"],
-    ["meal", "正餐"],
-    ["snack", "點心"],
+    ["breakfast", { zh: "早餐", en: "Breakfast" }],
+    ["meal", { zh: "正餐", en: "Main meal" }],
+    ["snack", { zh: "點心", en: "Snack" }],
   ],
   source: [
-    ["eat_out", "外食"],
-    ["home_cooked", "自己煮"],
+    ["eat_out", { zh: "外食", en: "Eating out" }],
+    ["home_cooked", { zh: "自己煮", en: "Home-cooked" }],
   ],
   season: [
-    ["summer", "夏天"],
-    ["winter", "冬天"],
-    ["all", "四季"],
+    ["summer", { zh: "夏天", en: "Summer" }],
+    ["winter", { zh: "冬天", en: "Winter" }],
+    ["all", { zh: "四季", en: "Any season" }],
   ],
   method: [
-    ["stir_fry", "炒"],
-    ["air_fryer", "氣炸鍋"],
-    ["rice_cooker", "電鍋"],
-    ["microwave", "微波爐"],
+    ["stir_fry", { zh: "炒", en: "Stir-fry" }],
+    ["air_fryer", { zh: "氣炸鍋", en: "Air fryer" }],
+    ["rice_cooker", { zh: "電鍋", en: "Rice cooker" }],
+    ["microwave", { zh: "微波爐", en: "Microwave" }],
   ],
 };
 
@@ -38,49 +38,70 @@ export const NO_PLACE = Object.fromEntries(PLACE_FIELDS.map((f) => [f, null]));
 // One question per step. `when` hides a step for some answers: eating out has
 // no cooking method and no recipe, so those two never come up.
 export const STEPS = [
-  { key: "name", ask: "這道叫什麼？", type: "text" },
+  { key: "name", ask: { zh: "這道叫什麼？", en: "What's it called?" }, type: "text" },
   {
     key: "kind",
-    ask: "什麼類型？",
-    hint: "火鍋、牛排、海鮮、超商……自己取，之後可以依類型看。沒有就直接下一步。",
+    ask: { zh: "什麼類型？", en: "What kind?" },
+    hint: {
+      zh: "火鍋、牛排、海鮮、超商……自己取，之後可以依類型看。沒有就直接下一步。",
+      en: "Hot pot, steak, seafood, convenience store… your own words; you can browse by kind later. Skip if none.",
+    },
     type: "kind",
     optional: true,
   },
-  { key: "category", ask: "哪一餐？", type: "choice" },
-  { key: "source", ask: "外食還是自己煮？", type: "choice" },
-  { key: "season", ask: "適合什麼季節？", type: "choice" },
+  { key: "category", ask: { zh: "哪一餐？", en: "Which meal?" }, type: "choice" },
+  { key: "source", ask: { zh: "外食還是自己煮？", en: "Eating out or cooking?" }, type: "choice" },
+  { key: "season", ask: { zh: "適合什麼季節？", en: "Which season?" }, type: "choice" },
   {
     key: "place",
-    ask: "哪家店？",
-    hint: "打店名，從 Google 的建議裡點一家；沒有就直接下一步。",
+    ask: { zh: "哪家店？", en: "Which shop?" },
+    hint: {
+      zh: "打店名，從 Google 的建議裡點一家；沒有就直接下一步。",
+      en: "Type the name and pick one of Google's suggestions; skip if none.",
+    },
     type: "place",
     optional: true,
     when: eatOut,
   },
-  { key: "method", ask: "怎麼煮？", type: "choice", when: homeCooked },
+  { key: "method", ask: { zh: "怎麼煮？", en: "How is it cooked?" }, type: "choice", when: homeCooked },
   {
     key: "recipe",
-    ask: "食譜？",
-    hint: "食材和步驟，換行寫。沒有就直接下一步。",
+    ask: { zh: "食譜？", en: "Recipe?" },
+    hint: {
+      zh: "食材和步驟，換行寫。沒有就直接下一步。",
+      en: "Ingredients and steps, one per line. Skip if none.",
+    },
     type: "long",
     optional: true,
     when: homeCooked,
   },
   {
     key: "rating",
-    ask: "幾顆星？",
-    hint: "吃過再評。數字鍵 1–9，0 是 10 顆；沒有就直接下一步。",
+    ask: { zh: "幾顆星？", en: "How many stars?" },
+    hint: {
+      zh: "吃過再評。數字鍵 1–9，0 是 10 顆；沒有就直接下一步。",
+      en: "Rate it once eaten. Keys 1–9, 0 for ten; skip if not yet.",
+    },
     type: "stars",
     optional: true,
   },
   {
     key: "note",
-    ask: "備註？",
-    hint: "想寫熱量、哪裡買都可以。沒有就直接送出。",
+    ask: { zh: "備註？", en: "Notes?" },
+    hint: {
+      zh: "想寫熱量、哪裡買都可以。沒有就直接送出。",
+      en: "Calories, where to buy, anything. Send as is if none.",
+    },
     type: "long",
     optional: true,
   },
 ];
+
+// A step's question and hint in one language.
+export function stepText(step, lang = "zh") {
+  const pick = (pair) => (pair ? (pair[lang] ?? pair.zh) : undefined);
+  return { ask: pick(step.ask), hint: pick(step.hint) };
+}
 
 export const EMPTY = {
   name: "",
@@ -191,11 +212,11 @@ export function toQuery(filters) {
   return s ? `?${s}` : "";
 }
 
-// The label for a code, or the code itself if it isn't one we know — better
-// to show "oven" than a blank tag.
-export function labelOf(field, code) {
+// The label for a code in one language, or the code itself if it isn't one
+// we know — better to show "oven" than a blank tag.
+export function labelOf(field, code, lang = "zh") {
   const pair = (OPTIONS[field] || []).find(([c]) => c === code);
-  return pair ? pair[1] : code;
+  return pair ? (pair[1][lang] ?? pair[1].zh) : code;
 }
 
 // Is this the last question for these answers? (Enter there means "send".)

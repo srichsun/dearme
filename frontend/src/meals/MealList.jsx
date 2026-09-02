@@ -10,6 +10,7 @@ import {
   stars,
   toQuery,
 } from "./flow";
+import { useLang } from "./i18n";
 
 const NO_FILTERS = { category: null, source: null, season: null, method: null, kind: null };
 
@@ -18,6 +19,7 @@ const NO_FILTERS = { category: null, source: null, season: null, method: null, k
 // which hands back filters that land on the same tags — so what it understood
 // is visible, and one tap fixes it.
 export default function MealList({ refreshKey, onEdit }) {
+  const { lang, t } = useLang();
   const [meals, setMeals] = useState(null);
   const [q, setQ] = useState("");
   const [filters, setFilters] = useState(NO_FILTERS);
@@ -42,16 +44,16 @@ export default function MealList({ refreshKey, onEdit }) {
       return;
     }
     if (!navigator.geolocation) {
-      setPosNote("這個瀏覽器沒有定位。");
+      setPosNote(t("noGeo"));
       return;
     }
-    setPosNote("定位中…");
+    setPosNote(t("locating"));
     navigator.geolocation.getCurrentPosition(
       (p) => {
         setPos({ lat: p.coords.latitude, lng: p.coords.longitude });
         setPosNote("");
       },
-      () => setPosNote("拿不到位置，檢查瀏覽器的定位權限。"),
+      () => setPosNote(t("geoDenied")),
       { enableHighAccuracy: true, timeout: 10_000 },
     );
   }
@@ -129,13 +131,13 @@ export default function MealList({ refreshKey, onEdit }) {
     return (
       <section className="screen">
         <div className="viewswitch">
-          <button type="button" onClick={() => setView("all")}>全部</button>
-          <button type="button" className="on">依類型</button>
+          <button type="button" onClick={() => setView("all")}>{t("viewAll")}</button>
+          <button type="button" className="on">{t("viewKinds")}</button>
         </div>
         {kinds === null ? (
-          <p className="hint centred">載入中…</p>
+          <p className="hint centred">{t("loading")}</p>
         ) : kinds.length === 0 ? (
-          <p className="hint centred">還沒有餐點填類型。新增或編輯時填「什麼類型？」那題。</p>
+          <p className="hint centred">{t("noKinds")}</p>
         ) : (
           <ul className="kindgrid">
             {kinds.map((k) => (
@@ -156,15 +158,15 @@ export default function MealList({ refreshKey, onEdit }) {
     <section className="screen">
       <div className="viewswitch">
         <button type="button" className={filters.kind ? "" : "on"} onClick={() => setFilters((f) => ({ ...f, kind: null }))}>
-          全部
+          {t("viewAll")}
         </button>
         <button type="button" className={filters.kind ? "on" : ""} onClick={backToKinds}>
-          依類型
+          {t("viewKinds")}
         </button>
       </div>
       {filters.kind && (
         <button type="button" className="kindback" onClick={backToKinds}>
-          ← 全部類型 · <b>{filters.kind}</b>
+          {t("allKinds")} · <b>{filters.kind}</b>
         </button>
       )}
       <div className="panel searchpanel">
@@ -174,7 +176,7 @@ export default function MealList({ refreshKey, onEdit }) {
               value={sentence}
               onChange={(e) => setSentence(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && ask()}
-              placeholder="例如：夏天自己煮的點心，用氣炸鍋"
+              placeholder={t("askPh")}
               autoFocus
             />
           ) : (
@@ -184,7 +186,7 @@ export default function MealList({ refreshKey, onEdit }) {
                 setFallback(false);
                 setQ(e.target.value);
               }}
-              placeholder="找名字、食材、備註…"
+              placeholder={t("searchPh")}
             />
           )}
           <button
@@ -192,18 +194,18 @@ export default function MealList({ refreshKey, onEdit }) {
             className={"ghost askmode" + (asking ? " on" : "")}
             onClick={() => setAsking((a) => !a)}
           >
-            {asking ? "打字找" : "用問的"}
+            {asking ? t("typeMode") : t("askMode")}
           </button>
           {asking && (
             <button type="button" className="primary" onClick={ask} disabled={busy}>
-              {busy ? "…" : "問"}
+              {busy ? "…" : t("ask")}
             </button>
           )}
         </div>
-        {fallback && <p className="fallback">沒問到 AI，先用關鍵字搜。</p>}
+        {fallback && <p className="fallback">{t("fallback")}</p>}
         <div className="nearrow">
           <button type="button" className={"chip near" + (pos ? " on" : "")} onClick={locate}>
-            {pos ? "◉ 離我最近（關）" : "◎ 離我最近"}
+            {pos ? t("nearOn") : t("nearOff")}
           </button>
           {posNote && <span className="hint">{posNote}</span>}
         </div>
@@ -217,22 +219,22 @@ export default function MealList({ refreshKey, onEdit }) {
                 className={"chip" + (filters[field] === code ? " on" : "")}
                 onClick={() => toggle(field, code)}
               >
-                {label}
+                {label[lang] ?? label.zh}
               </button>
             ))}
           </div>
         ))}
         {anything && (
           <button type="button" className="clear" onClick={clearAll}>
-            清除條件
+            {t("clear")}
           </button>
         )}
       </div>
 
       {meals === null ? (
-        <p className="hint centred">載入中…</p>
+        <p className="hint centred">{t("loading")}</p>
       ) : meals.length === 0 ? (
-        <p className="hint centred">{anything ? "沒有符合的。" : "還沒有餐點，按右上角新增。"}</p>
+        <p className="hint centred">{anything ? t("noMatch") : t("empty")}</p>
       ) : (
         <ul className="meallist">
           {meals.map((m) => (
@@ -240,10 +242,10 @@ export default function MealList({ refreshKey, onEdit }) {
               <div className="mealhead">
                 <h3>{m.name}</h3>
                 <div className="tags">
-                  <span className="tag">{labelOf("category", m.category)}</span>
-                  <span className="tag">{labelOf("source", m.source)}</span>
-                  <span className="tag">{labelOf("season", m.season)}</span>
-                  {m.method && <span className="tag">{labelOf("method", m.method)}</span>}
+                  <span className="tag">{labelOf("category", m.category, lang)}</span>
+                  <span className="tag">{labelOf("source", m.source, lang)}</span>
+                  <span className="tag">{labelOf("season", m.season, lang)}</span>
+                  {m.method && <span className="tag">{labelOf("method", m.method, lang)}</span>}
                   {m.kind && <span className="tag kind">{m.kind}</span>}
                 </div>
               </div>
@@ -257,13 +259,13 @@ export default function MealList({ refreshKey, onEdit }) {
                   <span className="shopgo">
                     {m.distance_m != null && <em>{formatDistance(m.distance_m)}</em>}
                     {mapsLink(m.place) && (
-                      <a href={mapsLink(m.place)} target="_blank" rel="noreferrer">導航 ↗</a>
+                      <a href={mapsLink(m.place)} target="_blank" rel="noreferrer">{t("navigate")}</a>
                     )}
                   </span>
                 </div>
               )}
               {m.rating != null && (
-                <p className="rating" aria-label={`${m.rating} 星`}>
+                <p className="rating" aria-label={`${m.rating} ${t("star")}`}>
                   <span className="starrow">{stars(m.rating)}</span>
                   <span className="starnum">{m.rating}/10</span>
                 </p>
@@ -274,19 +276,19 @@ export default function MealList({ refreshKey, onEdit }) {
                 {confirming === m.id ? (
                   <>
                     <button type="button" className="danger" onClick={() => remove(m.id)}>
-                      確定刪除？
+                      {t("confirmDel")}
                     </button>
                     <button type="button" className="ghost" onClick={() => setConfirming(null)}>
-                      取消
+                      {t("cancel")}
                     </button>
                   </>
                 ) : (
                   <>
                     <button type="button" className="ghost" onClick={() => onEdit(m)}>
-                      編輯
+                      {t("edit")}
                     </button>
                     <button type="button" className="ghost" onClick={() => setConfirming(m.id)}>
-                      刪除
+                      {t("del")}
                     </button>
                   </>
                 )}

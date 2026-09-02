@@ -6,10 +6,10 @@ const BASE = "https://places.googleapis.com/v1";
 
 export const placesEnabled = Boolean(KEY);
 
-export async function suggestPlaces(input, near) {
+export async function suggestPlaces(input, near, lang = "zh") {
   const text = (input || "").trim();
   if (!text || !KEY) return [];
-  const body = { input: text, languageCode: "zh-TW", regionCode: "TW" };
+  const body = { input: text, languageCode: lang === "en" ? "en" : "zh-TW", regionCode: "TW" };
   if (near) {
     // Lean towards where they are; a "石二鍋" search should offer the near one.
     body.locationBias = {
@@ -33,9 +33,10 @@ export async function suggestPlaces(input, near) {
     }));
 }
 
-export async function placeDetails(placeId) {
+export async function placeDetails(placeId, lang = "zh") {
   if (!placeId || !KEY) return null;
-  const res = await fetch(`${BASE}/places/${placeId}?languageCode=zh-TW`, {
+  const code = lang === "en" ? "en" : "zh-TW";
+  const res = await fetch(`${BASE}/places/${placeId}?languageCode=${code}`, {
     headers: {
       "X-Goog-Api-Key": KEY,
       "X-Goog-FieldMask":

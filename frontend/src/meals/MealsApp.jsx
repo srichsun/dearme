@@ -3,6 +3,7 @@ import "../App.css";
 import "./meals.css";
 import { onAuthChange, signInWithGoogle, signOutUser } from "../firebase";
 import { useTheme } from "../theme";
+import { LangProvider, useLangState } from "./i18n";
 import MealList from "./MealList";
 import Notes from "./Notes";
 import QuickAdd from "./QuickAdd";
@@ -11,6 +12,8 @@ import QuickAdd from "./QuickAdd";
 // screens; nothing here links back to Dear Me and nothing there links here.
 export default function MealsApp() {
   useTheme(); // keeps <html> consistent with the journal's setting
+  const langState = useLangState();
+  const { lang, t, toggle } = langState;
   // The page ground is on <body>, outside this tree; the class paints it dark.
   useEffect(() => {
     document.body.classList.add("meals-body");
@@ -37,10 +40,13 @@ export default function MealsApp() {
     return (
       <div className="app meals">
         <main className="signin">
-          <h1 className="display">吃什麼</h1>
-          <p className="note">減脂期可以吃的東西，都記在這裡。</p>
+          <button className="signout langtoggle" onClick={toggle}>
+            {lang === "zh" ? "EN" : "中"}
+          </button>
+          <h1 className="display">{t("title")}</h1>
+          <p className="note">{t("lede")}</p>
           <button className="primary" onClick={() => signInWithGoogle()}>
-            用 Google 登入
+            {t("signin")}
           </button>
         </main>
       </div>
@@ -48,28 +54,32 @@ export default function MealsApp() {
   }
 
   return (
+    <LangProvider value={langState}>
     <div className="app meals">
       <header className="head">
-        <h1>吃什麼</h1>
+        <h1>{t("title")}</h1>
         {screen === "meals" && (
           <button
             className="add"
             onClick={() => setEditing("new")}
             disabled={editing !== null}
           >
-            ＋ 新增
+            {t("add")}
           </button>
         )}
+        <button className="signout" onClick={toggle} aria-label="Language">
+          {lang === "zh" ? "EN" : "中"}
+        </button>
         <button className="signout" onClick={() => signOutUser()}>
-          登出
+          {t("signout")}
         </button>
       </header>
       <nav className="switch">
         <button className={screen === "meals" ? "on" : ""} onClick={() => setScreen("meals")}>
-          餐點
+          {t("tabMeals")}
         </button>
         <button className={screen === "notes" ? "on" : ""} onClick={() => setScreen("notes")}>
-          反思
+          {t("tabNotes")}
         </button>
       </nav>
       <main>
@@ -90,5 +100,6 @@ export default function MealsApp() {
         />
       )}
     </div>
+    </LangProvider>
   );
 }

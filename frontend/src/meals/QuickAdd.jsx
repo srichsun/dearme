@@ -3,6 +3,7 @@ import { authFetch, getJSON } from "../api";
 import { MicIcon, StopIcon } from "../icons";
 import { transcribe, useRecorder } from "../speech";
 import { placeDetails, placesEnabled, suggestPlaces } from "./places";
+import { useLang } from "./i18n";
 import {
   EMPTY,
   NO_PLACE,
@@ -16,6 +17,7 @@ import {
   isLast,
   keyToChoice,
   keyToRating,
+  stepText,
   toPayload,
   visibleSteps,
 } from "./flow";
@@ -24,6 +26,7 @@ import {
 // closes, a number key picks an option. The same dialog edits: it opens
 // filled in, and the dots up top jump straight to the question to change.
 export default function QuickAdd({ meal, onClose, onSaved }) {
+  const { lang, t } = useLang();
   const isNew = meal === "new";
   const [answers, setAnswers] = useState(() => (isNew ? EMPTY : fromMeal(meal)));
   const [index, setIndex] = useState(0);
@@ -70,18 +73,18 @@ export default function QuickAdd({ meal, onClose, onSaved }) {
       return;
     }
     const timer = setTimeout(async () => {
-      setSuggestions(await suggestPlaces(text));
+      setSuggestions(await suggestPlaces(text, null, lang));
     }, 300);
     return () => clearTimeout(timer);
-  }, [placeQuery, step?.type, answers.place_name]);
+  }, [placeQuery, step?.type, answers.place_name, lang]);
 
   async function pickPlace(sug) {
     setPlaceBusy(true);
     setSuggestions([]);
-    const fields = await placeDetails(sug.placeId);
+    const fields = await placeDetails(sug.placeId, lang);
     setPlaceBusy(false);
     if (!fields) {
-      setError("拿不到這家店的資料，再點一次或跳過。");
+      setError(t("placeFailed"));
       return;
     }
     setError("");
@@ -113,7 +116,7 @@ export default function QuickAdd({ meal, onClose, onSaved }) {
     const missing = firstMissing(answers);
     if (missing !== -1) {
       setIndex(missing);
-      setError("這題還沒填。");
+      setError(t("missing"));
       return;
     }
     setSaving(true);
@@ -124,7 +127,7 @@ export default function QuickAdd({ meal, onClose, onSaved }) {
     });
     setSaving(false);
     if (!res.ok) {
-      let detail = "存不進去，再試一次。";
+      let detail = t("saveFailed");
       try {
         detail = (await res.json()).detail || detail;
       } catch {
@@ -138,7 +141,7 @@ export default function QuickAdd({ meal, onClose, onSaved }) {
 
   function next() {
     if (!isAnswered(step, answers)) {
-      setError("先回答這題。");
+      setError(t("answerFirst"));
       return;
     }
     if (isLast(at, answers)) save();
@@ -200,20 +203,20 @@ export default function QuickAdd({ meal, onClose, onSaved }) {
                 key={s.key}
                 className={"dot" + (i === at ? " on" : "") + (isAnswered(s, answers) ? " done" : "")}
                 onClick={() => go(i)}
-                aria-label={s.ask}
+                aria-label={stepText(s, lang).ask}
               />
             ))}
           </div>
           <button type="button" className="signout" onClick={onClose}>
-            關閉
+            {t("close")}
           </button>
         </div>
 
         <p className="qnum">
           {at + 1} / {steps.length}
         </p>
-        <h2 className="display">{step.ask}</h2>
-        {step.hint && <p className="note">{step.hint}</p>}
+        <h2 className="display">{stepText(step, lang).ask}</h2>
+        {step.hint && <p className="note">{stepText(step, lang).hint}</p>}
 
         {step.type === "choice" && (
           <div className="choices">
@@ -226,29 +229,29 @@ export default function QuickAdd({ meal, onClose, onSaved }) {
                 ref={i === 0 ? inputRef : null}
               >
                 <span className="keycap">{i + 1}</span>
-                {label}
+                {label[lang] ?? label.zh}
               </button>
             ))}
           </div>
         )}
         {step.type === "stars" && (
-          <div className="stars" role="radiogroup" aria-label="幾顆星">
+          <div className="stars" role="radiogroup" aria-label={t("starsLabel")}>
             {RATINGS.map((n) => (
               <button
                 type="button"
                 key={n}
                 className={"star" + (answers.rating != null && n <= answers.rating ? " on" : "")}
                 onClick={() => choose(n)}
-                aria-label={`${n} 星`}
+                aria-label={`${n} ${t("star")}`}
                 ref={n === 1 ? inputRef : null}
               >
                 ★
               </button>
             ))}
-            <span className="starnum">{answers.rating ? `${answers.rating} / 10` : "未評"}</span>
+            <span className="starnum">{answers.rating ? `${answers.rating} / 10` : t("unrated")}</span>
             {answers.rating != null && (
               <button type="button" className="clear" onClick={() => set("rating", null)}>
-                清除
+                {t("clearOne")}
               </button>
             )}
           </div>
@@ -259,7 +262,7 @@ export default function QuickAdd({ meal, onClose, onSaved }) {
               ref={inputRef}
               value={answers.kind}
               onChange={(e) => set("kind", e.target.value)}
-              placeholder="例如：火鍋"
+              placeholder={t("kindPh")}
             />
             {kinds.length > 0 && (
               <div className="chips">
@@ -283,7 +286,7 @@ export default function QuickAdd({ meal, onClose, onSaved }) {
               ref={inputRef}
               value={placeQuery}
               onChange={(e) => setPlaceQuery(e.target.value)}
-              placeholder={placesEnabled ? "例如：石二鍋 後山埤" : "沒有設定 Google 金鑰"}
+              placeholder={placesEnabled ? t("placePh") : t("noPlacesKey")}
               disabled={!placesEnabled}
             />
             {suggestions.length > 0 && (
@@ -298,13 +301,13 @@ export default function QuickAdd({ meal, onClose, onSaved }) {
                 ))}
               </ul>
             )}
-            {placeBusy && <p className="hint">查店家資料…</p>}
+            {placeBusy && <p className="hint">{t("placeBusy")}</p>}
             {answers.place_name && (
               <div className="picked">
                 <b>{answers.place_name}</b>
                 {answers.address && <span>{answers.address}</span>}
                 {answers.phone && <span>{answers.phone}</span>}
-                <button type="button" className="clear" onClick={clearPlace}>清除</button>
+                <button type="button" className="clear" onClick={clearPlace}>{t("clearOne")}</button>
               </div>
             )}
           </div>
@@ -314,7 +317,7 @@ export default function QuickAdd({ meal, onClose, onSaved }) {
             ref={inputRef}
             value={answers[step.key]}
             onChange={(e) => set(step.key, e.target.value)}
-            placeholder="例如：氣炸鍋雞胸"
+            placeholder={t("namePh")}
           />
         )}
         {step.type === "long" && (
@@ -324,32 +327,32 @@ export default function QuickAdd({ meal, onClose, onSaved }) {
               rows={4}
               value={answers[step.key]}
               onChange={(e) => set(step.key, e.target.value)}
-              placeholder={step.key === "recipe" ? "雞胸抹鹽\n氣炸 180 度 15 分" : "例如：週日備餐，一次做三份"}
+              placeholder={step.key === "recipe" ? t("recipePh") : t("notePh")}
             />
             {step.key === "note" && (
               <button
                 type="button"
                 className={"mic" + (recorder.recording ? " on" : "")}
                 onClick={recorder.toggle}
-                aria-label={recorder.recording ? "停止" : "用講的"}
+                aria-label={recorder.recording ? t("stop") : t("speak")}
               >
                 {recorder.recording ? <StopIcon /> : <MicIcon />}
               </button>
             )}
           </div>
         )}
-        {listening && <p className="hint">聽寫中…</p>}
+        {listening && <p className="hint">{t("listening")}</p>}
 
         {error && <p className="qerror">{error}</p>}
 
         <div className="qafoot">
           <button type="button" className="ghost" onClick={() => go(at - 1)} disabled={at === 0}>
-            上一題
+            {t("prev")}
           </button>
           <button type="button" className="primary" onClick={next} disabled={saving}>
-            {isLast(at, answers) ? (saving ? "存檔中…" : isNew ? "新增" : "存檔") : "下一題"}
+            {isLast(at, answers) ? (saving ? t("saving") : isNew ? t("create") : t("save")) : t("next")}
           </button>
-          <span className="qhint">Enter 下一題 · Esc 關閉</span>
+          <span className="qhint">{t("keys")}</span>
         </div>
       </div>
     </div>

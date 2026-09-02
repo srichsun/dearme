@@ -3,12 +3,14 @@ import { authFetch, getJSON, postJSON } from "../api";
 import { MicIcon, StopIcon } from "../icons";
 import { transcribe, useRecorder } from "../speech";
 import { localDate } from "./flow";
+import { useLang } from "./i18n";
 
 // Reflections: what you noticed about your energy — food, training, sleep,
 // mood — in your own words. Spoken or typed, the words land in the box first:
 // transcription mis-hears, and these lines are the raw material for patterns
 // later, so they get a look before saving.
 export default function Notes() {
+  const { t } = useLang();
   const [notes, setNotes] = useState(null);
   const [draft, setDraft] = useState("");
   const [listening, setListening] = useState(false);
@@ -50,34 +52,34 @@ export default function Notes() {
   return (
     <section className="screen">
       <div className="panel">
-        <h2 className="display">反思</h2>
-        <p className="note">飲食、訓練、睡眠、情緒——任何跟能量有關的發現，講一句或打一句。之後整理成你的 pattern。</p>
+        <h2 className="display">{t("reflectTitle")}</h2>
+        <p className="note">{t("reflectLede")}</p>
         <div className="writer">
           <textarea
             rows={3}
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
-            placeholder="例如：早上不想吃燕麥高蛋白，因為不香不油／練腿隔天睡得特別沉"
+            placeholder={t("reflectPh")}
           />
           <button
             type="button"
             className={"mic" + (recorder.recording ? " on" : "")}
             onClick={recorder.toggle}
-            aria-label={recorder.recording ? "停止" : "用講的"}
+            aria-label={recorder.recording ? t("stop") : t("speak")}
           >
             {recorder.recording ? <StopIcon /> : <MicIcon />}
           </button>
         </div>
-        {listening && <p className="hint">聽寫中…</p>}
+        {listening && <p className="hint">{t("listening")}</p>}
         <button type="button" className="primary wide" onClick={keep} disabled={!draft.trim()}>
-          記下來
+          {t("keep")}
         </button>
       </div>
 
       {notes === null ? (
-        <p className="hint centred">載入中…</p>
+        <p className="hint centred">{t("loading")}</p>
       ) : notes.length === 0 ? (
-        <p className="hint centred">還沒有反思。</p>
+        <p className="hint centred">{t("noReflect")}</p>
       ) : (
         <ul className="meallist">
           {notes.map((n) => (
@@ -88,15 +90,15 @@ export default function Notes() {
                 {confirming === n.id ? (
                   <>
                     <button type="button" className="danger" onClick={() => remove(n.id)}>
-                      確定刪除？
+                      {t("confirmDel")}
                     </button>
                     <button type="button" className="ghost" onClick={() => setConfirming(null)}>
-                      取消
+                      {t("cancel")}
                     </button>
                   </>
                 ) : (
                   <button type="button" className="ghost" onClick={() => setConfirming(n.id)}>
-                    刪除
+                    {t("del")}
                   </button>
                 )}
               </div>

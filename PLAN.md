@@ -133,6 +133,12 @@
 - Check: `cd frontend && npm run lint && npm test && npm run build`
 - Status: done
 
+### 21. feat(web): switch the meals screens between 中 and EN
+- Files: `frontend/src/meals/i18n.js`, `i18n.test.js`, `flow.js`, `flow.test.js`, `MealsApp.jsx`, `MealList.jsx`, `QuickAdd.jsx`, `Notes.jsx`, `places.js`, `meals.css`
+- Test: 每個 key 中英都有、`labelOf`/`stepText` 兩種語言、未知語言退回中文
+- Check: `cd frontend && npm run lint && npm test && npm run build`
+- Status: done
+
 ## 收工前
 1. `uv run ruff check . && uv run pytest -q`；`cd frontend && npm run lint && npm test && npm run build`
 2. `/verify-tests` 看新測試
