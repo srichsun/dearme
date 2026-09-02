@@ -10,7 +10,12 @@ import QuickAdd from "./QuickAdd";
 // The "what can I eat" list, at /meals. Same sign-in as the journal, its own
 // screens; nothing here links back to Dear Me and nothing there links here.
 export default function MealsApp() {
-  useTheme(); // stamps data-theme on <html> so the palette follows the phone
+  useTheme(); // keeps <html> consistent with the journal's setting
+  // The page ground is on <body>, outside this tree; the class paints it dark.
+  useEffect(() => {
+    document.body.classList.add("meals-body");
+    return () => document.body.classList.remove("meals-body");
+  }, []);
   const [user, setUser] = useState(null);
   const [authReady, setAuthReady] = useState(false);
   const [screen, setScreen] = useState("meals");
