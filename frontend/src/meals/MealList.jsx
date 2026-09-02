@@ -260,7 +260,9 @@ export default function MealList({ refreshKey, onEdit, goRequest }) {
               <div className="mealhead">
                 <h3>{m.name}</h3>
                 <div className="tags">
-                  <span className="tag">{labelOf("category", m.category, lang)}</span>
+                  {(m.categories || []).map((c) => (
+                    <span className="tag" key={c}>{labelOf("category", c, lang)}</span>
+                  ))}
                   <span className="tag">{labelOf("source", m.source, lang)}</span>
                   <span className="tag">{labelOf("season", m.season, lang)}</span>
                   {m.method && <span className="tag">{labelOf("method", m.method, lang)}</span>}

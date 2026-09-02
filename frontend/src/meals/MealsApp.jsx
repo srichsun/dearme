@@ -138,7 +138,19 @@ export default function MealsApp() {
         {screen === "notes" && <Notes />}
         {screen === "shop" && <Shopping />}
       </main>
-      <footer className="buildstamp">build {buildStamp()}</footer>
+      <footer className="buildstamp">
+        build {buildStamp()} ·{" "}
+        <button
+          type="button"
+          className="forceupdate"
+          onClick={() => {
+            // Past every cache: a fresh URL, a fresh load.
+            window.location.replace(`/meals?v=${Date.now()}`);
+          }}
+        >
+          {t("forceUpdate")}
+        </button>
+      </footer>
       {adding === "choose" && (
         <AddChooser
           onClose={() => setAdding(null)}

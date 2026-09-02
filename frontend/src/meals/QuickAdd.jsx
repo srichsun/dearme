@@ -186,7 +186,7 @@ export default function QuickAdd({ meal, onClose, onSaved }) {
       const code = keyToChoice(e.key, step.field);
       if (code) {
         e.preventDefault();
-        set(step.key, toggleIn(answers[step.key], code));
+        set(step.key, toggleIn(answers[step.key], code, step.field));
       }
       if (e.key === "Enter") next();
       return;
@@ -344,7 +344,7 @@ export default function QuickAdd({ meal, onClose, onSaved }) {
                 type="button"
                 key={code}
                 className={"choice" + ((answers[step.key] || []).includes(code) ? " on" : "")}
-                onClick={() => set(step.key, toggleIn(answers[step.key], code))}
+                onClick={() => set(step.key, toggleIn(answers[step.key], code, step.field))}
                 ref={i === 0 ? inputRef : null}
                 aria-pressed={(answers[step.key] || []).includes(code)}
               >

@@ -28,24 +28,24 @@ const chicken = {
   ...EMPTY,
   name: "氣炸鍋雞胸",
   kind: "自煮",
-  category: "meal",
+  categories: ["meal"],
   source: "home_cooked",
   season: "summer",
   method: "air_fryer",
   recipe: "抹鹽\n氣炸 15 分",
 };
-const egg = { ...EMPTY, name: "茶葉蛋", category: "snack", source: "eat_out", season: "all" };
+const egg = { ...EMPTY, name: "茶葉蛋", categories: ["snack"], source: "eat_out", season: "all" };
 
 describe("visibleSteps", () => {
   it("asks eleven questions for a home-cooked meal", () => {
     expect(visibleSteps(chicken).map((s) => s.key)).toEqual([
-      "name", "kind", "proteins", "category", "source", "season", "method", "recipe", "rating", "video_url", "note",
+      "name", "kind", "proteins", "categories", "source", "season", "method", "recipe", "rating", "video_url", "note",
     ]);
   });
 
   it("asks for the shop instead of method and recipe when eating out", () => {
     expect(visibleSteps(egg).map((s) => s.key)).toEqual([
-      "name", "kind", "proteins", "category", "source", "season", "place", "price", "rating", "video_url", "note",
+      "name", "kind", "proteins", "categories", "source", "season", "place", "price", "rating", "video_url", "note",
     ]);
   });
 
@@ -85,6 +85,10 @@ describe("firstMissing", () => {
     expect(firstMissing({ ...chicken, method: null })).toBe(6);
   });
 
+  it("needs at least one category", () => {
+    expect(firstMissing({ ...chicken, categories: [] })).toBe(3);
+  });
+
   it("does not require a kind, a recipe, a rating or a note", () => {
     expect(firstMissing({ ...chicken, kind: "", recipe: "", note: "", rating: null })).toBe(-1);
   });
@@ -94,7 +98,7 @@ describe("toPayload", () => {
   it("sends a home-cooked meal whole, trimmed, blanks as null", () => {
     expect(toPayload({ ...chicken, name: " 雞胸 ", note: "  " })).toEqual({
       name: "雞胸",
-      category: "meal",
+      categories: ["meal"],
       source: "home_cooked",
       season: "summer",
       method: "air_fryer",
@@ -148,9 +152,10 @@ describe("toPayload", () => {
 
 describe("fromMeal", () => {
   it("turns stored nulls into empty strings for the inputs", () => {
-    const answers = fromMeal({ name: "茶葉蛋", category: "snack", source: "eat_out",
+    const answers = fromMeal({ name: "茶葉蛋", categories: ["snack"], source: "eat_out",
                                season: "all", method: null, recipe: null, note: null });
     expect(answers).toEqual({ ...egg, method: null, rating: null, kind: "" });
+    expect(fromMeal({ ...egg, categories: undefined, category: "meal" }).categories).toEqual(["meal"]);
     expect(fromMeal({ ...egg, kind: "超商" }).kind).toBe("超商");
     expect(fromMeal({ ...egg, video_url: "https://youtu.be/x" }).video_url).toBe("https://youtu.be/x");
     expect(fromMeal({ ...egg }).video_url).toBe("");
@@ -337,6 +342,7 @@ describe("toggleIn", () => {
     expect(toggleIn(["chicken"], "beef")).toEqual(["beef", "chicken"]);
     expect(toggleIn(["beef", "chicken"], "chicken")).toEqual(["beef"]);
     expect(toggleIn(null, "pork")).toEqual(["pork"]);
+    expect(toggleIn(["snack"], "breakfast", "category")).toEqual(["breakfast", "snack"]);
   });
 });
 

@@ -495,3 +495,4 @@ body.meals-body { background: #0d0e10; }
   padding: 0.6rem;
 }
 .buildstamp { margin-top: 2rem; text-align: center; font-family: var(--mono); font-size: 0.66rem; letter-spacing: 0.14em; color: var(--ink-faint); }
+.forceupdate { border: none; background: none; color: var(--sage); font: inherit; letter-spacing: inherit; padding: 0; text-decoration: underline; }

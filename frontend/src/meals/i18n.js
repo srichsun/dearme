@@ -64,6 +64,7 @@ export const STRINGS = {
   linkFailed: { zh: "抓不到這個連結的店家。", en: "Couldn't find a shop for that link." },
   addThis: { zh: "新增這家", en: "Add this one" },
   addedAs: { zh: "會以 外食／正餐／四季 新增，類型用 Google 的；之後都可以改。", en: "Added as eating out / main meal / any season, kind from Google; all editable later." },
+  forceUpdate: { zh: "強制更新", en: "Force update" },
   newVersion: { zh: "有新版本，點這裡更新", en: "A new version is out — tap to update" },
   // list
   searchPh: { zh: "找名字、食材、備註…", en: "Search names, ingredients, notes…" },

@@ -33,7 +33,7 @@ export default function ShopFromLink({ onSaved, onClose }) {
     const { kind_hint: kind, price_hint: price, ...place } = shop;
     const { ok, data } = await postJSON("/api/meals", {
       name: shop.place_name,
-      category: "meal",
+      categories: ["meal"],
       source: "eat_out",
       season: "all",
       kind: kind || null,

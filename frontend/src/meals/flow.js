@@ -68,7 +68,13 @@ export const STEPS = [
     field: "protein",
     optional: true,
   },
-  { key: "category", ask: { zh: "哪一餐？", en: "Which meal?" }, type: "choice" },
+  {
+    key: "categories",
+    ask: { zh: "哪一餐？", en: "Which meal?" },
+    hint: { zh: "可以複選，至少一個。數字鍵切換，Enter 下一題。", en: "Pick any number, at least one. Number keys toggle, Enter moves on." },
+    type: "multi",
+    field: "category",
+  },
   { key: "source", ask: { zh: "外食還是自己煮？", en: "Eating out or cooking?" }, type: "choice" },
   { key: "season", ask: { zh: "適合什麼季節？", en: "Which season?" }, type: "choice" },
   {
@@ -144,7 +150,7 @@ export const EMPTY = {
   name: "",
   kind: "",
   proteins: [],
-  category: null,
+  categories: [],
   source: null,
   season: null,
   method: null,
@@ -173,6 +179,7 @@ export function clampStep(index, answers) {
 export function isAnswered(step, answers) {
   if (step.optional) return true;
   const value = answers[step.key];
+  if (Array.isArray(value)) return value.length > 0;
   return typeof value === "string" ? value.trim() !== "" : value != null;
 }
 
@@ -186,7 +193,7 @@ export function firstMissing(answers) {
 export function toPayload(answers) {
   const out = {
     name: answers.name.trim(),
-    category: answers.category,
+    categories: answers.categories || [],
     source: answers.source,
     season: answers.season,
     method: null,
@@ -216,7 +223,7 @@ export function fromMeal(meal) {
     name: meal.name || "",
     kind: meal.kind || "",
     proteins: meal.proteins || [],
-    category: meal.category,
+    categories: meal.categories || (meal.category ? [meal.category] : []),
     source: meal.source,
     season: meal.season,
     method: meal.method,
@@ -342,12 +349,12 @@ export function goFilters(kind) {
   return { category: null, source: "eat_out", season: null, method: null, protein: null, price: null, kind: k || null };
 }
 
-// Toggle one protein in the set, keeping the buttons' order.
-export function toggleIn(list, code) {
+// Toggle one code in a set, keeping the buttons' order of that field.
+export function toggleIn(list, code, field = "protein") {
   const set = new Set(list || []);
   if (set.has(code)) set.delete(code);
   else set.add(code);
-  return OPTIONS.protein.map(([c]) => c).filter((c) => set.has(c));
+  return (OPTIONS[field] || []).map(([c]) => c).filter((c) => set.has(c));
 }
 
 // "$$" for a price level; empty when there is none.
