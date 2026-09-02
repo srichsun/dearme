@@ -27,7 +27,8 @@ class Meal(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     user_id: Mapped[str] = mapped_column(String(128), index=True)
     name: Mapped[str] = mapped_column(String(200))
-    category: Mapped[str] = mapped_column(String(32))
+    # One or more of breakfast / meal / snack, packed as ",breakfast,meal,".
+    category: Mapped[str] = mapped_column(String(64))
     source: Mapped[str] = mapped_column(String(32))
     season: Mapped[str] = mapped_column(String(32))
     # Only a home-cooked meal has a method; eating out stores NULL.

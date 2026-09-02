@@ -24,7 +24,7 @@
 | id | int PK | | |
 | user_id | str(128) index | | Firebase uid |
 | name | str(200) | 必填、去頭尾空白、不可空 | |
-| category | str | `breakfast` / `meal` / `snack` | 早餐 / 正餐 / 點心 |
+| category | str(64) | `breakfast` / `meal` / `snack`，**複選**（2026-09-02 改）| 早餐 / 正餐 / 點心；存成 `,breakfast,meal,`，至少一個；API 收/回 `categories` 陣列，`category=` 篩選含有就算 |
 | source | str | `eat_out` / `home_cooked` | 外食 / 自己煮 |
 | season | str | `summer` / `winter` / `all` | 夏 / 冬 / 四季 |
 | method | str, nullable | `stir_fry` / `air_fryer` / `rice_cooker` / `microwave` | 炒 / 氣炸鍋 / 電鍋 / 微波爐；只有自己煮才有 |
