@@ -30,6 +30,7 @@ def _meal(m: Meal) -> dict:
         "kind": m.kind,
         "video_url": m.video_url,
         "proteins": unpack_proteins(m.proteins),
+        "price": m.price,
         "place": (
             {f: getattr(m, f) for f in PLACE_FIELDS} if m.place_name else None
         ),
@@ -133,11 +134,12 @@ def list_meals(
     method: str | None = Query(default=None),
     kind: str | None = Query(default=None),
     protein: str | None = Query(default=None),
+    price: int | None = Query(default=None, ge=1, le=3),
     near: str | None = Query(default=None),
 ):
     rows = meals.list_meals(
         uid, q=q, category=category, source=source, season=season, method=method,
-        kind=kind, protein=protein, near=_near(near),
+        kind=kind, protein=protein, price=price, near=_near(near),
     )
     return {"meals": [_meal(m) for m in rows]}
 

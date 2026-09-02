@@ -73,6 +73,16 @@ def test_a_protein_from_the_model_narrows_the_list(a_few_meals, monkeypatch):
     assert names(result) == ["Hala Chicken"]
 
 
+def test_a_price_from_the_model_is_a_number(a_few_meals, monkeypatch):
+    meals.create_meal(UID, name="便宜的", category="meal", source="eat_out", season="all", price=1)
+    _fake_parser(monkeypatch, meal_search._Filters(price="1", source="eat_out"))
+
+    result = meal_search.search(UID, "便宜的外食")
+
+    assert result["filters"] == {"source": "eat_out", "price": 1}
+    assert names(result) == ["便宜的"]
+
+
 def test_a_keyword_from_the_model_is_searched_too(a_few_meals, monkeypatch):
     _fake_parser(monkeypatch, meal_search._Filters(q="雞", source="home_cooked"))
 

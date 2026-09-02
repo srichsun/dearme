@@ -123,6 +123,15 @@ def test_video_link_is_a_url_or_nothing(sqlite_db):
             meals.create_meal("u1", **CHICKEN, video_url=bad)
 
 
+def test_price_is_one_to_three_for_eating_out_only(sqlite_db):
+    assert meals.create_meal("u1", **EGG).price is None
+    assert meals.create_meal("u1", **EGG, price=2).price == 2
+    assert meals.create_meal("u1", **CHICKEN, price=2).price is None  # home-cooked has no price
+    for bad in (0, 4, True, 1.5):
+        with pytest.raises(MealError):
+            meals.create_meal("u1", **EGG, price=bad)
+
+
 def test_proteins_are_a_set_of_known_codes_or_nothing(sqlite_db):
     assert meals.create_meal("u1", **CHICKEN).proteins is None
     assert meals.create_meal("u1", **CHICKEN, proteins=[]).proteins is None
@@ -329,6 +338,15 @@ def test_filter_by_protein_means_contains(a_few_meals):
     assert names(protein="seafood") == ["牛肉火鍋"]
     assert names(protein="chicken") == ["Hala Chicken"]
     assert names(protein="pork") == []
+
+
+def test_filter_by_price(a_few_meals):
+    meals.create_meal("u1", **{**EGG, "name": "便宜的"}, price=1)
+    meals.create_meal("u1", **{**EGG, "name": "貴的"}, price=3)
+
+    assert names(price=1) == ["便宜的"]
+    assert names(price=3) == ["貴的"]
+    assert names(price=2) == []
 
 
 def test_keyword_matches_the_kind_too(a_few_meals):

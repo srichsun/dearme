@@ -20,7 +20,7 @@ from app.services import chat_model, meals
 
 log = logging.getLogger(__name__)
 
-FILTER_FIELDS = ("q", "category", "source", "season", "method", "protein")
+FILTER_FIELDS = ("q", "category", "source", "season", "method", "protein", "price")
 
 
 class _Filters(BaseModel):
@@ -42,6 +42,7 @@ class _Filters(BaseModel):
         default=None, description="stir_fry | air_fryer | rice_cooker | microwave"
     )
     protein: str | None = Field(default=None, description="beef | pork | chicken | seafood")
+    price: str | None = Field(default=None, description="1 (cheap) | 2 (mid) | 3 (pricey)")
 
 
 _parser = chat_model.build_chat_model(
@@ -54,6 +55,7 @@ _PROMPT = """Translate this request about what to eat into search filters. Use o
 - source: 外食/買的/便利商店/超商/eat out → eat_out; 自己煮/自煮/home-made → home_cooked. 附近/最近/離我/現在可以吃 (asking what is around them now) → eat_out
 - season: 夏天/熱天/summer → summer; 冬天/冷天/winter → winter. Never "all".
 - method: 炒 → stir_fry; 氣炸鍋/氣炸 → air_fryer; 電鍋 → rice_cooker; 微波 → microwave
+- price: 便宜/平價/cheap → 1; 普通/mid → 2; 貴/高級/pricey/expensive → 3
 - protein: 牛/beef → beef; 豬/pork → pork; 雞/chicken → chicken; 海鮮/魚/蝦/seafood/fish → seafood
 - q: one keyword for anything else worth matching (a food like 雞胸, a brand like 7-11), in the sentence's own language. Empty if nothing is left over.
 
@@ -65,6 +67,7 @@ _KNOWN = {
     "season": SEASONS,
     "method": METHODS,
     "protein": PROTEINS,
+    "price": ("1", "2", "3"),
 }
 
 
@@ -80,6 +83,8 @@ def parse(text: str) -> dict:
         value = getattr(parsed, field)
         if value in allowed and value != "all":
             filters[field] = value
+    if "price" in filters:
+        filters["price"] = int(filters["price"])
     q = (parsed.q or "").strip()
     if q:
         filters["q"] = q

@@ -26,6 +26,7 @@ GOOGLE = {
         "location": {"latitude": 25.0425592, "longitude": 121.5545888},
         "googleMapsUri": "https://maps.google.com/?cid=14390827386336211431",
         "primaryTypeDisplayName": {"text": "速食餐廳", "languageCode": "zh-TW"},
+        "priceLevel": "PRICE_LEVEL_INEXPENSIVE",
     }]
 }
 
@@ -59,8 +60,11 @@ def test_googles_answer_becomes_the_seven_fields_and_a_kind():
         "lng": 121.5545888,
         "maps_url": "https://maps.google.com/?cid=14390827386336211431",
         "kind_hint": "速食餐廳",
+        "price_hint": 1,
     }
     assert places.to_fields({"id": "x"})["phone"] is None
+    assert places.to_fields({"id": "x"})["price_hint"] is None
+    assert places.to_fields({"priceLevel": "PRICE_LEVEL_VERY_EXPENSIVE"})["price_hint"] == 3
 
 
 def _fake_google(monkeypatch, *, landed=LANDED, answer=GOOGLE, status=200, seen=None):

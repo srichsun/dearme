@@ -23,6 +23,7 @@ class MealWrite(BaseModel):
     kind: str | None = None
     video_url: str | None = None
     proteins: list[str] = []
+    price: StrictInt | None = None
     # The shop, from Google Places; only kept for eating out.
     place_id: str | None = None
     place_name: str | None = None

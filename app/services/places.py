@@ -17,8 +17,16 @@ PLACES = "https://places.googleapis.com/v1"
 FIELDS = (
     "places.id,places.displayName,places.formattedAddress,"
     "places.nationalPhoneNumber,places.location,places.googleMapsUri,"
-    "places.primaryTypeDisplayName"
+    "places.primaryTypeDisplayName,places.priceLevel"
 )
+
+# Google's four levels onto our three: $ / $$ / $$$.
+PRICE_LEVELS = {
+    "PRICE_LEVEL_INEXPENSIVE": 1,
+    "PRICE_LEVEL_MODERATE": 2,
+    "PRICE_LEVEL_EXPENSIVE": 3,
+    "PRICE_LEVEL_VERY_EXPENSIVE": 3,
+}
 
 
 class LinkError(ValueError):
@@ -86,6 +94,7 @@ def to_fields(place: dict) -> dict:
         "lng": loc.get("longitude"),
         "maps_url": place.get("googleMapsUri"),
         "kind_hint": (place.get("primaryTypeDisplayName") or {}).get("text"),
+        "price_hint": PRICE_LEVELS.get(place.get("priceLevel")),
     }
 
 

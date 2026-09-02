@@ -9,6 +9,7 @@ without HTTP and a future caller (the week planner) gets the same answers:
 - a rating, if given, is a whole number from 1 to 10;
 - a video link, if given, is an http(s) URL;
 - proteins are any of beef / pork / chicken / seafood, none or several;
+- a price level, eating out only, is 1, 2 or 3;
 - eating out has no method and no recipe, whatever was sent. Keeping a stale
   method on an eat-out row would make it show up under "air fryer";
 - home-cooked has no shop, for the same reason in the other direction.
@@ -73,6 +74,7 @@ def _clean(
     maps_url: str | None = None,
     video_url: str | None = None,
     proteins=None,
+    price: int | None = None,
 ) -> dict:
     """Apply the rules and return the column values to store."""
     name = (name or "").strip()
@@ -102,6 +104,8 @@ def _clean(
         "lng": lng,
         "maps_url": _text(maps_url),
     }
+    if price is not None and (isinstance(price, bool) or price not in (1, 2, 3)):
+        raise MealError("A price level is 1, 2 or 3")
     if source == "eat_out":
         method, recipe = None, None
         # Both or neither: one coordinate is not a location.
@@ -114,6 +118,7 @@ def _clean(
             raise MealError("A home-cooked meal needs a cooking method")
         recipe = _text(recipe)
         place = dict.fromkeys(PLACE_FIELDS)
+        price = None
 
     return {
         "name": name,
@@ -127,6 +132,7 @@ def _clean(
         "kind": _text(kind),
         "video_url": video_url,
         "proteins": pack_proteins(proteins),
+        "price": price,
         **place,
     }
 
@@ -150,6 +156,7 @@ def list_meals(
     method: str | None = None,
     kind: str | None = None,
     protein: str | None = None,
+    price: int | None = None,
     near: tuple[float, float] | None = None,
 ) -> list[Meal]:
     """One person's meals, newest first, narrowed by whichever filters are set.
@@ -180,6 +187,8 @@ def list_meals(
         stmt = stmt.where(Meal.kind == kind.strip())
     if protein:
         stmt = stmt.where(Meal.proteins.like(f"%,{protein},%"))
+    if price:
+        stmt = stmt.where(Meal.price == price)
     q = (q or "").strip()
     if q:
         # autoescape: "100%" in a note is matched by typing "100%", not by
