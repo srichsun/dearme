@@ -69,7 +69,7 @@ export default function MealsApp() {
           餐點
         </button>
         <button className={screen === "notes" ? "on" : ""} onClick={() => setScreen("notes")}>
-          心得
+          反思
         </button>
       </nav>
       <main>

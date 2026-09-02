@@ -4,9 +4,10 @@ import { MicIcon, StopIcon } from "../icons";
 import { transcribe, useRecorder } from "../speech";
 import { localDate } from "./flow";
 
-// What you noticed about how you eat, in your own words. Spoken or typed,
-// the words land in the box first — transcription mis-hears, and these lines
-// are the raw material for patterns later, so they get a look before saving.
+// Reflections: what you noticed about your energy — food, training, sleep,
+// mood — in your own words. Spoken or typed, the words land in the box first:
+// transcription mis-hears, and these lines are the raw material for patterns
+// later, so they get a look before saving.
 export default function Notes() {
   const [notes, setNotes] = useState(null);
   const [draft, setDraft] = useState("");
@@ -49,14 +50,14 @@ export default function Notes() {
   return (
     <section className="screen">
       <div className="panel">
-        <h2 className="display">吃過才知道的事</h2>
-        <p className="note">講一句或打一句：什麼不想吃、為什麼、什麼吃了很撐。之後整理成你的 pattern。</p>
+        <h2 className="display">反思</h2>
+        <p className="note">飲食、訓練、睡眠、情緒——任何跟能量有關的發現，講一句或打一句。之後整理成你的 pattern。</p>
         <div className="writer">
           <textarea
             rows={3}
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
-            placeholder="例如：早上不想吃燕麥高蛋白，因為不香不油"
+            placeholder="例如：早上不想吃燕麥高蛋白，因為不香不油／練腿隔天睡得特別沉"
           />
           <button
             type="button"
@@ -76,7 +77,7 @@ export default function Notes() {
       {notes === null ? (
         <p className="hint centred">載入中…</p>
       ) : notes.length === 0 ? (
-        <p className="hint centred">還沒有心得。</p>
+        <p className="hint centred">還沒有反思。</p>
       ) : (
         <ul className="meallist">
           {notes.map((n) => (
