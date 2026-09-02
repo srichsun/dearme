@@ -7,6 +7,7 @@ without HTTP and a future caller (the week planner) gets the same answers:
 - category / source / season / method must be one of the known codes;
 - home-cooked needs a method — it is the axis this list gets searched on;
 - a rating, if given, is a whole number from 1 to 10;
+- a video link, if given, is an http(s) URL;
 - eating out has no method and no recipe, whatever was sent. Keeping a stale
   method on an eat-out row would make it show up under "air fryer";
 - home-cooked has no shop, for the same reason in the other direction.
@@ -53,6 +54,7 @@ def _clean(
     lat: float | None = None,
     lng: float | None = None,
     maps_url: str | None = None,
+    video_url: str | None = None,
 ) -> dict:
     """Apply the rules and return the column values to store."""
     name = (name or "").strip()
@@ -69,6 +71,9 @@ def _clean(
         isinstance(rating, bool) or not isinstance(rating, int) or not 1 <= rating <= 10
     ):
         raise MealError("A rating is a whole number from 1 to 10")
+    video_url = _text(video_url)
+    if video_url is not None and not video_url.lower().startswith(("http://", "https://")):
+        raise MealError("A video link starts with http:// or https://")
 
     place = {
         "place_id": _text(place_id),
@@ -102,6 +107,7 @@ def _clean(
         "note": _text(note),
         "rating": rating,
         "kind": _text(kind),
+        "video_url": video_url,
         **place,
     }
 

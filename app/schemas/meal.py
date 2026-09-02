@@ -21,6 +21,7 @@ class MealWrite(BaseModel):
     # service could refuse them, and the rule says a whole number.
     rating: StrictInt | None = None
     kind: str | None = None
+    video_url: str | None = None
     # The shop, from Google Places; only kept for eating out.
     place_id: str | None = None
     place_name: str | None = None

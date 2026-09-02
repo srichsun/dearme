@@ -112,6 +112,17 @@ def test_updating_can_set_and_clear_the_rating(sqlite_db):
     assert meals.update_meal("u1", meal.id, **CHICKEN).rating is None
 
 
+def test_video_link_is_a_url_or_nothing(sqlite_db):
+    assert meals.create_meal("u1", **CHICKEN).video_url is None
+    assert meals.create_meal("u1", **CHICKEN, video_url="  ").video_url is None
+    kept = meals.create_meal("u1", **CHICKEN, video_url=" https://www.instagram.com/reel/abc/ ")
+    assert kept.video_url == "https://www.instagram.com/reel/abc/"
+    assert meals.create_meal("u1", **EGG, video_url="HTTP://x.tw/v").video_url == "HTTP://x.tw/v"
+    for bad in ("instagram.com/reel/abc", "ftp://x", "javascript:alert(1)"):
+        with pytest.raises(MealError):
+            meals.create_meal("u1", **CHICKEN, video_url=bad)
+
+
 def test_kind_is_trimmed_and_optional(sqlite_db):
     assert meals.create_meal("u1", **CHICKEN).kind is None
     assert meals.create_meal("u1", **CHICKEN, kind="  火鍋 ").kind == "火鍋"

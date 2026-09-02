@@ -28,6 +28,7 @@ def _meal(m: Meal) -> dict:
         "note": m.note,
         "rating": m.rating,
         "kind": m.kind,
+        "video_url": m.video_url,
         "place": (
             {f: getattr(m, f) for f in PLACE_FIELDS} if m.place_name else None
         ),
