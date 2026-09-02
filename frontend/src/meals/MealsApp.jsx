@@ -7,6 +7,7 @@ import { LangProvider, useLangState } from "./i18n";
 import GoDialog from "./GoDialog";
 import MealList from "./MealList";
 import Notes from "./Notes";
+import Today from "./Today";
 import QuickAdd from "./QuickAdd";
 
 // The "what can I eat" list, at /meals. Same sign-in as the journal, its own
@@ -22,7 +23,7 @@ export default function MealsApp() {
   }, []);
   const [user, setUser] = useState(null);
   const [authReady, setAuthReady] = useState(false);
-  const [screen, setScreen] = useState("meals");
+  const [screen, setScreen] = useState("today");
   const [editing, setEditing] = useState(null); // null | "new" | a meal
   const [going, setGoing] = useState(false);
   // What GO chose, with a counter so choosing the same kind twice still fires.
@@ -84,6 +85,9 @@ export default function MealsApp() {
         </button>
       </header>
       <nav className="switch">
+        <button className={screen === "today" ? "on" : ""} onClick={() => setScreen("today")}>
+          {t("tabToday")}
+        </button>
         <button className={screen === "meals" ? "on" : ""} onClick={() => setScreen("meals")}>
           {t("tabMeals")}
         </button>
@@ -92,11 +96,11 @@ export default function MealsApp() {
         </button>
       </nav>
       <main>
-        {screen === "meals" ? (
+        {screen === "today" && <Today />}
+        {screen === "meals" && (
           <MealList refreshKey={version} onEdit={setEditing} goRequest={goRequest} />
-        ) : (
-          <Notes />
         )}
+        {screen === "notes" && <Notes />}
       </main>
       {going && (
         <GoDialog

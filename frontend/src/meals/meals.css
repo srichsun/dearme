@@ -399,3 +399,64 @@ body.meals-body { background: #0d0e10; }
 .gochoice b { font-weight: 600; }
 .gochoice small { color: var(--ink-faint); font-size: 0.78rem; }
 .qa.go .choice.nearest .gochoice small { color: var(--ink-soft); }
+
+/* --- today ------------------------------------------------------------- */
+
+.goalpanel { border-color: var(--sage); }
+.goalpanel .qnum { margin: 0 0 0.4rem; color: var(--sage); }
+.goal {
+  width: 100%;
+  border: none;
+  background: none;
+  color: var(--ink);
+  text-align: left;
+  padding: 0;
+  font-size: 1.35rem;
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: -0.01em;
+  white-space: pre-wrap;
+}
+.goal.empty { color: var(--ink-faint); font-weight: 400; font-size: 1rem; }
+.goaledit { margin-top: 0; padding-right: 0.9rem; font-size: 1.1rem; }
+.listhead { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 0.5rem; }
+.listhead .qnum { margin: 0; }
+.habits { list-style: none; margin: 0; padding: 0; display: grid; }
+.habits li {
+  display: flex; align-items: center; gap: 0.7rem;
+  padding: 0.55rem 0;
+  border-top: 1px solid var(--edge);
+}
+.habits li:first-child { border-top: none; }
+.tick {
+  flex: none;
+  width: 26px; height: 26px;
+  border: 1px solid var(--edge-strong);
+  border-radius: 4px;
+  background: var(--well);
+  color: #0d0e10;
+  font-weight: 800;
+  display: grid; place-items: center;
+  padding: 0;
+}
+.habits li.done .tick { background: var(--sage); border-color: var(--sage); }
+.habittext {
+  flex: 1;
+  border: none;
+  background: none;
+  color: var(--ink);
+  text-align: left;
+  padding: 0;
+  font-size: 1rem;
+  line-height: 1.4;
+}
+.habits li.done .habittext { color: var(--ink-faint); text-decoration: line-through; }
+.habitedit { flex: 1; border: 1px solid var(--edge-strong); border-radius: 4px; background: var(--well); color: var(--ink); padding: 0.3rem 0.5rem; }
+.habitdel { flex: none; border: none; background: none; color: var(--ink-faint); font-size: 1.1rem; padding: 0 0.3rem; }
+.habitdel:hover { color: var(--clay); }
+.habitactions { display: flex; gap: 0.3rem; }
+.habitactions button { padding: 0.25rem 0.6rem; font-size: 0.74rem; }
+.alldone { color: var(--sage); margin: 0.6rem 0 0; }
+.starterrow { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; margin: 0.3rem 0; }
+.starterrow .hint { margin: 0; }
+.addrow { margin-top: 0.8rem; }
