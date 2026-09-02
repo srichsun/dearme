@@ -5,7 +5,7 @@
 - Test: `tests/test_meals.py::test_a_meal_round_trips_through_the_table`, `tests/test_meal_notes.py::test_a_note_round_trips_through_the_table`
 - Check: `uv run pytest tests/test_meals.py tests/test_meal_notes.py -q && uv run ruff check .` ＋ 空白 DB `alembic upgrade head` / `downgrade -1`
 - Done when: 兩張表存在、一筆寫進去讀得回來、migration 可逆
-- Status: todo
+- Status: done
 
 ### 2. feat: meals service with validation
 - Files: `app/services/meals.py`, `tests/test_meals.py`
