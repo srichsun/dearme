@@ -11,6 +11,14 @@ export function currentBundle(doc = document) {
   return script ? bundleOf(script.getAttribute("src")) : null;
 }
 
+// The short hash of the running build, e.g. "q-kIlrxq", for the footer —
+// so "which version do you have?" has a one-word answer.
+export function buildStamp(doc = document) {
+  const b = currentBundle(doc);
+  const m = b && b.match(/index-([^.]+)\.js/);
+  return m ? m[1] : "dev";
+}
+
 // Fetch the live index.html past every cache and compare. Resolves to true
 // when a newer build is out, false otherwise (including on any error).
 export async function newerBuildExists(fetchFn = fetch, doc = document) {

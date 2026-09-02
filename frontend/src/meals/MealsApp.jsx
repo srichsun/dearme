@@ -11,7 +11,7 @@ import MealList from "./MealList";
 import Notes from "./Notes";
 import Shopping from "./Shopping";
 import Today from "./Today";
-import { newerBuildExists } from "./update";
+import { buildStamp, newerBuildExists } from "./update";
 import QuickAdd from "./QuickAdd";
 
 // The "what can I eat" list, at /meals. Same sign-in as the journal, its own
@@ -138,6 +138,7 @@ export default function MealsApp() {
         {screen === "notes" && <Notes />}
         {screen === "shop" && <Shopping />}
       </main>
+      <footer className="buildstamp">build {buildStamp()}</footer>
       {adding === "choose" && (
         <AddChooser
           onClose={() => setAdding(null)}

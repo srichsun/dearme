@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { bundleOf, newerBuildExists } from "./update";
+import { buildStamp, bundleOf, newerBuildExists } from "./update";
 
 const fakeDoc = (src) => ({
   querySelector: () => (src ? { getAttribute: () => src } : null),
@@ -11,6 +11,13 @@ describe("bundleOf", () => {
     expect(bundleOf('<script type="module" src="/assets/index-BtTzYq6Q.js">')).toBe("assets/index-BtTzYq6Q.js");
     expect(bundleOf("/assets/index-abc.js")).toBe("assets/index-abc.js");
     expect(bundleOf("<html>no script</html>")).toBeNull();
+  });
+});
+
+describe("buildStamp", () => {
+  it("is the hash from the running bundle, or dev", () => {
+    expect(buildStamp(fakeDoc("/assets/index-q-kIlrxq.js"))).toBe("q-kIlrxq");
+    expect(buildStamp(fakeDoc(null))).toBe("dev");
   });
 });
 

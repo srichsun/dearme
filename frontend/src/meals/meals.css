@@ -494,3 +494,4 @@ body.meals-body { background: #0d0e10; }
   letter-spacing: 0.06em;
   padding: 0.6rem;
 }
+.buildstamp { margin-top: 2rem; text-align: center; font-family: var(--mono); font-size: 0.66rem; letter-spacing: 0.14em; color: var(--ink-faint); }
