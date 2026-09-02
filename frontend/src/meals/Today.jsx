@@ -169,7 +169,8 @@ export default function Today() {
       setUploadError(t("uploadFailed"));
       return;
     }
-    setVideos((v) => [...v, await res.json()]);
+    const made = await res.json();
+    setVideos((v) => [...v, made]);
   }
 
   async function removeVideo(id) {
