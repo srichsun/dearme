@@ -177,14 +177,16 @@ export default function MealList({ refreshKey, onEdit, goRequest, source, showMe
 
   return (
     <section className="screen">
-      <div className="viewswitch">
-        <button type="button" className={filters.kind ? "" : "on"} onClick={() => setFilters((f) => ({ ...f, kind: null }))}>
-          {t("viewAll")}
-        </button>
-        <button type="button" className={filters.kind ? "on" : ""} onClick={backToKinds}>
-          {t("viewKinds")}
-        </button>
-      </div>
+      {source === "eat_out" && (
+        <div className="viewswitch">
+          <button type="button" className={filters.kind ? "" : "on"} onClick={() => setFilters((f) => ({ ...f, kind: null }))}>
+            {t("viewAll")}
+          </button>
+          <button type="button" className={filters.kind ? "on" : ""} onClick={backToKinds}>
+            {t("viewKinds")}
+          </button>
+        </div>
+      )}
       {filters.kind && (
         <button type="button" className="kindback" onClick={backToKinds}>
           {t("allKinds")} · <b>{filters.kind}</b>
@@ -277,7 +279,7 @@ export default function MealList({ refreshKey, onEdit, goRequest, source, showMe
                   {(m.proteins || []).map((p) => (
                     <span className="tag protein" key={p}>{labelOf("protein", p, lang)}</span>
                   ))}
-                  {m.kind && <span className="tag kind">{m.kind}</span>}
+                  {source === "eat_out" && m.kind && <span className="tag kind">{m.kind}</span>}
                 </div>
               </div>
               {m.place && (

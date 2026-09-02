@@ -17,7 +17,7 @@ from app.models.base import Base, now
 CATEGORIES = ("breakfast", "meal", "snack")
 SOURCES = ("eat_out", "home_cooked")
 SEASONS = ("summer", "winter", "all")
-METHODS = ("stir_fry", "air_fryer", "rice_cooker", "microwave")
+METHODS = ("stir_fry", "air_fryer", "rice_cooker", "microwave", "no_cook")
 PROTEINS = ("beef", "pork", "chicken", "seafood")
 
 

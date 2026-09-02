@@ -39,9 +39,9 @@ const chicken = {
 const egg = { ...EMPTY, name: "茶葉蛋", categories: ["snack"], source: "eat_out", season: "all" };
 
 describe("visibleSteps", () => {
-  it("asks eleven questions for a home-cooked meal", () => {
+  it("asks ten questions for a home-cooked meal, no kind", () => {
     expect(visibleSteps(chicken).map((s) => s.key)).toEqual([
-      "name", "kind", "proteins", "categories", "source", "season", "method", "recipe", "rating", "video_url", "note",
+      "name", "proteins", "categories", "source", "season", "method", "recipe", "rating", "video_url", "note",
     ]);
   });
 
@@ -62,7 +62,7 @@ describe("emptyFor", () => {
     expect(a.source).toBe("home_cooked");
     expect(visibleSteps(a).map((s) => s.key)).not.toContain("source");
     expect(visibleSteps({ ...chicken, fixedSource: true }).map((s) => s.key)).toEqual([
-      "name", "kind", "proteins", "categories", "season", "method", "recipe", "rating", "video_url", "note",
+      "name", "proteins", "categories", "season", "method", "recipe", "rating", "video_url", "note",
     ]);
     expect(emptyFor(null)).toEqual(EMPTY);
   });
@@ -74,13 +74,13 @@ describe("emptyFor", () => {
 
 describe("clampStep", () => {
   it("pulls the index back when a step disappears", () => {
-    // On the note step (index 10) of a home-cooked meal, then switch to eat out.
-    expect(clampStep(10, egg)).toBe(9); // eating out has ten steps
-    expect(clampStep(12, egg)).toBe(9);
+    // Past the end of either list lands on its last step.
+    expect(clampStep(12, egg)).toBe(9); // eating out has ten steps
+    expect(clampStep(12, chicken)).toBe(9); // so does cooking
   });
 
   it("leaves an index that still exists alone", () => {
-    expect(clampStep(10, chicken)).toBe(10);
+    expect(clampStep(9, chicken)).toBe(9);
     expect(clampStep(0, egg)).toBe(0);
   });
 
@@ -100,11 +100,11 @@ describe("firstMissing", () => {
   });
 
   it("points at the method for a home-cooked meal without one", () => {
-    expect(firstMissing({ ...chicken, method: null })).toBe(6);
+    expect(firstMissing({ ...chicken, method: null })).toBe(5);
   });
 
   it("needs at least one category", () => {
-    expect(firstMissing({ ...chicken, categories: [] })).toBe(3);
+    expect(firstMissing({ ...chicken, categories: [] })).toBe(2);
   });
 
   it("does not require a kind, a recipe, a rating or a note", () => {
@@ -224,8 +224,8 @@ describe("labelOf", () => {
 
 describe("isLast", () => {
   it("is the note step, wherever that falls", () => {
-    expect(isLast(10, chicken)).toBe(true);
-    expect(isLast(9, chicken)).toBe(false);
+    expect(isLast(9, chicken)).toBe(true);
+    expect(isLast(8, chicken)).toBe(false);
     expect(isLast(9, egg)).toBe(true); // eating out has ten steps
   });
 });
@@ -235,6 +235,7 @@ describe("keyToChoice", () => {
     expect(keyToChoice("1", "source")).toBe("eat_out");
     expect(keyToChoice("2", "source")).toBe("home_cooked");
     expect(keyToChoice("4", "method")).toBe("microwave");
+    expect(keyToChoice("5", "method")).toBe("no_cook");
   });
 
   it("ignores keys that are not an option", () => {

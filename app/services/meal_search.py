@@ -39,7 +39,7 @@ class _Filters(BaseModel):
     source: str | None = Field(default=None, description="eat_out | home_cooked")
     season: str | None = Field(default=None, description="summer | winter")
     method: str | None = Field(
-        default=None, description="stir_fry | air_fryer | rice_cooker | microwave"
+        default=None, description="stir_fry | air_fryer | rice_cooker | microwave | no_cook"
     )
     protein: str | None = Field(default=None, description="beef | pork | chicken | seafood")
     price: str | None = Field(default=None, description="1 (cheap) | 2 (mid) | 3 (pricey)")
@@ -54,7 +54,7 @@ _PROMPT = """Translate this request about what to eat into search filters. Use o
 - category: 早餐/breakfast → breakfast; 正餐/午餐/晚餐/lunch/dinner → meal; 點心/零食/snack → snack
 - source: 外食/買的/便利商店/超商/eat out → eat_out; 自己煮/自煮/home-made → home_cooked. 附近/最近/離我/現在可以吃 (asking what is around them now) → eat_out
 - season: 夏天/熱天/summer → summer; 冬天/冷天/winter → winter. Never "all".
-- method: 炒 → stir_fry; 氣炸鍋/氣炸 → air_fryer; 電鍋 → rice_cooker; 微波 → microwave
+- method: 炒 → stir_fry; 氣炸鍋/氣炸 → air_fryer; 電鍋 → rice_cooker; 微波 → microwave; 不用煮/免煮/直接吃 → no_cook
 - price: 便宜/平價/cheap → 1; 普通/mid → 2; 貴/高級/pricey/expensive → 3
 - protein: 牛/beef → beef; 豬/pork → pork; 雞/chicken → chicken; 海鮮/魚/蝦/seafood/fish → seafood
 - q: one keyword for anything else worth matching (a food like 雞胸, a brand like 7-11), in the sentence's own language. Empty if nothing is left over.

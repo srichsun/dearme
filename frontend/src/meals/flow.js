@@ -35,6 +35,7 @@ export const OPTIONS = {
     ["air_fryer", { zh: "氣炸鍋", en: "Air fryer" }],
     ["rice_cooker", { zh: "電鍋", en: "Rice cooker" }],
     ["microwave", { zh: "微波爐", en: "Microwave" }],
+    ["no_cook", { zh: "不用煮", en: "No cooking" }],
   ],
 };
 
@@ -59,6 +60,7 @@ export const STEPS = [
     },
     type: "kind",
     optional: true,
+    when: eatOut, // hot pot / steak / … is how restaurants are grouped
   },
   {
     key: "proteins",

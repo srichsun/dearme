@@ -89,6 +89,10 @@ def test_unknown_codes_are_rejected(sqlite_db, field, bad):
     assert meals.list_meals("u1") == []
 
 
+def test_no_cooking_is_a_method_too(sqlite_db):
+    assert meals.create_meal("u1", **{**CHICKEN, "method": "no_cook"}).method == "no_cook"
+
+
 def test_home_cooked_needs_a_method(sqlite_db):
     with pytest.raises(MealError):
         meals.create_meal("u1", **{**CHICKEN, "method": None})
