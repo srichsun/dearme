@@ -4,7 +4,9 @@ import "./meals.css";
 import { onAuthChange, signInWithGoogle, signOutUser } from "../firebase";
 import { useTheme } from "../theme";
 import { LangProvider, useLangState } from "./i18n";
+import AddChooser from "./AddChooser";
 import GoDialog from "./GoDialog";
+import ShopFromLink from "./ShopFromLink";
 import MealList from "./MealList";
 import Notes from "./Notes";
 import Today from "./Today";
@@ -25,6 +27,7 @@ export default function MealsApp() {
   const [authReady, setAuthReady] = useState(false);
   const [screen, setScreen] = useState("today");
   const [editing, setEditing] = useState(null); // null | "new" | a meal
+  const [adding, setAdding] = useState(null); // null | "choose" | "shop"
   const [going, setGoing] = useState(false);
   // What GO chose, with a counter so choosing the same kind twice still fires.
   const [goRequest, setGoRequest] = useState(null);
@@ -71,8 +74,8 @@ export default function MealsApp() {
         {screen === "meals" && (
           <button
             className="add"
-            onClick={() => setEditing("new")}
-            disabled={editing !== null}
+            onClick={() => setAdding("choose")}
+            disabled={editing !== null || adding !== null}
           >
             {t("add")}
           </button>
@@ -102,6 +105,25 @@ export default function MealsApp() {
         )}
         {screen === "notes" && <Notes />}
       </main>
+      {adding === "choose" && (
+        <AddChooser
+          onClose={() => setAdding(null)}
+          onPick={(what) => {
+            setAdding(what === "shop" ? "shop" : null);
+            if (what === "dish") setEditing("new");
+          }}
+        />
+      )}
+      {adding === "shop" && (
+        <ShopFromLink
+          onClose={() => setAdding(null)}
+          onSaved={() => {
+            setAdding(null);
+            setScreen("meals");
+            setVersion((v) => v + 1);
+          }}
+        />
+      )}
       {going && (
         <GoDialog
           onClose={() => setGoing(false)}
