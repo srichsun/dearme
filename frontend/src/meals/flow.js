@@ -157,3 +157,19 @@ export function keyToChoice(key, field) {
   if (!Number.isInteger(n) || n < 1 || n > options.length) return null;
   return options[n - 1][0];
 }
+
+// An ISO timestamp as a local calendar date, "2026-09-03". The server stamps
+// UTC; a note kept at 07:00 in Taipei is still "today" here, not yesterday.
+// timeZone is for tests; leave it out to follow the device.
+export function localDate(iso, timeZone) {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(d);
+  const get = (type) => parts.find((p) => p.type === type)?.value;
+  return `${get("year")}-${get("month")}-${get("day")}`;
+}

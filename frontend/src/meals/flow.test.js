@@ -7,6 +7,7 @@ import {
   isLast,
   keyToChoice,
   labelOf,
+  localDate,
   toPayload,
   toQuery,
   visibleSteps,
@@ -152,5 +153,17 @@ describe("keyToChoice", () => {
     expect(keyToChoice("0", "season")).toBeNull();
     expect(keyToChoice("a", "season")).toBeNull();
     expect(keyToChoice("Enter", "season")).toBeNull();
+  });
+});
+
+describe("localDate", () => {
+  it("shows the day where the person is, not the UTC day", () => {
+    // 23:30 UTC is already the 3rd in Taipei.
+    expect(localDate("2026-09-02T23:30:00+00:00", "Asia/Taipei")).toBe("2026-09-03");
+    expect(localDate("2026-09-02T23:30:00+00:00", "UTC")).toBe("2026-09-02");
+  });
+
+  it("is blank for something that is not a date", () => {
+    expect(localDate("nope", "UTC")).toBe("");
   });
 });

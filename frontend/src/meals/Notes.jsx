@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { authFetch, getJSON, postJSON } from "../api";
 import { MicIcon, StopIcon } from "../icons";
 import { transcribe, useRecorder } from "../speech";
+import { localDate } from "./flow";
 
 // What you noticed about how you eat, in your own words. Spoken or typed,
 // the words land in the box first — transcription mis-hears, and these lines
@@ -82,7 +83,7 @@ export default function Notes() {
             <li className="panel notecard" key={n.id}>
               <p className="notetext">{n.text}</p>
               <div className="cardactions">
-                <span className="notedate">{n.created_at.slice(0, 10)}</span>
+                <span className="notedate">{localDate(n.created_at)}</span>
                 {confirming === n.id ? (
                   <>
                     <button type="button" className="danger" onClick={() => remove(n.id)}>
