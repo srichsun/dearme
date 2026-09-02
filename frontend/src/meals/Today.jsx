@@ -1,6 +1,23 @@
 import { useEffect, useRef, useState } from "react";
 import { authFetch, getJSON, postJSON } from "../api";
+import Reward from "./Reward";
 import { useLang } from "./i18n";
+
+const rewardedKey = (day) => `meals.rewarded.${day}`;
+function rewardedToday(day) {
+  try {
+    return localStorage.getItem(rewardedKey(day)) === "1";
+  } catch {
+    return false;
+  }
+}
+function markRewarded(day) {
+  try {
+    localStorage.setItem(rewardedKey(day), "1");
+  } catch {
+    /* fine — it will just play again next time */
+  }
+}
 
 async function send(path, method, body) {
   const res = await authFetch(path, {
@@ -25,14 +42,25 @@ export default function Today() {
   const [ruleDraft, setRuleDraft] = useState("");
   const [editingRule, setEditingRule] = useState(null);
   const [confirmingRule, setConfirmingRule] = useState(null);
+  const [day, setDay] = useState("");
+  const [videos, setVideos] = useState([]);
+  const [reward, setReward] = useState(null);
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState("");
+  const wasAllDone = useRef(true); // true until the list loads, so a load never fires it
   const goalRef = useRef(null);
+  const fileRef = useRef(null);
 
   useEffect(() => {
     getJSON("/api/today").then((d) => {
       setGoal(d?.goal || "");
       setHabits(d?.habits || []);
       setPrinciples(d?.principles || []);
+      setDay(d?.day || "");
+      const list = d?.habits || [];
+      wasAllDone.current = list.length === 0 || list.every((h) => h.done);
     });
+    getJSON("/api/today/rewards").then((d) => setVideos(d?.videos || []));
   }, []);
 
   useEffect(() => {
@@ -108,6 +136,48 @@ export default function Today() {
   }
 
   const doneCount = (habits || []).filter((h) => h.done).length;
+  const allDone = Boolean(habits && habits.length > 0 && doneCount === habits.length);
+
+  // The moment the last tick lands — not on load, not on every render, and
+  // only once a day — a clip plays.
+  useEffect(() => {
+    if (habits === null) return;
+    const now = allDone;
+    const before = wasAllDone.current;
+    wasAllDone.current = now;
+    if (now && !before && videos.length > 0 && !rewardedToday(day)) {
+      markRewarded(day);
+      getJSON("/api/today/rewards/pick").then((d) => d?.video && setReward(d.video));
+    }
+  }, [allDone, habits, videos.length, day]);
+
+  async function watchAgain() {
+    const d = await getJSON("/api/today/rewards/pick");
+    if (d?.video) setReward(d.video);
+  }
+
+  async function upload(file) {
+    if (!file) return;
+    setUploading(true);
+    setUploadError("");
+    const form = new FormData();
+    form.append("video", file, file.name);
+    form.append("title", file.name.replace(/\.[^.]+$/, ""));
+    const res = await authFetch("/api/today/rewards", { method: "POST", body: form });
+    setUploading(false);
+    if (!res.ok) {
+      setUploadError(t("uploadFailed"));
+      return;
+    }
+    setVideos((v) => [...v, await res.json()]);
+  }
+
+  async function removeVideo(id) {
+    const previous = videos;
+    setVideos((v) => v.filter((x) => x.id !== id));
+    const ok = await send(`/api/today/rewards/${id}`, "DELETE");
+    if (!ok) setVideos(previous);
+  }
 
   return (
     <section className="screen">
@@ -191,8 +261,15 @@ export default function Today() {
             ))}
           </ul>
         )}
-        {habits && habits.length > 0 && doneCount === habits.length && (
-          <p className="hint alldone">{t("allDone")}</p>
+        {allDone && (
+          <p className="hint alldone">
+            {t("allDone")}
+            {videos.length > 0 && (
+              <button type="button" className="clear" onClick={watchAgain} style={{ marginLeft: "0.6rem" }}>
+                {t("watchAgain")}
+              </button>
+            )}
+          </p>
         )}
         {habits && habits.length === 0 && (
           <div className="starterrow">
@@ -266,6 +343,41 @@ export default function Today() {
           </button>
         </div>
       </div>
+
+      <div className="panel rewardspanel">
+        <div className="listhead">
+          <p className="qnum">{t("rewards")}</p>
+          <button type="button" className="ghost" onClick={() => fileRef.current?.click()} disabled={uploading}>
+            {uploading ? t("uploading") : t("uploadClip")}
+          </button>
+          <input
+            ref={fileRef}
+            type="file"
+            accept="video/*"
+            hidden
+            onChange={(e) => {
+              upload(e.target.files?.[0]);
+              e.target.value = "";
+            }}
+          />
+        </div>
+        <p className="note">{t("rewardsHint")}</p>
+        {uploadError && <p className="qerror">{uploadError}</p>}
+        {videos.length === 0 ? (
+          <p className="hint">{t("noClips")}</p>
+        ) : (
+          <ul className="clips">
+            {videos.map((v) => (
+              <li key={v.id}>
+                <button type="button" className="habittext" onClick={() => setReward(v)}>▶ {v.title}</button>
+                <button type="button" className="habitdel" aria-label={t("del")} onClick={() => removeVideo(v.id)}>×</button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      {reward && <Reward video={reward} onClose={() => setReward(null)} />}
     </section>
   );
 }
