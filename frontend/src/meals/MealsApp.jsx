@@ -67,20 +67,6 @@ export default function MealsApp() {
     <div className="app meals">
       <header className="head">
         <h1>{t("title")}</h1>
-        {screen === "meals" && (
-          <button className="go" onClick={() => setGoing(true)} disabled={going || editing !== null}>
-            {t("go")}
-          </button>
-        )}
-        {screen === "meals" && (
-          <button
-            className="add"
-            onClick={() => setAdding("choose")}
-            disabled={editing !== null || adding !== null}
-          >
-            {t("add")}
-          </button>
-        )}
         <button className="signout" onClick={toggle} aria-label="Language">
           {lang === "zh" ? "EN" : "中"}
         </button>
@@ -102,6 +88,22 @@ export default function MealsApp() {
           {t("tabShop")}
         </button>
       </nav>
+      {/* Below the tabs, not in the header, so switching tabs never moves
+          the header around. */}
+      {screen === "meals" && (
+        <div className="toolbar">
+          <button className="go" onClick={() => setGoing(true)} disabled={going || editing !== null}>
+            {t("go")}
+          </button>
+          <button
+            className="add"
+            onClick={() => setAdding("choose")}
+            disabled={editing !== null || adding !== null}
+          >
+            {t("add")}
+          </button>
+        </div>
+      )}
       <main>
         {screen === "today" && <Today />}
         {screen === "meals" && (

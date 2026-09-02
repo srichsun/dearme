@@ -471,3 +471,7 @@ body.meals-body { background: #0d0e10; }
 .shopsection .addrow .primary { padding: 0 0.8rem; }
 .clearbought { align-self: flex-end; padding: 0.35rem 0.85rem; font-size: 0.78rem; }
 .meals .switch button { padding: 0.5rem 0.2rem; font-size: 0.78rem; letter-spacing: 0.08em; }
+
+.meals .toolbar { display: flex; gap: 0.5rem; margin: -0.3rem 0 0.8rem; }
+.meals .toolbar .go { flex: 1; padding: 0.6rem 1rem; font-size: 1rem; }
+.meals .toolbar .add { padding: 0.6rem 1rem; }
