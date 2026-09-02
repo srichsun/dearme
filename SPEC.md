@@ -114,6 +114,13 @@
 - **濃縮心得成 pattern**：`meal_notes` 全部送一次 LLM → 存到新表 `meal_patterns`；心得原文永遠留著。
 - **熱量／營養素目標**：到時在 `meals` 加 `calories` / `protein` / `carbs` / `fat` 欄位（一支 migration），目標存在使用者設定，每日加總在 `plan_slots` 那邊算。
 
+### 今天（第一頁，2026-09-02 加）
+- 三個切換：**今天**（預設）／餐點／反思。
+- **目標 Goal**：一段自己寫的文字，點一下就能改，Enter 或離開就存（`goals` 表，每人一筆）。
+- **每日清單**：`habits`（user_id / text / position）；打勾＝今天完成，存在 `habit_checks(habit_id, day)`（台灣日期，一天一筆），隔天自動歸零、歷史留著。可新增、改字、刪除（兩段確認）。
+- **預設四項**：清單是空的時候給一顆「加入預設」→ `POST /api/today/habits/starter` 塞進：不要給自己壓力，專注感恩今天／吃 2500 大卡／重訓／10 點關機準備睡覺。只在空的時候有效。
+- API（prefix `/api/today`，要登入）：`GET /` → `{goal, day, habits:[{id,text,done}]}`；`PUT /goal`；`POST /habits`、`PATCH /habits/{id}`、`DELETE /habits/{id}`；`POST /habits/{id}/check`、`DELETE /habits/{id}/check`；`POST /habits/starter`。別人的 habit 一律 404。
+
 ## 不做
 一週規劃、拖拉、熱量與營養素、AI 推薦、心得濃縮、心得編輯、圖片、分享、Dear Me 的 tab 連到 `/meals`、資料匯入、地圖畫面、營業時間。
 

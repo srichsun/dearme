@@ -163,6 +163,23 @@
 - Check: `cd frontend && npm run lint && npm test && npm run build`
 - Status: done
 
+### 26. feat: goals, habits, habit_checks tables
+- Files: `app/models/today.py`, `app/models/__init__.py`, `migrations/versions/d0e1f2a3b4c5_add_today_tables.py`
+- Check: `uv run pytest -q && uv run ruff check .` ＋ scratch DB
+- Status: done
+
+### 27. feat: today service and API
+- Files: `app/services/today.py`, `app/schemas/today.py`, `app/api/routes/today.py`, `app/api/router.py`, `tests/test_today.py`
+- Test: goal 存/改、habit CRUD、打勾今天、隔天歸零、starter 只在空時、跨 user 404
+- Check: `uv run pytest tests/test_today.py -q && uv run ruff check .`
+- Status: done
+
+### 28. feat(web): Today tab first — goal and checklist
+- Files: `frontend/src/meals/Today.jsx`, `MealsApp.jsx`, `i18n.js`, `meals.css`
+- Test: 字典完整性測試涵蓋新字串
+- Check: `cd frontend && npm run lint && npm test && npm run build`
+- Status: done
+
 ## 收工前
 1. `uv run ruff check . && uv run pytest -q`；`cd frontend && npm run lint && npm test && npm run build`
 2. `/verify-tests` 看新測試

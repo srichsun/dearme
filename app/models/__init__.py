@@ -14,6 +14,7 @@ from app.models.meal import METHODS, SEASONS, SOURCES, Meal
 from app.models.meal_note import MealNote
 from app.models.profile import Profile
 from app.models.question import Question
+from app.models.today import Goal, Habit, HabitCheck
 
 # Marks these as deliberate re-exports, so the linter doesn't read them as
 # unused imports.
@@ -23,6 +24,9 @@ __all__ = [
     "Category",
     "Entry",
     "Fact",
+    "Goal",
+    "Habit",
+    "HabitCheck",
     "Mantra",
     "Meal",
     "MealNote",
