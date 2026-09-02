@@ -130,6 +130,92 @@ def test_newest_comes_first(sqlite_db):
     assert [m.name for m in meals.list_meals("u1")] == ["7-11 茶葉蛋", "氣炸鍋雞胸"]
 
 
+# --- narrowing the list ---
+
+@pytest.fixture
+def a_few_meals(sqlite_db):
+    """Four meals for u1 that differ on every axis, plus one for u2."""
+    meals.create_meal("u1", **CHICKEN)  # meal / home_cooked / summer / air_fryer
+    meals.create_meal("u1", **EGG)  # snack / eat_out / all
+    meals.create_meal(
+        "u1",
+        name="電鍋雞湯",
+        category="meal",
+        source="home_cooked",
+        season="winter",
+        method="rice_cooker",
+        note="很暖",
+    )
+    meals.create_meal(
+        "u1",
+        name="燕麥高蛋白",
+        category="breakfast",
+        source="home_cooked",
+        season="all",
+        method="microwave",
+        recipe="燕麥加水微波 2 分鐘",
+    )
+    meals.create_meal("u2", name="別人的雞胸", category="meal", source="eat_out", season="all")
+
+
+def names(**filters):
+    return [m.name for m in meals.list_meals("u1", **filters)]
+
+
+def test_no_filters_returns_everything_newest_first(a_few_meals):
+    assert names() == ["燕麥高蛋白", "電鍋雞湯", "7-11 茶葉蛋", "氣炸鍋雞胸"]
+
+
+def test_filter_by_category(a_few_meals):
+    assert names(category="breakfast") == ["燕麥高蛋白"]
+    assert names(category="meal") == ["電鍋雞湯", "氣炸鍋雞胸"]
+
+
+def test_filter_by_source(a_few_meals):
+    assert names(source="eat_out") == ["7-11 茶葉蛋"]
+
+
+def test_filter_by_method(a_few_meals):
+    assert names(method="rice_cooker") == ["電鍋雞湯"]
+
+
+def test_a_season_includes_the_all_season_meals(a_few_meals):
+    assert names(season="summer") == ["燕麥高蛋白", "7-11 茶葉蛋", "氣炸鍋雞胸"]
+    assert names(season="winter") == ["燕麥高蛋白", "電鍋雞湯", "7-11 茶葉蛋"]
+    assert names(season="all") == ["燕麥高蛋白", "7-11 茶葉蛋"]
+
+
+def test_filters_combine_with_and(a_few_meals):
+    assert names(source="home_cooked", season="summer") == ["燕麥高蛋白", "氣炸鍋雞胸"]
+    assert names(source="home_cooked", season="summer", method="air_fryer") == ["氣炸鍋雞胸"]
+
+
+def test_keyword_searches_name_recipe_and_note(a_few_meals):
+    assert names(q="雞") == ["電鍋雞湯", "氣炸鍋雞胸"]
+    assert names(q="微波") == ["燕麥高蛋白"]  # only in the recipe
+    assert names(q="很暖") == ["電鍋雞湯"]  # only in the note
+
+
+def test_keyword_ignores_case_and_stray_space(a_few_meals):
+    assert names(q="  7-11 ") == ["7-11 茶葉蛋"]
+    meals.create_meal("u1", **{**EGG, "name": "Subway 沙拉"})
+    assert names(q="subway") == ["Subway 沙拉"]
+
+
+def test_keyword_combines_with_filters(a_few_meals):
+    assert names(q="雞", method="air_fryer") == ["氣炸鍋雞胸"]
+    assert names(q="雞", source="eat_out") == []
+
+
+def test_unknown_codes_match_nothing(a_few_meals):
+    assert names(category="lunch") == []
+    assert names(season="spring") == []
+
+
+def test_filters_never_cross_accounts(a_few_meals):
+    assert names(q="別人") == []
+
+
 # --- one account must never reach another's meals ---
 
 def test_listing_is_scoped_to_one_person(sqlite_db):

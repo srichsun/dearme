@@ -12,7 +12,7 @@ without HTTP and a future caller (the week planner) gets the same answers:
 Every read, update and delete filters on user_id as well as id, so a guessed
 id never reaches someone else's row.
 """
-from sqlalchemy import select
+from sqlalchemy import or_, select
 
 from app.core import db
 from app.models import MEAL_CATEGORIES, METHODS, SEASONS, SOURCES, Meal
@@ -67,16 +67,48 @@ def _clean(
     }
 
 
-def list_meals(user_id: str) -> list[Meal]:
-    """One person's meals, newest first."""
+def list_meals(
+    user_id: str,
+    *,
+    q: str | None = None,
+    category: str | None = None,
+    source: str | None = None,
+    season: str | None = None,
+    method: str | None = None,
+) -> list[Meal]:
+    """One person's meals, newest first, narrowed by whichever filters are set.
+
+    Filters combine with AND. A season filter also returns the all-season
+    meals — a boiled egg is a summer meal too. `q` is a case-insensitive
+    substring match over name, recipe and note. Unknown codes match nothing
+    rather than raising: a filter is a question, not an input to store.
+    """
     if not user_id:
         return []
-    with db.get_session() as s:
-        stmt = (
-            select(Meal)
-            .where(Meal.user_id == user_id)
-            .order_by(Meal.created_at.desc(), Meal.id.desc())
+    stmt = select(Meal).where(Meal.user_id == user_id)
+    if category:
+        stmt = stmt.where(Meal.category == category)
+    if source:
+        stmt = stmt.where(Meal.source == source)
+    if season:
+        # Only a real season widens to the all-season rows; an unknown code
+        # must match nothing, not everything marked "all".
+        wanted = (season, "all") if season in SEASONS else (season,)
+        stmt = stmt.where(Meal.season.in_(wanted))
+    if method:
+        stmt = stmt.where(Meal.method == method)
+    q = (q or "").strip()
+    if q:
+        needle = f"%{q}%"
+        stmt = stmt.where(
+            or_(
+                Meal.name.ilike(needle),
+                Meal.recipe.ilike(needle),
+                Meal.note.ilike(needle),
+            )
         )
+    stmt = stmt.order_by(Meal.created_at.desc(), Meal.id.desc())
+    with db.get_session() as s:
         return list(s.scalars(stmt))
 
 

@@ -12,7 +12,7 @@
 - Test: `test_meals.py` — 建立、改、刪；名稱空白拒絕；列舉值錯誤拒絕；自己煮沒煮法拒絕；外食清空煮法與食譜；跨 user 改/刪回 None/False
 - Check: `uv run pytest tests/test_meals.py -q && uv run ruff check .`
 - Done when: SPEC「規則」那一節每一條都有一個紅過再綠的測試
-- Status: todo
+- Status: done
 
 ### 3. feat: filter and keyword search for meals
 - Files: `app/services/meals.py`, `tests/test_meals.py`
