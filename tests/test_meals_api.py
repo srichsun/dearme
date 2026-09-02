@@ -70,8 +70,8 @@ def test_a_rating_comes_back_and_a_bad_one_is_422(sqlite_db):
     created = client.post("/api/meals", json={**CHICKEN, "rating": 7}).json()
     assert created["rating"] == 7
     assert client.post("/api/meals", json=CHICKEN).json()["rating"] is None
-    for bad in (0, 11, "eight"):
-        assert client.post("/api/meals", json={**CHICKEN, "rating": bad}).status_code == 422
+    for bad in (0, 11, "eight", "8", 8.0, 7.5, True):
+        assert client.post("/api/meals", json={**CHICKEN, "rating": bad}).status_code == 422, bad
 
 
 def test_a_missing_field_answers_422(sqlite_db):

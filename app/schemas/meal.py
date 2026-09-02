@@ -4,7 +4,7 @@ Deliberately loose: the codes are checked by the service, which is where the
 rules live, so the same message comes back whether the caller is HTTP or a
 future planner.
 """
-from pydantic import BaseModel
+from pydantic import BaseModel, StrictInt
 
 
 class MealWrite(BaseModel):
@@ -17,7 +17,9 @@ class MealWrite(BaseModel):
     method: str | None = None
     recipe: str | None = None
     note: str | None = None
-    rating: int | None = None
+    # Strict: lax int would turn true into 1 and "8" into 8 before the
+    # service could refuse them, and the rule says a whole number.
+    rating: StrictInt | None = None
 
 
 class NoteWrite(BaseModel):
