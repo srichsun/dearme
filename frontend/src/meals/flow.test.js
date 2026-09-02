@@ -7,6 +7,7 @@ import {
   firstMissing,
   formatDistance,
   fromMeal,
+  goFilters,
   isLast,
   isVideoUrl,
   keyToChoice,
@@ -300,5 +301,13 @@ describe("isVideoUrl", () => {
     expect(isVideoUrl("instagram.com/reel/abc")).toBe(false);
     expect(isVideoUrl("javascript:alert(1)")).toBe(false);
     expect(isVideoUrl("https://a b")).toBe(false);
+  });
+});
+
+describe("goFilters", () => {
+  it("is eating out plus the chosen kind, or any kind", () => {
+    expect(goFilters("火鍋")).toEqual({ category: null, source: "eat_out", season: null, method: null, kind: "火鍋" });
+    expect(goFilters("")).toMatchObject({ source: "eat_out", kind: null });
+    expect(goFilters(null)).toMatchObject({ source: "eat_out", kind: null });
   });
 });

@@ -4,6 +4,7 @@ import "./meals.css";
 import { onAuthChange, signInWithGoogle, signOutUser } from "../firebase";
 import { useTheme } from "../theme";
 import { LangProvider, useLangState } from "./i18n";
+import GoDialog from "./GoDialog";
 import MealList from "./MealList";
 import Notes from "./Notes";
 import QuickAdd from "./QuickAdd";
@@ -23,6 +24,9 @@ export default function MealsApp() {
   const [authReady, setAuthReady] = useState(false);
   const [screen, setScreen] = useState("meals");
   const [editing, setEditing] = useState(null); // null | "new" | a meal
+  const [going, setGoing] = useState(false);
+  // What GO chose, with a counter so choosing the same kind twice still fires.
+  const [goRequest, setGoRequest] = useState(null);
   // Bumped after a meal is added or edited, so the list reloads.
   const [version, setVersion] = useState(0);
 
@@ -59,6 +63,11 @@ export default function MealsApp() {
       <header className="head">
         <h1>{t("title")}</h1>
         {screen === "meals" && (
+          <button className="go" onClick={() => setGoing(true)} disabled={going || editing !== null}>
+            {t("go")}
+          </button>
+        )}
+        {screen === "meals" && (
           <button
             className="add"
             onClick={() => setEditing("new")}
@@ -84,11 +93,21 @@ export default function MealsApp() {
       </nav>
       <main>
         {screen === "meals" ? (
-          <MealList refreshKey={version} onEdit={setEditing} />
+          <MealList refreshKey={version} onEdit={setEditing} goRequest={goRequest} />
         ) : (
           <Notes />
         )}
       </main>
+      {going && (
+        <GoDialog
+          onClose={() => setGoing(false)}
+          onPick={(kind) => {
+            setGoing(false);
+            setScreen("meals");
+            setGoRequest((g) => ({ kind, seq: (g?.seq || 0) + 1 }));
+          }}
+        />
+      )}
       {editing && (
         <QuickAdd
           meal={editing}

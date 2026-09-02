@@ -377,3 +377,21 @@ body.meals-body { background: #0d0e10; }
   letter-spacing: 0.06em;
 }
 .watch:hover { border-color: var(--sage); color: var(--sage); }
+
+/* --- GO ------------------------------------------------------------------- */
+
+.meals .go {
+  border: none;
+  background: var(--sage);
+  color: #0d0e10;
+  border-radius: 4px;
+  padding: 0.4rem 1rem;
+  font-weight: 800;
+  font-size: 0.9rem;
+  letter-spacing: 0.18em;
+  box-shadow: 0 0 0 1px var(--sage), 0 0 18px -6px var(--sage);
+}
+.meals .go:hover { filter: brightness(1.08); }
+.meals .go:disabled { opacity: 0.35; box-shadow: none; }
+.qa.go .choice { justify-content: space-between; }
+.qa.go .choice.nearest { border-color: var(--clay); color: var(--clay); font-weight: 600; }

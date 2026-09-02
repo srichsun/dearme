@@ -21,6 +21,12 @@ export const STRINGS = {
   del: { zh: "刪除", en: "Delete" },
   confirmDel: { zh: "確定刪除？", en: "Really delete?" },
   cancel: { zh: "取消", en: "Cancel" },
+  // GO
+  go: { zh: "GO", en: "GO" },
+  goTitle: { zh: "現在想吃什麼外食？", en: "What do you feel like eating out?" },
+  goHint: { zh: "選一類，會照離你的距離近到遠排。", en: "Pick a kind; places are listed nearest first." },
+  goNearest: { zh: "隨便，離我最近的", en: "Anything — nearest to me" },
+  goNoKinds: { zh: "外食餐點還沒填類型，先看離你最近的。", en: "No eat-out meal has a kind yet — start with what's nearest." },
   // list
   searchPh: { zh: "找名字、食材、備註…", en: "Search names, ingredients, notes…" },
   askPh: { zh: "例如：夏天自己煮的點心，用氣炸鍋", en: "e.g. a summer snack I cook in the air fryer" },

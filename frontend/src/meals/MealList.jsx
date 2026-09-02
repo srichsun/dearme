@@ -4,6 +4,7 @@ import {
   FILTER_FIELDS,
   OPTIONS,
   formatDistance,
+  goFilters,
   labelOf,
   mapsLink,
   nearParam,
@@ -18,7 +19,7 @@ const NO_FILTERS = { category: null, source: null, season: null, method: null, k
 // match. Typing searches as you go; "用問的" sends the sentence to the model,
 // which hands back filters that land on the same tags — so what it understood
 // is visible, and one tap fixes it.
-export default function MealList({ refreshKey, onEdit }) {
+export default function MealList({ refreshKey, onEdit, goRequest }) {
   const { lang, t } = useLang();
   const [meals, setMeals] = useState(null);
   const [q, setQ] = useState("");
@@ -37,8 +38,8 @@ export default function MealList({ refreshKey, onEdit }) {
   const [posNote, setPosNote] = useState("");
   const latest = useRef(0);
 
-  function locate() {
-    if (pos) {
+  function locate(force = false) {
+    if (pos && !force) {
       setPos(null);
       setPosNote("");
       return;
@@ -57,6 +58,19 @@ export default function MealList({ refreshKey, onEdit }) {
       { enableHighAccuracy: true, timeout: 10_000 },
     );
   }
+
+  // GO: eating out, that kind, nearest first — on the ordinary controls, so
+  // every tag and the "nearest" toggle show what was asked and can be undone.
+  useEffect(() => {
+    if (!goRequest) return;
+    setView("all");
+    setAsking(false);
+    setQ("");
+    setFallback(false);
+    setFilters(goFilters(goRequest.kind));
+    locate(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [goRequest?.seq]);
 
   useEffect(() => {
     if (view !== "kinds") return;
@@ -204,7 +218,7 @@ export default function MealList({ refreshKey, onEdit }) {
         </div>
         {fallback && <p className="fallback">{t("fallback")}</p>}
         <div className="nearrow">
-          <button type="button" className={"chip near" + (pos ? " on" : "")} onClick={locate}>
+          <button type="button" className={"chip near" + (pos ? " on" : "")} onClick={() => locate()}>
             {pos ? t("nearOn") : t("nearOff")}
           </button>
           {posNote && <span className="hint">{posNote}</span>}

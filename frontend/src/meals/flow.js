@@ -300,3 +300,10 @@ export function mapsLink(place) {
 export function nearParam(pos) {
   return pos ? `${pos.lat.toFixed(5)},${pos.lng.toFixed(5)}` : null;
 }
+
+// What GO asks the list for: eating out, one kind or any, nearest first is
+// the list's own doing once it has a position.
+export function goFilters(kind) {
+  const k = (kind || "").trim();
+  return { category: null, source: "eat_out", season: null, method: null, kind: k || null };
+}
