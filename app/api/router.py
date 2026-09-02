@@ -13,6 +13,7 @@ from app.api.routes import (
     meals,
     profile,
     questions,
+    shopping,
     today,
     voice,
 )
@@ -27,3 +28,4 @@ api_router.include_router(mantras.router)
 api_router.include_router(meals.router)
 api_router.include_router(questions.router)
 api_router.include_router(today.router)
+api_router.include_router(shopping.router)
