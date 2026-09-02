@@ -5,9 +5,9 @@ import { transcribe, useRecorder } from "../speech";
 import { placeDetails, placesEnabled, suggestPlaces } from "./places";
 import { useLang } from "./i18n";
 import {
-  EMPTY,
   NO_PLACE,
   appendSpoken,
+  emptyFor,
   OPTIONS,
   RATINGS,
   clampStep,
@@ -27,10 +27,13 @@ import {
 // One question at a time, like a form that talks. Enter moves on, Esc
 // closes, a number key picks an option. The same dialog edits: it opens
 // filled in, and the dots up top jump straight to the question to change.
-export default function QuickAdd({ meal, onClose, onSaved }) {
+export default function QuickAdd({ meal, source, onClose, onSaved }) {
   const { lang, t } = useLang();
   const isNew = meal === "new";
-  const [answers, setAnswers] = useState(() => (isNew ? EMPTY : fromMeal(meal)));
+  // A meal keeps the tab it was made on: the source question never shows.
+  const [answers, setAnswers] = useState(() =>
+    isNew ? emptyFor(source) : { ...fromMeal(meal), fixedSource: true },
+  );
   const [index, setIndex] = useState(0);
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);

@@ -5,6 +5,7 @@ import {
   appendSpoken,
   clampStep,
   dollars,
+  emptyFor,
   firstMissing,
   formatDistance,
   fromMeal,
@@ -51,6 +52,22 @@ describe("visibleSteps", () => {
 
   it("asks the short list before the source is chosen", () => {
     expect(visibleSteps(EMPTY).map((s) => s.key)).not.toContain("method");
+  });
+});
+
+describe("emptyFor", () => {
+  it("fixes the source and drops that question", () => {
+    const a = emptyFor("home_cooked");
+    expect(a.source).toBe("home_cooked");
+    expect(visibleSteps(a).map((s) => s.key)).not.toContain("source");
+    expect(visibleSteps({ ...chicken, fixedSource: true }).map((s) => s.key)).toEqual([
+      "name", "kind", "proteins", "categories", "season", "method", "recipe", "rating", "video_url", "note",
+    ]);
+    expect(emptyFor(null)).toEqual(EMPTY);
+  });
+
+  it("does not leak the flag into the payload", () => {
+    expect(toPayload({ ...egg, fixedSource: true })).not.toHaveProperty("fixedSource");
   });
 });
 

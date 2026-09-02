@@ -506,3 +506,4 @@ body.meals-body { background: #0d0e10; }
 .rules li:first-child { border-top: none; }
 .rulenum { flex: none; width: 22px; font-family: var(--mono); font-size: 0.72rem; color: var(--sage); }
 .ruletext { font-size: 1rem; line-height: 1.45; }
+.meals .toolbar .add.wide { flex: 1; }

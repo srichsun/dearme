@@ -29,6 +29,7 @@ export default function MealsApp() {
   const [authReady, setAuthReady] = useState(false);
   const [screen, setScreen] = useState("today");
   const [editing, setEditing] = useState(null); // null | "new" | a meal
+  const tabSource = screen === "recipes" ? "home_cooked" : "eat_out";
   const [adding, setAdding] = useState(null); // null | "choose" | "shop"
   const [going, setGoing] = useState(false);
   // What GO chose, with a counter so choosing the same kind twice still fires.
@@ -107,6 +108,9 @@ export default function MealsApp() {
         <button className={screen === "meals" ? "on" : ""} onClick={() => setScreen("meals")}>
           {t("tabMeals")}
         </button>
+        <button className={screen === "recipes" ? "on" : ""} onClick={() => setScreen("recipes")}>
+          {t("tabRecipes")}
+        </button>
         <button className={screen === "notes" ? "on" : ""} onClick={() => setScreen("notes")}>
           {t("tabNotes")}
         </button>
@@ -130,10 +134,27 @@ export default function MealsApp() {
           </button>
         </div>
       )}
+      {screen === "recipes" && (
+        <div className="toolbar">
+          <button className="add wide" onClick={() => setEditing("new")} disabled={editing !== null}>
+            {t("add")}
+          </button>
+        </div>
+      )}
       <main>
         {screen === "today" && <Today />}
         {screen === "meals" && (
-          <MealList refreshKey={version} onEdit={setEditing} goRequest={goRequest} />
+          <MealList
+            key="eat_out"
+            source="eat_out"
+            showNearest
+            refreshKey={version}
+            onEdit={setEditing}
+            goRequest={goRequest}
+          />
+        )}
+        {screen === "recipes" && (
+          <MealList key="home_cooked" source="home_cooked" showMethods refreshKey={version} onEdit={setEditing} />
         )}
         {screen === "notes" && <Notes />}
         {screen === "shop" && <Shopping />}
@@ -183,6 +204,7 @@ export default function MealsApp() {
       {editing && (
         <QuickAdd
           meal={editing}
+          source={tabSource}
           onClose={() => setEditing(null)}
           onSaved={() => {
             setEditing(null);

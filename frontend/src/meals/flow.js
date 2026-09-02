@@ -75,7 +75,14 @@ export const STEPS = [
     type: "multi",
     field: "category",
   },
-  { key: "source", ask: { zh: "外食還是自己煮？", en: "Eating out or cooking?" }, type: "choice" },
+  {
+    key: "source",
+    ask: { zh: "外食還是自己煮？", en: "Eating out or cooking?" },
+    type: "choice",
+    // The tab decides this now (餐點 = eating out, 食譜 = cooking); the
+    // question only shows if nothing has fixed it.
+    when: (a) => !a.fixedSource,
+  },
   { key: "season", ask: { zh: "適合什麼季節？", en: "Which season?" }, type: "choice" },
   {
     key: "place",
@@ -360,4 +367,9 @@ export function toggleIn(list, code, field = "protein") {
 // "$$" for a price level; empty when there is none.
 export function dollars(price) {
   return price >= 1 && price <= 3 ? "$".repeat(price) : "";
+}
+
+// Answers for a new meal on a tab that already knows the source.
+export function emptyFor(source) {
+  return source ? { ...EMPTY, source, fixedSource: true } : EMPTY;
 }

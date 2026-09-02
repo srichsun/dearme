@@ -20,8 +20,11 @@ const NO_FILTERS = { category: null, source: null, season: null, method: null, p
 // match. Typing searches as you go; "用問的" sends the sentence to the model,
 // which hands back filters that land on the same tags — so what it understood
 // is visible, and one tap fixes it.
-export default function MealList({ refreshKey, onEdit, goRequest }) {
+// `source` fixes the tab: eating out or cooking. Methods only matter for
+// cooking; GO and "nearest" only for eating out.
+export default function MealList({ refreshKey, onEdit, goRequest, source, showMethods, showNearest }) {
   const { lang, t } = useLang();
+  const fields = FILTER_FIELDS.filter((f) => f !== "source" && (showMethods || f !== "method"));
   const [meals, setMeals] = useState(null);
   const [q, setQ] = useState("");
   const [filters, setFilters] = useState(NO_FILTERS);
@@ -84,7 +87,7 @@ export default function MealList({ refreshKey, onEdit, goRequest }) {
   useEffect(() => {
     const id = ++latest.current;
     const timer = setTimeout(async () => {
-      const data = await getJSON(`/api/meals${toQuery({ q, ...filters, near: nearParam(pos) })}`);
+      const data = await getJSON(`/api/meals${toQuery({ q, ...filters, source, near: nearParam(pos) })}`);
       if (id === latest.current) setMeals(data?.meals || []);
     }, q ? 250 : 0);
     return () => clearTimeout(timer);
@@ -104,7 +107,7 @@ export default function MealList({ refreshKey, onEdit, goRequest }) {
     setQ(got.q || "");
     setFilters((f) => ({
       category: got.category || null,
-      source: got.source || null,
+      source: null,
       season: got.season || null,
       method: got.method || null,
       protein: got.protein || null,
@@ -221,14 +224,16 @@ export default function MealList({ refreshKey, onEdit, goRequest }) {
           )}
         </div>
         {fallback && <p className="fallback">{t("fallback")}</p>}
-        <div className="nearrow">
-          <button type="button" className={"chip near" + (pos ? " on" : "")} onClick={() => locate()}>
-            {pos ? t("nearOn") : t("nearOff")}
-          </button>
-          {posNote && <span className="hint">{posNote}</span>}
-        </div>
+        {showNearest && (
+          <div className="nearrow">
+            <button type="button" className={"chip near" + (pos ? " on" : "")} onClick={() => locate()}>
+              {pos ? t("nearOn") : t("nearOff")}
+            </button>
+            {posNote && <span className="hint">{posNote}</span>}
+          </div>
+        )}
 
-        {FILTER_FIELDS.map((field) => (
+        {fields.map((field) => (
           <div className="chips" key={field}>
             {OPTIONS[field].map(([code, label]) => (
               <button
@@ -252,7 +257,7 @@ export default function MealList({ refreshKey, onEdit, goRequest }) {
       {meals === null ? (
         <p className="hint centred">{t("loading")}</p>
       ) : meals.length === 0 ? (
-        <p className="hint centred">{anything ? t("noMatch") : t("empty")}</p>
+        <p className="hint centred">{anything ? t("noMatch") : source === "home_cooked" ? t("noRecipes") : t("empty")}</p>
       ) : (
         <ul className="meallist">
           {meals.map((m) => (
@@ -263,9 +268,8 @@ export default function MealList({ refreshKey, onEdit, goRequest }) {
                   {(m.categories || []).map((c) => (
                     <span className="tag" key={c}>{labelOf("category", c, lang)}</span>
                   ))}
-                  <span className="tag">{labelOf("source", m.source, lang)}</span>
                   <span className="tag">{labelOf("season", m.season, lang)}</span>
-                  {m.method && <span className="tag">{labelOf("method", m.method, lang)}</span>}
+                  {showMethods && m.method && <span className="tag">{labelOf("method", m.method, lang)}</span>}
                   {m.price && <span className="tag price">{dollars(m.price)}</span>}
                   {(m.proteins || []).map((p) => (
                     <span className="tag protein" key={p}>{labelOf("protein", p, lang)}</span>
