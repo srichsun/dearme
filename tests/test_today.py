@@ -93,7 +93,8 @@ def test_starter_fills_an_empty_list_once(sqlite_db):
     again = today.add_starter("u1")
 
     assert [h["text"] for h in first] == list(today.STARTER)
-    assert len(again) == 4
+    assert "10000 步" in [h["text"] for h in first]
+    assert len(again) == 5
     today.add_habit("u2", "自己的")
     assert [h["text"] for h in today.add_starter("u2")] == ["自己的"]
 

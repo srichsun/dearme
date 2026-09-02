@@ -22,7 +22,7 @@ export const STRINGS = {
   todayList: { zh: "今天要做的", en: "Today" },
   habitPh: { zh: "新增一項…", en: "Add one…" },
   addHabit: { zh: "加入", en: "Add" },
-  starter: { zh: "加入預設四項", en: "Add the starter four" },
+  starter: { zh: "加入預設五項", en: "Add the starter five" },
   noHabits: { zh: "清單是空的。", en: "The list is empty." },
   allDone: { zh: "今天都做到了。", en: "All done today." },
   tabNotes: { zh: "反思", en: "Reflect" },

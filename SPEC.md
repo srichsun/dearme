@@ -118,7 +118,7 @@
 - 三個切換：**今天**（預設）／餐點／反思。
 - **目標 Goal**：一段自己寫的文字，點一下就能改，Enter 或離開就存（`goals` 表，每人一筆）。
 - **每日清單**：`habits`（user_id / text / position）；打勾＝今天完成，存在 `habit_checks(habit_id, day)`（台灣日期，一天一筆），隔天自動歸零、歷史留著。可新增、改字、刪除（兩段確認）。
-- **預設四項**：清單是空的時候給一顆「加入預設」→ `POST /api/today/habits/starter` 塞進：不要給自己壓力，專注感恩今天／吃 2500 大卡／重訓／10 點關機準備睡覺。只在空的時候有效。
+- **預設五項**：清單是空的時候給一顆「加入預設」→ `POST /api/today/habits/starter` 塞進：不要給自己壓力，專注感恩今天／吃 2500 大卡／重訓／10 點關機準備睡覺／10000 步。只在空的時候有效。
 - API（prefix `/api/today`，要登入）：`GET /` → `{goal, day, habits:[{id,text,done}]}`；`PUT /goal`；`POST /habits`、`PATCH /habits/{id}`、`DELETE /habits/{id}`；`POST /habits/{id}/check`、`DELETE /habits/{id}/check`；`POST /habits/starter`。別人的 habit 一律 404。
 
 ## 不做
