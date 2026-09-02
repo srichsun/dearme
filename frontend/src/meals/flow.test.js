@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   EMPTY,
+  NO_PLACE,
   appendSpoken,
   clampStep,
   firstMissing,
@@ -96,6 +97,7 @@ describe("toPayload", () => {
       note: null,
       rating: null,
       kind: "自煮",
+      ...NO_PLACE, // home-cooked always sends the shop as nothing
     });
   });
 
