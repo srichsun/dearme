@@ -85,9 +85,10 @@ def delete_note(note_id: int, uid: CurrentUid):
 
 
 @router.get("/kinds")
-def list_kinds(uid: CurrentUid):
-    """Every kind in use and its count, most first — the browse screen."""
-    return {"kinds": [{"kind": k, "count": n} for k, n in meals.kinds(uid)]}
+def list_kinds(uid: CurrentUid, source: str | None = Query(default=None)):
+    """Every kind in use and its count, most first — the browse screen, and
+    with source=eat_out the choices GO offers."""
+    return {"kinds": [{"kind": k, "count": n} for k, n in meals.kinds(uid, source)]}
 
 
 # --- asking in a sentence ---

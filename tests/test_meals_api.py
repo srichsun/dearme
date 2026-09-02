@@ -110,6 +110,9 @@ def test_kinds_and_the_kind_filter(sqlite_db):
     assert client.get("/api/meals/kinds").json() == {
         "kinds": [{"kind": "火鍋", "count": 2}, {"kind": "自煮", "count": 1}]
     }
+    assert client.get("/api/meals/kinds", params={"source": "eat_out"}).json() == {
+        "kinds": [{"kind": "火鍋", "count": 2}]
+    }
     hotpot = client.get("/api/meals", params={"kind": "火鍋"}).json()["meals"]
     assert [m["name"] for m in hotpot] == ["涮乃葉", "石二鍋"]
     assert hotpot[0]["kind"] == "火鍋"

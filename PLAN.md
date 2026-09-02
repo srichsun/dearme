@@ -151,6 +151,18 @@
 - Check: `cd frontend && npm run lint && npm test && npm run build`
 - Status: done
 
+### 24. feat: kinds can be narrowed to a source
+- Files: `app/services/meals.py`, `app/api/routes/meals.py`, `tests/test_meals.py`, `tests/test_meals_api.py`
+- Test: `kinds(uid, source="eat_out")` 只算外食、route 帶 source
+- Check: `uv run pytest -q && uv run ruff check .`
+- Status: done
+
+### 25. feat(web): GO — what to eat out, nearest first
+- Files: `frontend/src/meals/GoDialog.jsx`, `MealsApp.jsx`, `MealList.jsx`, `flow.js`, `flow.test.js`, `i18n.js`, `meals.css`
+- Test: `goFilters(kind)` 外食 + 類型／不限
+- Check: `cd frontend && npm run lint && npm test && npm run build`
+- Status: done
+
 ## 收工前
 1. `uv run ruff check . && uv run pytest -q`；`cd frontend && npm run lint && npm test && npm run build`
 2. `/verify-tests` 看新測試

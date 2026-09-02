@@ -329,6 +329,16 @@ def test_kinds_are_counted_per_person_most_first(sqlite_db):
     assert meals.kinds("") == []
 
 
+def test_kinds_can_be_narrowed_to_eating_out(sqlite_db):
+    meals.create_meal("u1", **{**EGG, "name": "a"}, kind="火鍋")
+    meals.create_meal("u1", **{**CHICKEN, "name": "b"}, kind="氣炸")
+    meals.create_meal("u1", **{**CHICKEN, "name": "c"}, kind="火鍋")
+
+    assert meals.kinds("u1", source="eat_out") == [("火鍋", 1)]
+    assert meals.kinds("u1", source="home_cooked") == [("氣炸", 1), ("火鍋", 1)]
+    assert meals.kinds("u1") == [("火鍋", 2), ("氣炸", 1)]
+
+
 # --- nearest first ---
 
 def test_distance_between_two_known_points():

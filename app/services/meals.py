@@ -185,9 +185,10 @@ def list_meals(
     return sorted(rows, key=lambda m: (m.distance_m is None, m.distance_m or 0))
 
 
-def kinds(user_id: str) -> list[tuple[str, int]]:
+def kinds(user_id: str, source: str | None = None) -> list[tuple[str, int]]:
     """Each kind this person uses and how many meals carry it, most first.
-    Meals with no kind are not a kind."""
+    Meals with no kind are not a kind. `source` narrows to eat-out or
+    home-cooked — GO only wants the kinds of places to go."""
     if not user_id:
         return []
     stmt = (
@@ -196,6 +197,8 @@ def kinds(user_id: str) -> list[tuple[str, int]]:
         .group_by(Meal.kind)
         .order_by(func.count().desc(), Meal.kind)
     )
+    if source:
+        stmt = stmt.where(Meal.source == source)
     with db.get_session() as s:
         return [(k, n) for k, n in s.execute(stmt)]
 
