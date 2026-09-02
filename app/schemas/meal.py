@@ -17,6 +17,7 @@ class MealWrite(BaseModel):
     method: str | None = None
     recipe: str | None = None
     note: str | None = None
+    rating: int | None = None
 
 
 class NoteWrite(BaseModel):

@@ -85,6 +85,23 @@ def test_eating_out_drops_method_and_recipe(sqlite_db):
     assert meal.recipe is None
 
 
+def test_a_rating_is_one_to_ten_or_nothing(sqlite_db):
+    assert meals.create_meal("u1", **CHICKEN).rating is None
+    assert meals.create_meal("u1", **CHICKEN, rating=1).rating == 1
+    assert meals.create_meal("u1", **CHICKEN, rating=10).rating == 10
+    for bad in (0, 11, -1, 7.5, "8", True):
+        with pytest.raises(MealError):
+            meals.create_meal("u1", **CHICKEN, rating=bad)
+    assert len(meals.list_meals("u1")) == 3
+
+
+def test_updating_can_set_and_clear_the_rating(sqlite_db):
+    meal = meals.create_meal("u1", **CHICKEN, rating=6)
+
+    assert meals.update_meal("u1", meal.id, **CHICKEN, rating=9).rating == 9
+    assert meals.update_meal("u1", meal.id, **CHICKEN).rating is None
+
+
 def test_blank_recipe_and_note_are_stored_as_none(sqlite_db):
     meal = meals.create_meal("u1", **{**CHICKEN, "recipe": "  "}, note="")
 

@@ -6,6 +6,7 @@ without HTTP and a future caller (the week planner) gets the same answers:
 - a name is required;
 - category / source / season / method must be one of the known codes;
 - home-cooked needs a method — it is the axis this list gets searched on;
+- a rating, if given, is a whole number from 1 to 10;
 - eating out has no method and no recipe, whatever was sent. Keeping a stale
   method on an eat-out row would make it show up under "air fryer".
 
@@ -37,6 +38,7 @@ def _clean(
     method: str | None = None,
     recipe: str | None = None,
     note: str | None = None,
+    rating: int | None = None,
 ) -> dict:
     """Apply the rules and return the column values to store."""
     name = (name or "").strip()
@@ -48,6 +50,11 @@ def _clean(
         raise MealError(f"Unknown source {source!r}")
     if season not in SEASONS:
         raise MealError(f"Unknown season {season!r}")
+    # bool is an int in Python; True as a rating would be nonsense, not 1.
+    if rating is not None and (
+        isinstance(rating, bool) or not isinstance(rating, int) or not 1 <= rating <= 10
+    ):
+        raise MealError("A rating is a whole number from 1 to 10")
 
     if source == "eat_out":
         method, recipe = None, None
@@ -64,6 +71,7 @@ def _clean(
         "method": method,
         "recipe": recipe,
         "note": _text(note),
+        "rating": rating,
     }
 
 

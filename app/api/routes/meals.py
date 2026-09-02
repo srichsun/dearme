@@ -26,6 +26,7 @@ def _meal(m: Meal) -> dict:
         "method": m.method,
         "recipe": m.recipe,
         "note": m.note,
+        "rating": m.rating,
         "created_at": m.created_at.isoformat(),
         "updated_at": m.updated_at.isoformat(),
     }
