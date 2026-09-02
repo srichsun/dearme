@@ -1,10 +1,11 @@
 """The first screen: goal and daily checklist, scoped to the signed-in person."""
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, File, Form, HTTPException, UploadFile
 
 from app.api.deps import CurrentUid
 from app.core import clock
 from app.schemas.today import GoalWrite, HabitWrite
-from app.services import today
+from app.services import rewards, today
+from app.services.rewards import RewardError
 
 router = APIRouter(prefix="/api/today", tags=["today"])
 
@@ -17,6 +18,35 @@ def get_today(uid: CurrentUid):
         "habits": today.list_habits(uid),
         "principles": today.list_principles(uid),
     }
+
+
+# --- reward videos ---
+
+
+@router.get("/rewards")
+def list_rewards(uid: CurrentUid):
+    return {"videos": rewards.list_videos(uid)}
+
+
+@router.get("/rewards/pick")
+def pick_reward(uid: CurrentUid):
+    return {"video": rewards.pick(uid)}
+
+
+@router.post("/rewards", status_code=201)
+async def add_reward(uid: CurrentUid, video: UploadFile = File(...), title: str = Form("")):
+    data = await video.read()
+    try:
+        return rewards.add_video(uid, data, video.content_type or "", title)
+    except RewardError as e:
+        raise HTTPException(status_code=422, detail=str(e))
+
+
+@router.delete("/rewards/{video_id}")
+def delete_reward(video_id: int, uid: CurrentUid):
+    if not rewards.delete_video(uid, video_id):
+        raise HTTPException(status_code=404, detail="No such video")
+    return {"deleted": video_id}
 
 
 @router.get("/principles")
