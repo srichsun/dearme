@@ -131,7 +131,7 @@ def test_meals_page_is_404_without_a_build(tmp_path, monkeypatch):
     assert client.get("/meals").status_code == 404
 
 
-def test_html_is_always_rechecked_and_assets_kept(tmp_path, monkeypatch):
+def test_html_is_always_rechecked_and_assets_kept(tmp_path, monkeypatch, sqlite_db):
     """A phone with the site on its home screen must see a deploy on the
     next open: HTML says no-cache; the hashed assets may be kept a year."""
     from app import main
