@@ -91,6 +91,13 @@
 - Done when: 彈窗多一題可跳過、卡片顯示 ★
 - Status: done
 
+### 14. feat(web): speak the note in the dialog
+- Files: `frontend/src/meals/flow.js`, `flow.test.js`, `QuickAdd.jsx`, `meals.css`
+- Test: `appendSpoken` 空框直接放、有字用空格接、空轉錄不動
+- Check: `cd frontend && npm run lint && npm test && npm run build`
+- Done when: 備註那題有麥克風，講完的字出現在框裡
+- Status: done
+
 ## 收工前
 1. `uv run ruff check . && uv run pytest -q`；`cd frontend && npm run lint && npm test && npm run build`
 2. `/verify-tests` 看新測試

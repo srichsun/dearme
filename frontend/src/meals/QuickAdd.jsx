@@ -1,7 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { authFetch } from "../api";
+import { MicIcon, StopIcon } from "../icons";
+import { transcribe, useRecorder } from "../speech";
 import {
   EMPTY,
+  appendSpoken,
   OPTIONS,
   RATINGS,
   clampStep,
@@ -25,6 +28,21 @@ export default function QuickAdd({ meal, onClose, onSaved }) {
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
   const inputRef = useRef(null);
+  const [listening, setListening] = useState(false);
+
+  // The note can be spoken. What is heard lands in the box, not in the
+  // meal: transcription mis-hears, and a glance fixes it before saving.
+  const recorder = useRecorder(async (blob) => {
+    setListening(true);
+    try {
+      const heard = await transcribe(blob);
+      setAnswers((a) => ({ ...a, note: appendSpoken(a.note, heard) }));
+    } catch {
+      /* nothing heard — the box is still there to type into */
+    } finally {
+      setListening(false);
+    }
+  });
 
   const steps = visibleSteps(answers);
   const at = clampStep(index, answers);
@@ -191,14 +209,27 @@ export default function QuickAdd({ meal, onClose, onSaved }) {
           />
         )}
         {step.type === "long" && (
-          <textarea
-            ref={inputRef}
-            rows={4}
-            value={answers[step.key]}
-            onChange={(e) => set(step.key, e.target.value)}
-            placeholder={step.key === "recipe" ? "雞胸抹鹽\n氣炸 180 度 15 分" : ""}
-          />
+          <div className={step.key === "note" ? "writer" : undefined}>
+            <textarea
+              ref={inputRef}
+              rows={4}
+              value={answers[step.key]}
+              onChange={(e) => set(step.key, e.target.value)}
+              placeholder={step.key === "recipe" ? "雞胸抹鹽\n氣炸 180 度 15 分" : "例如：週日備餐，一次做三份"}
+            />
+            {step.key === "note" && (
+              <button
+                type="button"
+                className={"mic" + (recorder.recording ? " on" : "")}
+                onClick={recorder.toggle}
+                aria-label={recorder.recording ? "停止" : "用講的"}
+              >
+                {recorder.recording ? <StopIcon /> : <MicIcon />}
+              </button>
+            )}
+          </div>
         )}
+        {listening && <p className="hint">聽寫中…</p>}
 
         {error && <p className="qerror">{error}</p>}
 

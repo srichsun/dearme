@@ -199,3 +199,12 @@ export function localDate(iso, timeZone) {
   const get = (type) => parts.find((p) => p.type === type)?.value;
   return `${get("year")}-${get("month")}-${get("day")}`;
 }
+
+// Spoken words join what is already in the box, with a space between. Nothing
+// heard leaves the box alone — the person may already have typed something.
+export function appendSpoken(existing, heard) {
+  const text = (heard || "").trim();
+  if (!text) return existing;
+  const before = (existing || "").trim();
+  return before ? `${before} ${text}` : text;
+}

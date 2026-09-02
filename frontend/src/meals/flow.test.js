@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   EMPTY,
+  appendSpoken,
   clampStep,
   firstMissing,
   fromMeal,
@@ -201,5 +202,17 @@ describe("stars", () => {
     expect(stars(null)).toBe("");
     expect(stars(0)).toBe("");
     expect(stars(11)).toBe("");
+  });
+});
+
+describe("appendSpoken", () => {
+  it("fills an empty box and joins a full one with a space", () => {
+    expect(appendSpoken("", "很飽")).toBe("很飽");
+    expect(appendSpoken("週日備餐", "很飽")).toBe("週日備餐 很飽");
+  });
+
+  it("leaves the box alone when nothing was heard", () => {
+    expect(appendSpoken("週日備餐", "   ")).toBe("週日備餐");
+    expect(appendSpoken("", undefined)).toBe("");
   });
 });

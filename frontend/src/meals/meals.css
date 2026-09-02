@@ -257,3 +257,7 @@ body.meals-body { background: #0d0e10; }
 .star.on { color: var(--sage); }
 .stars .starnum { margin-left: 0.5rem; }
 .stars .clear { margin: 0 0 0 0.6rem; }
+
+.qa .writer { position: relative; }
+.qa .writer textarea { padding-right: 3.4rem; }
+.qa .writer .mic { position: absolute; right: 0.6rem; bottom: 0.7rem; }
