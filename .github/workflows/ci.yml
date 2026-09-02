@@ -11,6 +11,12 @@ on:
       - 'LICENSE'
   pull_request:
 
+# One deploy at a time. Two runs of the same push once raced each other to
+# Cloud Run and the loser died on a version conflict; queued, both succeed.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   test:
     runs-on: ubuntu-latest
