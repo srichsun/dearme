@@ -51,6 +51,25 @@ def _ensure_tables() -> None:
         log.exception("Database migration failed — schema may be out of date")
 
 
+@app.middleware("http")
+async def _cache_headers(request, call_next):
+    """Tell browsers how long to keep the frontend.
+
+    Without this the pages went out as plain "private", and a phone — an
+    iPhone with the site on its home screen especially — decided for itself
+    how long to keep index.html, so a deploy could sit unseen for days.
+    HTML: always check back (ETag makes that a cheap 304). Built assets carry
+    a content hash in their name, so they can be kept for a year.
+    """
+    response = await call_next(request)
+    content_type = response.headers.get("content-type", "")
+    if request.url.path.startswith("/assets/"):
+        response.headers["Cache-Control"] = "public, max-age=31536000, immutable"
+    elif content_type.startswith("text/html"):
+        response.headers["Cache-Control"] = "no-cache"
+    return response
+
+
 # Allow the local React dev server (Vite) to call this API from the browser.
 app.add_middleware(
     CORSMiddleware,

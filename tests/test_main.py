@@ -129,3 +129,19 @@ def test_meals_page_is_404_without_a_build(tmp_path, monkeypatch):
     monkeypatch.setattr(main, "_INDEX", tmp_path / "missing.html")
 
     assert client.get("/meals").status_code == 404
+
+
+def test_html_is_always_rechecked_and_assets_kept(tmp_path, monkeypatch):
+    """A phone with the site on its home screen must see a deploy on the
+    next open: HTML says no-cache; the hashed assets may be kept a year."""
+    from app import main
+
+    index = tmp_path / "index.html"
+    index.write_text("<!doctype html><title>meals</title>")
+    monkeypatch.setattr(main, "_INDEX", index)
+
+    page = client.get("/meals")
+    assert page.headers["cache-control"] == "no-cache"
+
+    api = client.get("/health")
+    assert "cache-control" not in api.headers
