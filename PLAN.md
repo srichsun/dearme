@@ -19,7 +19,7 @@
 - Test: `test_meals.py` — 每個篩選條件各一；條件 AND；`season=summer` 含 `all`；`q` 對 name/recipe/note 三欄、不分大小寫；新到舊
 - Check: `uv run pytest tests/test_meals.py -q && uv run ruff check .`
 - Done when: `list_meals(uid, q=, category=, source=, season=, method=)` 行為和 SPEC API 那一節一致
-- Status: todo
+- Status: done
 
 ### 4. feat: meal notes service
 - Files: `app/services/meal_notes.py`, `tests/test_meal_notes.py`
