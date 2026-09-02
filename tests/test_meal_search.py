@@ -118,7 +118,7 @@ def test_the_route_returns_filters_meals_and_fallback(a_few_meals, monkeypatch):
     try:
         _fake_parser(monkeypatch, meal_search._Filters(season="winter"))
 
-        resp = client.post("/meals/search", json={"text": "冬天"})
+        resp = client.post("/api/meals/search", json={"text": "冬天"})
 
         assert resp.status_code == 200
         body = resp.json()
@@ -130,4 +130,4 @@ def test_the_route_returns_filters_meals_and_fallback(a_few_meals, monkeypatch):
 
 
 def test_the_route_needs_a_sign_in(sqlite_db):
-    assert client.post("/meals/search", json={"text": "雞"}).status_code == 401
+    assert client.post("/api/meals/search", json={"text": "雞"}).status_code == 401

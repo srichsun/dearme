@@ -13,7 +13,7 @@ export default function Notes() {
   const [confirming, setConfirming] = useState(null);
 
   useEffect(() => {
-    getJSON("/meals/notes").then((d) => setNotes(d?.notes || []));
+    getJSON("/api/meals/notes").then((d) => setNotes(d?.notes || []));
   }, []);
 
   const recorder = useRecorder(async (blob) => {
@@ -31,7 +31,7 @@ export default function Notes() {
   async function keep() {
     const text = draft.trim();
     if (!text) return;
-    const { ok, data } = await postJSON("/meals/notes", { text });
+    const { ok, data } = await postJSON("/api/meals/notes", { text });
     if (!ok) return;
     setDraft("");
     setNotes((prev) => [data, ...(prev || [])]);
@@ -41,7 +41,7 @@ export default function Notes() {
     setConfirming(null);
     const previous = notes;
     setNotes((rows) => rows.filter((n) => n.id !== id));
-    const res = await authFetch(`/meals/notes/${id}`, { method: "DELETE" });
+    const res = await authFetch(`/api/meals/notes/${id}`, { method: "DELETE" });
     if (!res.ok) setNotes(previous);
   }
 

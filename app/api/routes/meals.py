@@ -11,7 +11,9 @@ from app.schemas.meal import MealWrite, NoteWrite, SearchRequest
 from app.services import meal_notes, meal_search, meals
 from app.services.meals import MealError
 
-router = APIRouter(prefix="/meals", tags=["meals"])
+# Under /api so the page at /meals (see app/main.py) and this JSON can't
+# collide — the other routers predate the second app and keep their paths.
+router = APIRouter(prefix="/api/meals", tags=["meals"])
 
 
 def _meal(m: Meal) -> dict:
@@ -34,7 +36,9 @@ def _note(n: MealNote) -> dict:
 
 
 # --- notes ---
-# Declared before /{meal_id} so "notes" is never read as a meal id.
+# Nothing here collides with /{meal_id} today (different methods or depths),
+# but a GET /meals/{meal_id} would swallow GET /meals/notes if it came first.
+# Keeping the notes on top means that mistake can't be made by accident.
 
 
 @router.get("/notes")

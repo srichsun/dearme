@@ -6,9 +6,11 @@ app/services/; the endpoints themselves live in app/api/routes/.
 """
 import logging
 import os
+from pathlib import Path
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 from app.api.router import api_router
@@ -58,6 +60,22 @@ app.add_middleware(
 )
 
 app.include_router(api_router)
+
+# The built frontend's entry page. StaticFiles(html=True) below only answers
+# index.html for "/" itself, so a second app at another path needs its own
+# route — otherwise the deployed URL is a 404 while the Vite dev server (which
+# has its own fallback) makes it look fine.
+_INDEX = Path("frontend/dist/index.html")
+
+
+@app.get("/meals", include_in_schema=False)
+def meals_page():
+    """The "what can I eat" app. Its API lives under /api/meals so the page
+    and the JSON never fight over one path."""
+    if not _INDEX.is_file():
+        raise HTTPException(status_code=404, detail="Frontend not built")
+    return FileResponse(_INDEX)
+
 
 # Serve the built React frontend (if present) so the whole app lives at one URL.
 # Mounted last, at "/", so the API routes above always take precedence; only

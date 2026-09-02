@@ -14,7 +14,7 @@
   Dear Me 的四個 tab 不連過去，Dear Me 的畫面一行都不改。
   為什麼：登入、DB、CI 部署全現成；隔離成一包，以後要搬出去整包搬。
 - **網址 `/meals`**：`main.jsx` 看 `location.pathname`，`/meals` 開頭就渲染 `MealsApp`，其他照舊渲染 `App`。
-  為什麼：專案沒裝 react-router，只有一條新路徑，不值得為它加套件。後端 `StaticFiles(html=True)` 會把 `/meals` 落到 `index.html`，不用改後端。
+  為什麼：專案沒裝 react-router，只有一條新路徑，不值得為它加套件。後端要加一條 `GET /meals` 回 `index.html`（`StaticFiles(html=True)` 只對 `/` 回 index），API 放在 `/api/meals` 才不會跟頁面同路徑打架。
 - **登入**：沿用 Firebase，每筆餐點用 `user_id` 隔離。沒登入時 `/meals` 只顯示一顆「用 Google 登入」按鈕。
   為什麼：後端所有 route 都靠 `CurrentUid`，照規則走最省事，而且別人登進來也只看得到自己的。
 
@@ -58,16 +58,16 @@
 - `source = eat_out` → `method` 和 `recipe` 一律清空存 null，就算送了也丟掉。為什麼：外食沒有煮法；不清掉的話搜「氣炸鍋」會撈到外食。
 - 讀、改、刪都同時比對 `id` 和 `user_id`，別人的餐點一律 404（和不存在同一個答案）。為什麼：照 mantras 的做法，猜 id 猜不到別人的東西。
 
-### API（prefix `/meals`，全部要登入）
-- `GET /meals?q=&category=&source=&season=&method=` → `{"meals":[...]}`，新到舊。
+### API（prefix `/api/meals`，全部要登入）
+- `GET /api/meals?q=&category=&source=&season=&method=` → `{"meals":[...]}`，新到舊。
   `q` 對 `name` / `recipe` / `note` 做不分大小寫的子字串比對；篩選條件是 AND；`season=summer` 會同時撈 `summer` 和 `all`（`winter` 同理）。
-- `POST /meals` → 201 + 那筆。
-- `PATCH /meals/{id}` → 整筆更新（送完整欄位），200 + 那筆。為什麼：編輯走同一個彈窗、每次都有完整答案，不需要部分更新。
-- `DELETE /meals/{id}` → `{"deleted": id}`。
-- `GET /meals/notes` → `{"notes":[...]}` 新到舊；`POST /meals/notes` body `{"text"}` → 201；`DELETE /meals/notes/{id}`。空白 → 422；別人的 → 404。
-  路徑要排在 `/meals/{id}` 之前，不然 `notes` 會被當成 id。
+- `POST /api/meals` → 201 + 那筆。
+- `PATCH /api/meals/{id}` → 整筆更新（送完整欄位），200 + 那筆。為什麼：編輯走同一個彈窗、每次都有完整答案，不需要部分更新。
+- `DELETE /api/meals/{id}` → `{"deleted": id}`。
+- `GET /api/meals/notes` → `{"notes":[...]}` 新到舊；`POST /api/meals/notes` body `{"text"}` → 201；`DELETE /api/meals/notes/{id}`。空白 → 422；別人的 → 404。
+  notes 的路由放在 `/{id}` 之前：現在沒有 GET `/meals/{id}` 所以不會撞，放前面是防以後加了會吃掉 `notes`。
 - 語音轉文字沿用現有的 `POST /transcribe`（不新增後端）。
-- `POST /meals/search` body `{"text": "夏天自己煮的點心 用氣炸鍋"}` →
+- `POST /api/meals/search` body `{"text": "夏天自己煮的點心 用氣炸鍋"}` →
   `{"filters": {"q":..., "category":..., "source":..., "season":..., "method":...}, "meals":[...], "fallback": false}`。
   LLM（dearme 的 worker 模型 + structured output）只做一件事：把句子翻成上面那組篩選條件；然後走和 `GET /meals` 完全同一個查詢。
   LLM 失敗或逾時 → `filters = {"q": 原句}`、`fallback: true`，照樣回列表。
@@ -75,7 +75,7 @@
 
 ### 畫面（`frontend/src/meals/`，繁體中文）
 - **列表頁（第一個畫面）**：頂端搜尋框 + 「用問的」切換；下面四組篩選標籤（分類 / 來源 / 季節 / 煮法）；卡片列出名稱、四個標籤、食譜與備註（有才顯示）；每張卡有「編輯」「刪除」。
-  「用問的」模式：送 `POST /meals/search`，把回來的 `filters` 直接套成標籤（你看得到它理解成什麼，可以再點掉）；`fallback` 時顯示一行「沒問到 AI，用關鍵字搜」。
+  「用問的」模式：送 `POST /api/meals/search`，把回來的 `filters` 直接套成標籤（你看得到它理解成什麼，可以再點掉）；`fallback` 時顯示一行「沒問到 AI，用關鍵字搜」。
 - **刪除**：按下後那張卡變成「確定刪除？／取消」兩顆鈕，不用瀏覽器 confirm。為什麼：瀏覽器 confirm 會擋住自動化測試，也不好看。
 - **心得頁**：`MealsApp` 上方兩個切換「餐點」「心得」，預設「餐點」。
   心得頁：一個文字框 + 麥克風鈕（沿用 `speech.js` 的 `useRecorder` / `transcribe`，轉好的字接在框裡讓你看過再送）+「記下來」；下面新到舊列出每一條，附日期和「刪除」（同樣兩段確認）。
@@ -112,3 +112,4 @@
    編輯雞胸改成外食 → 卡片上煮法標籤消失；刪除茶葉蛋 → 列表剩一筆；
    切「心得」→ 按麥克風講一句「吃油的飽足感很久」→ 文字出現在框裡 → 記下來 → 列表出現這一條。
 4. 用一個全新的空白資料庫 `alembic upgrade head` 再 `downgrade -1` 不報錯。
+5. `npm run build` 後用 uvicorn 起 app，`curl -i localhost:8000/meals` 回 200 text/html（不是 API 的 401）。

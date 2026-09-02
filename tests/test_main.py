@@ -103,3 +103,29 @@ def test_speak_returns_audio(monkeypatch):
     assert resp.status_code == 200
     assert resp.headers["content-type"] == "audio/mpeg"
     assert resp.content == b"fake-mp3"
+
+
+# --- the meals page ---
+
+def test_meals_page_is_the_frontend_not_the_api(tmp_path, monkeypatch):
+    """/meals is a page a browser opens. The meals JSON lives under
+    /api/meals, so this must answer HTML — the API would answer 401."""
+    from app import main
+
+    index = tmp_path / "index.html"
+    index.write_text("<!doctype html><title>meals</title>")
+    monkeypatch.setattr(main, "_INDEX", index)
+
+    resp = client.get("/meals")
+
+    assert resp.status_code == 200
+    assert resp.headers["content-type"].startswith("text/html")
+    assert "<title>meals</title>" in resp.text
+
+
+def test_meals_page_is_404_without_a_build(tmp_path, monkeypatch):
+    from app import main
+
+    monkeypatch.setattr(main, "_INDEX", tmp_path / "missing.html")
+
+    assert client.get("/meals").status_code == 404

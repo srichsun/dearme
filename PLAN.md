@@ -68,7 +68,7 @@
 - Test: 純邏輯無新增；靠 Check 的 lint/build + Chrome 走 SPEC e2e 第 3 步的心得段
 - Check: `cd frontend && npm run lint && npm test && npm run build`
 - Done when: 講一句 → 字進框 → 記下來 → 列表出現；刪除兩段確認
-- Status: todo
+- Status: done
 
 ## 收工前
 1. `uv run ruff check . && uv run pytest -q`；`cd frontend && npm run lint && npm test && npm run build`

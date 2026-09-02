@@ -24,7 +24,7 @@ export default function MealList({ refreshKey, onEdit }) {
   useEffect(() => {
     const id = ++latest.current;
     const timer = setTimeout(async () => {
-      const data = await getJSON(`/meals${toQuery({ q, ...filters })}`);
+      const data = await getJSON(`/api/meals${toQuery({ q, ...filters })}`);
       if (id === latest.current) setMeals(data?.meals || []);
     }, q ? 250 : 0);
     return () => clearTimeout(timer);
@@ -34,7 +34,7 @@ export default function MealList({ refreshKey, onEdit }) {
     const text = sentence.trim();
     if (!text || busy) return;
     setBusy(true);
-    const { ok, data } = await postJSON("/meals/search", { text });
+    const { ok, data } = await postJSON("/api/meals/search", { text });
     setBusy(false);
     if (!ok) return;
     // Land the model's reading on the ordinary controls. The list itself is
@@ -66,7 +66,7 @@ export default function MealList({ refreshKey, onEdit }) {
     setConfirming(null);
     const previous = meals;
     setMeals((rows) => rows.filter((m) => m.id !== id));
-    const res = await authFetch(`/meals/${id}`, { method: "DELETE" });
+    const res = await authFetch(`/api/meals/${id}`, { method: "DELETE" });
     if (!res.ok) setMeals(previous);
   }
 

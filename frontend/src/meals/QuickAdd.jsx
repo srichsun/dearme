@@ -51,7 +51,7 @@ export default function QuickAdd({ meal, onClose, onSaved }) {
       return;
     }
     setSaving(true);
-    const res = await authFetch(isNew ? "/meals" : `/meals/${meal.id}`, {
+    const res = await authFetch(isNew ? "/api/meals" : `/api/meals/${meal.id}`, {
       method: isNew ? "POST" : "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(toPayload(answers)),
