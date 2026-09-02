@@ -7,8 +7,8 @@ from fastapi import APIRouter, HTTPException, Query
 
 from app.api.deps import CurrentUid
 from app.models import Meal, MealNote
-from app.schemas.meal import MealWrite, NoteWrite, SearchRequest
-from app.services import meal_notes, meal_search, meals
+from app.schemas.meal import LinkRequest, MealWrite, NoteWrite, SearchRequest
+from app.services import meal_notes, meal_search, meals, places
 from app.services.meals import PLACE_FIELDS, MealError
 
 # Under /api so the page at /meals (see app/main.py) and this JSON can't
@@ -89,6 +89,19 @@ def list_kinds(uid: CurrentUid, source: str | None = Query(default=None)):
     """Every kind in use and its count, most first — the browse screen, and
     with source=eat_out the choices GO offers."""
     return {"kinds": [{"kind": k, "count": n} for k, n in meals.kinds(uid, source)]}
+
+
+# --- a shop from a shared link ---
+
+
+@router.post("/resolve-link")
+def resolve_link(req: LinkRequest, uid: CurrentUid):
+    """The shop behind a Google Maps share link, ready to become a meal.
+    Nothing is stored here; the screen shows it and the person confirms."""
+    try:
+        return places.resolve(req.url)
+    except places.LinkError as e:
+        raise HTTPException(status_code=422, detail=str(e))
 
 
 # --- asking in a sentence ---

@@ -51,6 +51,11 @@ ELEVENLABS_API_KEY = os.getenv("ELEVENLABS_API_KEY", "")
 ELEVENLABS_VOICE_ID = os.getenv("ELEVENLABS_VOICE_ID", "NtS6nEHDYMQC9QczMQuq")
 ELEVENLABS_MODEL = os.getenv("ELEVENLABS_MODEL", "eleven_flash_v2_5")
 
+# --- Google Places (server side) ---
+# Resolves a shared Google Maps link into a place. Restricted to the Places
+# API only; the browser uses a separate, referrer-restricted key.
+PLACES_SERVER_KEY = os.getenv("PLACES_SERVER_KEY", "")
+
 # --- Firebase ---
 # Admin service-account file, used to verify sign-in tokens.
 FIREBASE_CREDENTIALS = os.getenv(

@@ -36,6 +36,12 @@ class NoteWrite(BaseModel):
     text: str
 
 
+class LinkRequest(BaseModel):
+    """A shared Google Maps link."""
+
+    url: str
+
+
 class SearchRequest(BaseModel):
     """A sentence about what to eat, to be turned into filters. `near` is
     "lat,lng" — where the person is, so the answer can be sorted by distance."""
