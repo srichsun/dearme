@@ -4,6 +4,7 @@ import "./meals.css";
 import { onAuthChange, signInWithGoogle, signOutUser } from "../firebase";
 import { useTheme } from "../theme";
 import MealList from "./MealList";
+import QuickAdd from "./QuickAdd";
 
 // The "what can I eat" list, at /meals. Same sign-in as the journal, its own
 // screens; nothing here links back to Dear Me and nothing there links here.
@@ -13,6 +14,8 @@ export default function MealsApp() {
   const [authReady, setAuthReady] = useState(false);
   const [screen, setScreen] = useState("meals");
   const [editing, setEditing] = useState(null); // null | "new" | a meal
+  // Bumped after a meal is added or edited, so the list reloads.
+  const [version, setVersion] = useState(0);
 
   useEffect(
     () =>
@@ -65,13 +68,21 @@ export default function MealsApp() {
       </nav>
       <main>
         {screen === "meals" ? (
-          <MealList onEdit={setEditing} />
+          <MealList refreshKey={version} onEdit={setEditing} />
         ) : (
           <p className="hint centred">心得下一步做。</p>
         )}
       </main>
-      {/* The add/edit dialog arrives in the next commit; until then the
-          buttons above set `editing` and nothing opens. */}
+      {editing && (
+        <QuickAdd
+          meal={editing}
+          onClose={() => setEditing(null)}
+          onSaved={() => {
+            setEditing(null);
+            setVersion((v) => v + 1);
+          }}
+        />
+      )}
     </div>
   );
 }

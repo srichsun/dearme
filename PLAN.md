@@ -54,7 +54,7 @@
 - Test: `flow.test.js` 補 `withSeasonAll`（有的話）；其餘靠 Check 的 lint/build + Chrome 走 SPEC e2e 第 3 步的搜尋段
 - Check: `cd frontend && npm run lint && npm test && npm run build`
 - Done when: 列表、關鍵字、四組標籤、「用問的」、fallback 提示、兩段式刪除都能在 Chrome 操作
-- Status: todo
+- Status: done
 
 ### 9. feat(web): typeform-style add and edit dialog
 - Files: `frontend/src/meals/QuickAdd.jsx`, `frontend/src/meals/MealList.jsx`, `frontend/src/meals/meals.css`

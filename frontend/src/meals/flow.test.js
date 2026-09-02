@@ -4,6 +4,8 @@ import {
   clampStep,
   firstMissing,
   fromMeal,
+  isLast,
+  keyToChoice,
   labelOf,
   toPayload,
   toQuery,
@@ -127,5 +129,28 @@ describe("labelOf", () => {
   it("hands back an unknown code as-is rather than a blank", () => {
     expect(labelOf("method", "oven")).toBe("oven");
     expect(labelOf("nonsense", "x")).toBe("x");
+  });
+});
+
+describe("isLast", () => {
+  it("is the note step, wherever that falls", () => {
+    expect(isLast(6, chicken)).toBe(true);
+    expect(isLast(5, chicken)).toBe(false);
+    expect(isLast(4, egg)).toBe(true); // eating out has five steps
+  });
+});
+
+describe("keyToChoice", () => {
+  it("maps 1..n onto the options in order", () => {
+    expect(keyToChoice("1", "source")).toBe("eat_out");
+    expect(keyToChoice("2", "source")).toBe("home_cooked");
+    expect(keyToChoice("4", "method")).toBe("microwave");
+  });
+
+  it("ignores keys that are not an option", () => {
+    expect(keyToChoice("3", "source")).toBeNull();
+    expect(keyToChoice("0", "season")).toBeNull();
+    expect(keyToChoice("a", "season")).toBeNull();
+    expect(keyToChoice("Enter", "season")).toBeNull();
   });
 });

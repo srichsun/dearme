@@ -110,3 +110,75 @@
   padding: 0.35rem 0.85rem;
   font-size: 0.82rem;
 }
+
+/* --- the dialog ----------------------------------------------------------- */
+
+.dialog {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: grid;
+  place-items: end center;
+  padding: 0;
+  background: rgba(30, 26, 20, 0.45);
+}
+@media (min-width: 560px) { .dialog { place-items: center; padding: 2rem; } }
+.qa {
+  width: 100%;
+  max-width: 560px;
+  background: var(--linen);
+  border: 1px solid var(--edge);
+  border-radius: var(--radius) var(--radius) 0 0;
+  box-shadow: var(--shadow);
+  padding: 1.1rem 1.25rem 1.3rem;
+}
+@media (min-width: 560px) { .qa { border-radius: var(--radius); } }
+.qahead { display: flex; align-items: center; justify-content: space-between; }
+.dots { display: flex; gap: 0.4rem; }
+.dot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  border: 1px solid var(--edge);
+  background: transparent;
+  padding: 0;
+}
+.dot.done { background: var(--edge); }
+.dot.on { background: var(--sage); border-color: var(--sage); }
+.qnum { margin: 0.9rem 0 0; color: var(--ink-faint); font-size: 0.78rem; letter-spacing: 0.08em; }
+.qa h2.display { font-size: 1.5rem; margin: 0.1rem 0 0.3rem; }
+.qa input {
+  width: 100%;
+  margin-top: 0.6rem;
+  border: 1px solid var(--edge);
+  border-radius: 14px;
+  background: var(--well);
+  padding: 0.8rem 0.95rem;
+  color: var(--ink);
+  font-size: 1.05rem;
+}
+.qa textarea { margin-top: 0.6rem; padding-right: 0.9rem; }
+.choices { display: grid; gap: 0.45rem; margin-top: 0.6rem; }
+.choice {
+  display: flex; align-items: center; gap: 0.75rem;
+  border: 1px solid var(--edge);
+  border-radius: 14px;
+  background: var(--well);
+  color: var(--ink);
+  padding: 0.75rem 0.9rem;
+  font-size: 1rem;
+  text-align: left;
+}
+.choice.on { border-color: var(--sage); box-shadow: inset 0 0 0 1px var(--sage); }
+.choice:focus-visible { outline: 1.5px solid var(--focus); }
+.keycap {
+  display: inline-grid; place-items: center;
+  width: 22px; height: 22px;
+  border-radius: 6px;
+  border: 1px solid var(--edge);
+  background: var(--linen);
+  color: var(--ink-faint);
+  font-size: 0.75rem;
+}
+.qerror { margin: 0.7rem 0 0; color: var(--clay); font-size: 0.85rem; }
+.qafoot { display: flex; align-items: center; gap: 0.5rem; margin-top: 1rem; }
+.qhint { margin-left: auto; color: var(--ink-faint); font-size: 0.74rem; }

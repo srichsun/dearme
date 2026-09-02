@@ -143,3 +143,17 @@ export function labelOf(field, code) {
   const pair = (OPTIONS[field] || []).find(([c]) => c === code);
   return pair ? pair[1] : code;
 }
+
+// Is this the last question for these answers? (Enter there means "send".)
+export function isLast(index, answers) {
+  return index >= visibleSteps(answers).length - 1;
+}
+
+// A number key on a choice step picks that option: "1" is the first button.
+// Anything else — a letter, "0", a number past the end — picks nothing.
+export function keyToChoice(key, field) {
+  const options = OPTIONS[field] || [];
+  const n = Number(key);
+  if (!Number.isInteger(n) || n < 1 || n > options.length) return null;
+  return options[n - 1][0];
+}
