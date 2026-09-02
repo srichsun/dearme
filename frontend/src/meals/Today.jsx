@@ -21,12 +21,17 @@ export default function Today() {
   const [draft, setDraft] = useState("");
   const [editing, setEditing] = useState(null); // habit id whose text is open
   const [confirming, setConfirming] = useState(null);
+  const [principles, setPrinciples] = useState(null);
+  const [ruleDraft, setRuleDraft] = useState("");
+  const [editingRule, setEditingRule] = useState(null);
+  const [confirmingRule, setConfirmingRule] = useState(null);
   const goalRef = useRef(null);
 
   useEffect(() => {
     getJSON("/api/today").then((d) => {
       setGoal(d?.goal || "");
       setHabits(d?.habits || []);
+      setPrinciples(d?.principles || []);
     });
   }, []);
 
@@ -75,6 +80,31 @@ export default function Today() {
     setHabits((rows) => rows.filter((r) => r.id !== id));
     const ok = await send(`/api/today/habits/${id}`, "DELETE");
     if (!ok) setHabits(previous);
+  }
+
+  async function addRule() {
+    const text = ruleDraft.trim();
+    if (!text) return;
+    const { ok, data } = await postJSON("/api/today/principles", { text });
+    if (!ok) return;
+    setRuleDraft("");
+    setPrinciples((rows) => [...rows, data]);
+  }
+
+  async function renameRule(p, text) {
+    setEditingRule(null);
+    const trimmed = text.trim();
+    if (!trimmed || trimmed === p.text) return;
+    const saved = await send(`/api/today/principles/${p.id}`, "PATCH", { text: trimmed });
+    if (saved) setPrinciples((rows) => rows.map((r) => (r.id === p.id ? saved : r)));
+  }
+
+  async function removeRule(id) {
+    setConfirmingRule(null);
+    const previous = principles;
+    setPrinciples((rows) => rows.filter((r) => r.id !== id));
+    const ok = await send(`/api/today/principles/${id}`, "DELETE");
+    if (!ok) setPrinciples(previous);
   }
 
   const doneCount = (habits || []).filter((h) => h.done).length;
@@ -178,6 +208,60 @@ export default function Today() {
             placeholder={t("habitPh")}
           />
           <button type="button" className="primary" onClick={add} disabled={!draft.trim()}>
+            {t("addHabit")}
+          </button>
+        </div>
+      </div>
+
+      <div className="panel rulespanel">
+        <p className="qnum">{t("principles")}</p>
+        {principles === null ? (
+          <p className="hint">{t("loading")}</p>
+        ) : principles.length === 0 ? (
+          <p className="hint">{t("noPrinciples")}</p>
+        ) : (
+          <ol className="rules">
+            {principles.map((p, i) => (
+              <li key={p.id}>
+                <span className="rulenum">{i + 1}</span>
+                {editingRule === p.id ? (
+                  <input
+                    className="habitedit"
+                    defaultValue={p.text}
+                    autoFocus
+                    onBlur={(e) => renameRule(p, e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") renameRule(p, e.target.value);
+                      if (e.key === "Escape") setEditingRule(null);
+                    }}
+                  />
+                ) : (
+                  <button type="button" className="habittext ruletext" onClick={() => setEditingRule(p.id)}>
+                    {p.text}
+                  </button>
+                )}
+                {confirmingRule === p.id ? (
+                  <span className="habitactions">
+                    <button type="button" className="danger" onClick={() => removeRule(p.id)}>{t("confirmDel")}</button>
+                    <button type="button" className="ghost" onClick={() => setConfirmingRule(null)}>{t("cancel")}</button>
+                  </span>
+                ) : (
+                  <button type="button" className="habitdel" aria-label={t("del")} onClick={() => setConfirmingRule(p.id)}>
+                    ×
+                  </button>
+                )}
+              </li>
+            ))}
+          </ol>
+        )}
+        <div className="searchrow addrow">
+          <input
+            value={ruleDraft}
+            onChange={(e) => setRuleDraft(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && addRule()}
+            placeholder={t("principlePh")}
+          />
+          <button type="button" className="primary" onClick={addRule} disabled={!ruleDraft.trim()}>
             {t("addHabit")}
           </button>
         </div>

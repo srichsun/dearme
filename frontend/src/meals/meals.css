@@ -496,3 +496,13 @@ body.meals-body { background: #0d0e10; }
 }
 .buildstamp { margin-top: 2rem; text-align: center; font-family: var(--mono); font-size: 0.66rem; letter-spacing: 0.14em; color: var(--ink-faint); }
 .forceupdate { border: none; background: none; color: var(--sage); font: inherit; letter-spacing: inherit; padding: 0; text-decoration: underline; }
+
+/* --- golden rules --------------------------------------------------------- */
+
+.rulespanel { border-color: var(--edge-strong); }
+.rulespanel .qnum { margin: 0 0 0.4rem; color: var(--ink-soft); }
+.rules { list-style: none; margin: 0; padding: 0; }
+.rules li { display: flex; align-items: center; gap: 0.7rem; padding: 0.5rem 0; border-top: 1px solid var(--edge); }
+.rules li:first-child { border-top: none; }
+.rulenum { flex: none; width: 22px; font-family: var(--mono); font-size: 0.72rem; color: var(--sage); }
+.ruletext { font-size: 1rem; line-height: 1.45; }
