@@ -123,6 +123,11 @@
 - 食譜不問「類型」（火鍋／美式餐廳那種分類是餐廳用的），也沒有依類型檢視；煮法多一個「不用煮」`no_cook`（2026-09-02）。
 - 新增時不再問「外食還是自己煮」：由所在頁決定（`fixedSource`），問答少一題。資料模型不變。
 
+### 今日唯一 Focus（2026-09-03 加）
+- 一天只有一件事，自己填，放在目標下面、清單上面，**顏色跟其他東西都不一樣**（琥珀色卡片，完成後轉綠）。
+- `focuses`（user_id / day / text / done_at / created_at / updated_at，`(user_id, day)` 唯一）。`PUT /api/today/focus {text}`（空字串刪掉）、`POST /api/today/focus/done`、`DELETE /api/today/focus/done`；`GET /api/today` 回 `focus`。
+- **時間戳為了之後統計**：`habit_checks` 加 `checked_at`（打勾的時刻）；focus 有 `created_at`（幾點決定）、`done_at`（幾點完成）。目前只存不顯示統計。
+
 ### 激勵影片（2026-09-02 加）
 - 今天頁的清單**從沒全勾變成全勾的那一刻**，全螢幕跳一支影片；一天只自動跳一次（localStorage `meals.rewarded.<day>`），「今天都做到了」旁有「再看一次」。
 - 影片由他從相簿上傳（`POST /api/today/rewards` multipart，≤ 25MB，video/*）→ 存 GCS bucket `heydearmyself-videos`（公開讀、Cloud Run SA 可寫、CORS 給網域）→ `reward_videos`（user_id / url / title / object_name）。`GET /api/today/rewards` 列表、`DELETE /{id}`（連檔案一起刪）、`GET /api/today/rewards/pick` 隨機挑一支。

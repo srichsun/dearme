@@ -46,6 +46,23 @@ class Principle(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
 
 
+class Focus(Base):
+    """The one thing today is about. One row per person per day; the two
+    timestamps are for the statistics later — when it was decided, and when
+    it was done."""
+
+    __tablename__ = "focuses"
+    __table_args__ = (UniqueConstraint("user_id", "day", name="uq_focuses_user_day"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[str] = mapped_column(String(128), index=True)
+    day: Mapped[date] = mapped_column(Date)
+    text: Mapped[str] = mapped_column(Text)
+    done_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now, onupdate=now)
+
+
 class RewardVideo(Base):
     """A clip to play when the day's list is all ticked. The bytes live in
     the bucket; this row is the URL and the name to delete it by."""
@@ -71,3 +88,5 @@ class HabitCheck(Base):
         Integer, ForeignKey("habits.id", ondelete="CASCADE"), index=True
     )
     day: Mapped[date] = mapped_column(Date)
+    # The moment it was ticked — for the statistics later.
+    checked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True, default=now)
