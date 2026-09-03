@@ -5,13 +5,13 @@ URL and the object name so a delete takes the file with it. The bucket
 client is built lazily and swapped out in tests.
 """
 import mimetypes
-import random
 import secrets
 
 from sqlalchemy import select
 
-from app.core import config, db
+from app.core import clock, config, db
 from app.models import RewardVideo
+from app.services import today
 
 MAX_BYTES = 25 * 1024 * 1024
 
@@ -29,7 +29,18 @@ def _bucket():
 
 
 def _dict(v: RewardVideo) -> dict:
-    return {"id": v.id, "title": v.title, "url": v.url}
+    """A locked clip keeps its URL to itself — the point is to earn it."""
+    unlocked = v.unlocked_on is not None
+    return {
+        "id": v.id,
+        "title": v.title,
+        "url": v.url if unlocked else None,
+        "unlocked_on": v.unlocked_on.isoformat() if unlocked else None,
+    }
+
+
+class LockedError(ValueError):
+    """The list is not all ticked yet."""
 
 
 def list_videos(user_id: str) -> list[dict]:
@@ -77,7 +88,57 @@ def delete_video(user_id: str, video_id: int) -> bool:
         return True
 
 
-def pick(user_id: str) -> dict | None:
-    """One at random, or None when there is nothing to play."""
-    rows = list_videos(user_id)
-    return random.choice(rows) if rows else None
+def _rows(user_id: str) -> list[RewardVideo]:
+    with db.get_session() as s:
+        return list(
+            s.scalars(select(RewardVideo).where(RewardVideo.user_id == user_id).order_by(RewardVideo.id))
+        )
+
+
+def todays_video(user_id: str) -> RewardVideo | None:
+    """The one clip on offer today — fixed for the whole day, so the card
+    shows the same locked thing all day. Never-unlocked clips go first, in
+    turn by date; once every clip has been earned, all of them take turns."""
+    rows = _rows(user_id)
+    if not rows:
+        return None
+    day = clock.today()
+    for r in rows:
+        if r.unlocked_on == day:
+            return r  # already earned today: keep showing that one
+    fresh = [r for r in rows if r.unlocked_on is None] or rows
+    return fresh[day.toordinal() % len(fresh)]
+
+
+def status(user_id: str) -> dict:
+    """What the today card shows: the clip (URL only if earned), and how
+    far along the list is."""
+    habits = today.list_habits(user_id)
+    done = sum(1 for h in habits if h["done"])
+    v = todays_video(user_id)
+    earned = v is not None and v.unlocked_on == clock.today()
+    return {
+        "video": (
+            {"id": v.id, "title": v.title, "url": v.url if earned else None} if v else None
+        ),
+        "unlocked": earned,
+        "done": done,
+        "total": len(habits),
+    }
+
+
+def unlock(user_id: str) -> dict:
+    """Earn today's clip. The server checks the list itself: every habit
+    ticked today, and at least one habit. LockedError otherwise."""
+    habits = today.list_habits(user_id)
+    if not habits or not all(h["done"] for h in habits):
+        raise LockedError("Finish today's list first")
+    v = todays_video(user_id)
+    if v is None:
+        raise RewardError("No clips yet")
+    with db.get_session() as s:
+        row = s.get(RewardVideo, v.id)
+        if row.unlocked_on is None:
+            row.unlocked_on = clock.today()
+            s.commit()
+    return {"id": v.id, "title": v.title, "url": v.url}

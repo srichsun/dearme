@@ -5,7 +5,7 @@ from app.api.deps import CurrentUid
 from app.core import clock
 from app.schemas.today import GoalWrite, HabitWrite
 from app.services import rewards, today
-from app.services.rewards import RewardError
+from app.services.rewards import LockedError, RewardError
 
 router = APIRouter(prefix="/api/today", tags=["today"])
 
@@ -28,9 +28,20 @@ def list_rewards(uid: CurrentUid):
     return {"videos": rewards.list_videos(uid)}
 
 
-@router.get("/rewards/pick")
-def pick_reward(uid: CurrentUid):
-    return {"video": rewards.pick(uid)}
+@router.get("/rewards/today")
+def todays_reward(uid: CurrentUid):
+    return rewards.status(uid)
+
+
+@router.post("/rewards/unlock")
+def unlock_reward(uid: CurrentUid):
+    """Earn today's clip. 409 while the list isn't all ticked; 404 with no clips."""
+    try:
+        return rewards.unlock(uid)
+    except LockedError as e:
+        raise HTTPException(status_code=409, detail=str(e))
+    except RewardError as e:
+        raise HTTPException(status_code=404, detail=str(e))
 
 
 @router.post("/rewards", status_code=201)

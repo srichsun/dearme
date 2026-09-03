@@ -57,6 +57,8 @@ class RewardVideo(Base):
     title: Mapped[str] = mapped_column(String(200))
     url: Mapped[str] = mapped_column(Text)
     object_name: Mapped[str] = mapped_column(String(255))
+    # The first day it was earned; NULL while still locked.
+    unlocked_on: Mapped[date | None] = mapped_column(Date, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
 
 

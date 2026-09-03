@@ -126,6 +126,7 @@
 ### 激勵影片（2026-09-02 加）
 - 今天頁的清單**從沒全勾變成全勾的那一刻**，全螢幕跳一支影片；一天只自動跳一次（localStorage `meals.rewarded.<day>`），「今天都做到了」旁有「再看一次」。
 - 影片由他從相簿上傳（`POST /api/today/rewards` multipart，≤ 25MB，video/*）→ 存 GCS bucket `heydearmyself-videos`（公開讀、Cloud Run SA 可寫、CORS 給網域）→ `reward_videos`（user_id / url / title / object_name）。`GET /api/today/rewards` 列表、`DELETE /{id}`（連檔案一起刪）、`GET /api/today/rewards/pick` 隨機挑一支。
+- **鎖與解鎖**（2026-09-03 改）：每天固定一支「今日影片」（沒解鎖過的優先、依日期輪；都解鎖過就全部輪），今天頁顯示鎖住的卡片和進度「完成 3/5 解鎖」。清單全勾的那一刻 → `POST /api/today/rewards/unlock`（伺服器自己檢查是否全勾，否則 409）→ 記 `unlocked_on` → 解鎖動畫 → 播放。解鎖過的影片進「影片庫」可以隨時重播；沒解鎖過的鎖住、不給網址。`GET /api/today/rewards/today` → `{video:{id,title,url?}, unlocked, done, total}`。
 - 為什麼不用嵌 IG：iOS 上常要登入、不能自動播、IG 改版就壞。
 
 ### 今天（第一頁，2026-09-02 加）
