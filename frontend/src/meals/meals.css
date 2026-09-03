@@ -520,3 +520,57 @@ body.meals-body { background: #0d0e10; }
 .rewardline { margin: 0; text-align: center; font-weight: 700; font-size: 1.3rem; letter-spacing: -0.01em; color: var(--sage); }
 .rewardbox video { width: 100%; max-height: 70vh; background: #000; border-radius: 6px; }
 .pricebig { margin-left: 0.5rem; font-family: var(--mono); font-size: 0.85rem; color: var(--sage); letter-spacing: 0.1em; }
+
+/* --- today's clip: locked / earned ---------------------------------------- */
+
+.todaysclip { border-color: var(--edge-strong); }
+.todaysclip.open { border-color: var(--sage); }
+.clipcard {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 44px 1fr;
+  gap: 0.2rem 0.8rem;
+  align-items: center;
+  border: 1px dashed var(--edge-strong);
+  border-radius: 6px;
+  background: var(--well);
+  color: var(--ink);
+  padding: 0.9rem 1rem;
+  text-align: left;
+  position: relative;
+  overflow: hidden;
+}
+.clipcard.open { border-style: solid; border-color: var(--sage); cursor: pointer; }
+.clipcard.open:hover { background: var(--linen); }
+.clipicon { font-size: 1.5rem; display: grid; place-items: center; }
+.clipcard.open .clipicon { color: var(--sage); }
+.cliptext { display: grid; gap: 0.05rem; }
+.cliptext b { font-weight: 600; letter-spacing: 0.06em; }
+.cliptext small { color: var(--ink-faint); font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.08em; }
+.clipcard.locked .cliptext b { color: var(--ink-faint); letter-spacing: 0.3em; }
+.clipbar { grid-column: 1 / -1; height: 3px; background: var(--edge); border-radius: 2px; margin-top: 0.5rem; overflow: hidden; }
+.clipbar i { display: block; height: 100%; background: var(--sage); transition: width 0.3s ease; }
+.clips li.locked .habittext { color: var(--ink-faint); }
+.lockedtext { flex: 1; font-size: 1rem; }
+.clipdate { color: var(--ink-faint); font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.06em; }
+
+/* the moment it opens */
+.unlockword {
+  margin: 0;
+  text-align: center;
+  font-size: 2.4rem;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  color: var(--sage);
+  animation: unlockpop 0.9s cubic-bezier(0.2, 0.9, 0.2, 1.2) both;
+}
+.rewardbox.burst video { animation: unlockrise 0.7s 0.4s ease both; }
+@keyframes unlockpop {
+  0% { opacity: 0; transform: scale(0.4) rotate(-6deg); filter: blur(6px); }
+  60% { opacity: 1; transform: scale(1.15) rotate(2deg); filter: blur(0); }
+  100% { transform: scale(1) rotate(0); }
+}
+@keyframes unlockrise {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: none; }
+}

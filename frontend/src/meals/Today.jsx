@@ -3,33 +3,6 @@ import { authFetch, getJSON, postJSON } from "../api";
 import Reward from "./Reward";
 import { useLang } from "./i18n";
 
-const rewardedKey = (day) => `meals.rewarded.${day}`;
-function rewardedToday(day) {
-  try {
-    return localStorage.getItem(rewardedKey(day)) === "1";
-  } catch {
-    return false;
-  }
-}
-function markRewarded(day) {
-  try {
-    localStorage.setItem(rewardedKey(day), "1");
-  } catch {
-    /* fine — it will just play again next time */
-  }
-}
-
-async function send(path, method, body) {
-  const res = await authFetch(path, {
-    method,
-    headers: body === undefined ? {} : { "Content-Type": "application/json" },
-    body: body === undefined ? undefined : JSON.stringify(body),
-  });
-  return res.ok ? res.json() : null;
-}
-
-// The first screen: the goal in your own words, and the few things to do
-// today. Ticks are per day — tomorrow the list is clean again.
 export default function Today() {
   const { t } = useLang();
   const [goal, setGoal] = useState("");
@@ -42,9 +15,10 @@ export default function Today() {
   const [ruleDraft, setRuleDraft] = useState("");
   const [editingRule, setEditingRule] = useState(null);
   const [confirmingRule, setConfirmingRule] = useState(null);
-  const [day, setDay] = useState("");
   const [videos, setVideos] = useState([]);
+  const [todays, setTodays] = useState(null); // {video, unlocked, done, total}
   const [reward, setReward] = useState(null);
+  const [justUnlocked, setJustUnlocked] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState("");
   const wasAllDone = useRef(true); // true until the list loads, so a load never fires it
@@ -56,11 +30,11 @@ export default function Today() {
       setGoal(d?.goal || "");
       setHabits(d?.habits || []);
       setPrinciples(d?.principles || []);
-      setDay(d?.day || "");
       const list = d?.habits || [];
       wasAllDone.current = list.length === 0 || list.every((h) => h.done);
     });
     getJSON("/api/today/rewards").then((d) => setVideos(d?.videos || []));
+    getJSON("/api/today/rewards/today").then((d) => d && setTodays(d));
   }, []);
 
   useEffect(() => {
@@ -138,22 +112,36 @@ export default function Today() {
   const doneCount = (habits || []).filter((h) => h.done).length;
   const allDone = Boolean(habits && habits.length > 0 && doneCount === habits.length);
 
-  // The moment the last tick lands — not on load, not on every render, and
-  // only once a day — a clip plays.
+  // The moment the last tick lands, today's clip is earned: the server
+  // checks the list itself and hands the URL back. Not on load, and never
+  // twice — once earned, the card just says so.
   useEffect(() => {
     if (habits === null) return;
     const now = allDone;
     const before = wasAllDone.current;
     wasAllDone.current = now;
-    if (now && !before && videos.length > 0 && !rewardedToday(day)) {
-      markRewarded(day);
-      getJSON("/api/today/rewards/pick").then((d) => d?.video && setReward(d.video));
-    }
-  }, [allDone, habits, videos.length, day]);
+    if (now && !before && todays?.video && !todays.unlocked) unlock();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [allDone, habits]);
 
-  async function watchAgain() {
-    const d = await getJSON("/api/today/rewards/pick");
-    if (d?.video) setReward(d.video);
+  // Keep the card's counter in step with the ticks.
+  useEffect(() => {
+    if (habits === null) return;
+    setTodays((s) => (s ? { ...s, done: doneCount, total: habits.length } : s));
+  }, [doneCount, habits]);
+
+  async function unlock() {
+    const earned = await send("/api/today/rewards/unlock", "POST");
+    if (!earned) return;
+    setTodays((s) => ({ ...(s || {}), video: earned, unlocked: true }));
+    setVideos((v) => v.map((x) => (x.id === earned.id ? { ...x, url: earned.url, unlocked_on: x.unlocked_on || "today" } : x)));
+    setJustUnlocked(true);
+    setReward(earned);
+  }
+
+  function play(video) {
+    setJustUnlocked(false);
+    setReward(video);
   }
 
   async function upload(file) {
@@ -262,16 +250,7 @@ export default function Today() {
             ))}
           </ul>
         )}
-        {allDone && (
-          <p className="hint alldone">
-            {t("allDone")}
-            {videos.length > 0 && (
-              <button type="button" className="clear" onClick={watchAgain} style={{ marginLeft: "0.6rem" }}>
-                {t("watchAgain")}
-              </button>
-            )}
-          </p>
-        )}
+        {allDone && <p className="hint alldone">{t("allDone")}</p>}
         {habits && habits.length === 0 && (
           <div className="starterrow">
             <p className="hint">{t("noHabits")}</p>
@@ -345,6 +324,37 @@ export default function Today() {
         </div>
       </div>
 
+      <div className={"panel todaysclip" + (todays?.unlocked ? " open" : "")}>
+        <div className="listhead">
+          <p className="qnum">{t("todaysClip")}</p>
+          {todays?.video && !todays.unlocked && todays.total > 0 && (
+            <span className="starnum">
+              {t("lockedProgress").replace("{done}", todays.done).replace("{total}", todays.total)}
+            </span>
+          )}
+        </div>
+        {!todays || !todays.video ? (
+          <p className="hint">{t("noClipsToday")}</p>
+        ) : todays.unlocked ? (
+          <button type="button" className="clipcard open" onClick={() => play(todays.video)}>
+            <span className="clipicon">▶</span>
+            <span className="cliptext">
+              <b>{todays.video.title}</b>
+              <small>{t("unlockedTitle")}</small>
+            </span>
+          </button>
+        ) : (
+          <div className="clipcard locked" aria-label={t("locked")}>
+            <span className="clipicon">🔒</span>
+            <span className="cliptext">
+              <b>? ? ?</b>
+              <small>{todays.total === 0 ? t("lockedNoList") : t("lockedProgress").replace("{done}", todays.done).replace("{total}", todays.total)}</small>
+            </span>
+            <span className="clipbar"><i style={{ width: `${todays.total ? (100 * todays.done) / todays.total : 0}%` }} /></span>
+          </div>
+        )}
+      </div>
+
       <div className="panel rewardspanel">
         <div className="listhead">
           <p className="qnum">{t("rewards")}</p>
@@ -369,8 +379,17 @@ export default function Today() {
         ) : (
           <ul className="clips">
             {videos.map((v) => (
-              <li key={v.id}>
-                <button type="button" className="habittext" onClick={() => setReward(v)}>▶ {v.title}</button>
+              <li key={v.id} className={v.url ? "" : "locked"}>
+                {v.url ? (
+                  <button type="button" className="habittext" onClick={() => play(v)}>
+                    ▶ {v.title}
+                    {v.unlocked_on && v.unlocked_on !== "today" && (
+                      <small className="clipdate"> · {t("unlockedOn")} {v.unlocked_on.slice(5)}</small>
+                    )}
+                  </button>
+                ) : (
+                  <span className="habittext lockedtext">🔒 {v.title}</span>
+                )}
                 <button type="button" className="habitdel" aria-label={t("del")} onClick={() => removeVideo(v.id)}>×</button>
               </li>
             ))}
@@ -378,7 +397,7 @@ export default function Today() {
         )}
       </div>
 
-      {reward && <Reward video={reward} onClose={() => setReward(null)} />}
+      {reward && <Reward video={reward} justUnlocked={justUnlocked} onClose={() => setReward(null)} />}
     </section>
   );
 }
