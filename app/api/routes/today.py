@@ -3,7 +3,7 @@ from fastapi import APIRouter, File, Form, HTTPException, UploadFile
 
 from app.api.deps import CurrentUid
 from app.core import clock
-from app.schemas.today import GoalWrite, HabitWrite
+from app.schemas.today import FocusWrite, GoalWrite, HabitWrite
 from app.services import rewards, today
 from app.services.rewards import LockedError, RewardError
 
@@ -17,7 +17,29 @@ def get_today(uid: CurrentUid):
         "day": clock.today().isoformat(),
         "habits": today.list_habits(uid),
         "principles": today.list_principles(uid),
+        "focus": today.get_focus(uid),
     }
+
+
+@router.put("/focus")
+def put_focus(req: FocusWrite, uid: CurrentUid):
+    return {"focus": today.set_focus(uid, req.text)}
+
+
+@router.post("/focus/done")
+def focus_done(uid: CurrentUid):
+    f = today.set_focus_done(uid, True)
+    if f is None:
+        raise HTTPException(status_code=404, detail="No focus today")
+    return {"focus": f}
+
+
+@router.delete("/focus/done")
+def focus_undone(uid: CurrentUid):
+    f = today.set_focus_done(uid, False)
+    if f is None:
+        raise HTTPException(status_code=404, detail="No focus today")
+    return {"focus": f}
 
 
 # --- reward videos ---

@@ -99,6 +99,44 @@ def test_starter_fills_an_empty_list_once(sqlite_db):
     assert [h["text"] for h in today.add_starter("u2")] == ["自己的"]
 
 
+# --- the one focus ---
+
+def test_one_focus_a_day_decided_done_and_reworded(sqlite_db, monkeypatch):
+    assert today.get_focus("u1") is None
+    f = today.set_focus("u1", "  寫完 SPEC ")
+    assert f["text"] == "寫完 SPEC" and f["done"] is False and f["created_at"]
+
+    done = today.set_focus_done("u1", True)
+    assert done["done"] is True and done["done_at"]
+    assert today.set_focus("u1", "寫完 SPEC 並 push")["done"] is True  # rewording keeps the mark
+    assert today.set_focus_done("u1", False)["done_at"] is None
+
+    tomorrow = clock.today() + timedelta(days=1)
+    monkeypatch.setattr(clock, "today", lambda: tomorrow)
+    assert today.get_focus("u1") is None  # a new day, a new focus
+    assert today.set_focus_done("u1", True) is None
+
+
+def test_blank_focus_removes_it_and_accounts_stay_apart(sqlite_db):
+    today.set_focus("u1", "mine")
+    today.set_focus("u2", "theirs")
+    assert today.set_focus("u1", " ") is None
+    assert today.get_focus("u1") is None
+    assert today.get_focus("u2")["text"] == "theirs"
+
+
+def test_a_tick_remembers_its_moment(sqlite_db):
+    from sqlalchemy import select
+
+    from app.core import db
+    from app.models import HabitCheck
+
+    h = today.add_habit("u1", "重訓")
+    today.set_done("u1", h.id, True)
+    with db.get_session() as s:
+        assert s.scalar(select(HabitCheck.checked_at)) is not None
+
+
 # --- golden rules ---
 
 def test_principles_are_kept_in_order_and_edited(sqlite_db):
@@ -179,6 +217,16 @@ def test_principle_routes(signed_in):
     assert client.post("/api/today/principles", json={"text": " "}).status_code == 422
     assert client.delete(f"/api/today/principles/{pid}").json() == {"deleted": pid}
     assert client.delete(f"/api/today/principles/{pid}").status_code == 404
+
+
+def test_focus_routes(signed_in):
+    assert client.get("/api/today").json()["focus"] is None
+    assert client.post("/api/today/focus/done").status_code == 404
+    assert client.put("/api/today/focus", json={"text": "一件事"}).json()["focus"]["text"] == "一件事"
+    assert client.post("/api/today/focus/done").json()["focus"]["done"] is True
+    assert client.delete("/api/today/focus/done").json()["focus"]["done"] is False
+    assert client.get("/api/today").json()["focus"]["text"] == "一件事"
+    assert client.put("/api/today/focus", json={"text": ""}).json()["focus"] is None
 
 
 def test_today_needs_a_sign_in(sqlite_db):

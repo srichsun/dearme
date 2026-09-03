@@ -7,7 +7,8 @@ Every habit query filters on user_id as well as id.
 from sqlalchemy import delete, select
 
 from app.core import clock, db
-from app.models import Goal, Habit, HabitCheck, Principle
+from app.models import Focus, Goal, Habit, HabitCheck, Principle
+from app.models.base import now
 
 # What a new list starts with, when the person asks for it.
 STARTER = (
@@ -128,6 +129,60 @@ def set_done(user_id: str, habit_id: int, done: bool) -> bool | None:
             s.delete(existing)
         s.commit()
         return done
+
+
+# --- the one focus ---
+
+
+def _focus_dict(f: Focus | None) -> dict | None:
+    if f is None:
+        return None
+    return {
+        "text": f.text,
+        "done": f.done_at is not None,
+        "done_at": f.done_at.isoformat() if f.done_at else None,
+        "created_at": f.created_at.isoformat(),
+    }
+
+
+def get_focus(user_id: str) -> dict | None:
+    with db.get_session() as s:
+        return _focus_dict(s.scalar(select(Focus).where(Focus.user_id == user_id, Focus.day == clock.today())))
+
+
+def set_focus(user_id: str, text: str) -> dict | None:
+    """Decide today's one thing. Blank removes it. Rewording keeps the
+    done mark and the time it was first decided."""
+    text = (text or "").strip()
+    with db.get_session() as s:
+        f = s.scalar(select(Focus).where(Focus.user_id == user_id, Focus.day == clock.today()))
+        if not text:
+            if f is not None:
+                s.delete(f)
+                s.commit()
+            return None
+        if f is None:
+            f = Focus(user_id=user_id, day=clock.today(), text=text)
+            s.add(f)
+        else:
+            f.text = text
+        s.commit()
+        return _focus_dict(f)
+
+
+def set_focus_done(user_id: str, done: bool) -> dict | None:
+    """Mark today's focus done (stamping the moment) or not. None if there
+    is no focus today."""
+    with db.get_session() as s:
+        f = s.scalar(select(Focus).where(Focus.user_id == user_id, Focus.day == clock.today()))
+        if f is None:
+            return None
+        if done and f.done_at is None:
+            f.done_at = now()
+        elif not done:
+            f.done_at = None
+        s.commit()
+        return _focus_dict(f)
 
 
 # --- golden rules ---

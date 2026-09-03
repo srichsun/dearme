@@ -8,3 +8,7 @@ class GoalWrite(BaseModel):
 
 class HabitWrite(BaseModel):
     text: str
+
+
+class FocusWrite(BaseModel):
+    text: str
