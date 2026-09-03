@@ -3,6 +3,15 @@ import { authFetch, getJSON, postJSON } from "../api";
 import Reward from "./Reward";
 import { useLang } from "./i18n";
 
+async function send(path, method, body) {
+  const res = await authFetch(path, {
+    method,
+    headers: body === undefined ? {} : { "Content-Type": "application/json" },
+    body: body === undefined ? undefined : JSON.stringify(body),
+  });
+  return res.ok ? res.json() : null;
+}
+
 export default function Today() {
   const { t } = useLang();
   const [goal, setGoal] = useState("");
