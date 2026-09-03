@@ -574,3 +574,55 @@ body.meals-body { background: #0d0e10; }
   from { opacity: 0; transform: translateY(24px); }
   to { opacity: 1; transform: none; }
 }
+
+/* --- the one focus: the only warm block on the screen ---------------------- */
+
+.focuspanel {
+  --amber: #ffb340;
+  --amber-ink: #1a1305;
+  border: 1px solid var(--edge-strong);
+  background: var(--linen);
+  transition: background 0.25s ease, border-color 0.25s ease;
+}
+.focuspanel.set {
+  background: var(--amber);
+  border-color: var(--amber);
+  color: var(--amber-ink);
+  box-shadow: 0 0 0 1px var(--amber), 0 0 30px -10px var(--amber);
+}
+.focuspanel.done {
+  background: var(--sage);
+  border-color: var(--sage);
+  color: var(--amber-ink);
+}
+.focuspanel .qnum { margin: 0 0 0.35rem; color: inherit; opacity: 0.7; }
+.focuspanel:not(.set):not(.done) .qnum { color: var(--ink-faint); opacity: 1; }
+.focustext {
+  width: 100%;
+  border: none;
+  background: none;
+  color: inherit;
+  text-align: left;
+  padding: 0;
+  font-size: 1.55rem;
+  font-weight: 800;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+  white-space: pre-wrap;
+}
+.focustext.empty { color: var(--ink-faint); font-weight: 400; font-size: 1rem; }
+.focuspanel.done .focustext { text-decoration: line-through; text-decoration-thickness: 2px; opacity: 0.75; }
+.focusedit { margin-top: 0; padding-right: 0.9rem; font-size: 1.2rem; font-weight: 600; }
+.focusfoot { display: flex; align-items: center; gap: 0.8rem; margin-top: 0.7rem; }
+.focusfoot .hint { color: inherit; opacity: 0.7; }
+.focustick {
+  border: 1.5px solid currentColor;
+  background: transparent;
+  color: inherit;
+  border-radius: 4px;
+  padding: 0.35rem 0.9rem;
+  font-weight: 700;
+  font-size: 0.85rem;
+  letter-spacing: 0.06em;
+}
+.focustick.on { background: var(--amber-ink); color: var(--sage); border-color: var(--amber-ink); }

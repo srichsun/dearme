@@ -16,6 +16,10 @@ export default function Today() {
   const { t } = useLang();
   const [goal, setGoal] = useState("");
   const [editingGoal, setEditingGoal] = useState(false);
+  const [focus, setFocus] = useState(null); // {text, done, done_at, created_at} | null
+  const [focusDraft, setFocusDraft] = useState("");
+  const [editingFocus, setEditingFocus] = useState(false);
+  const focusRef = useRef(null);
   const [habits, setHabits] = useState(null);
   const [draft, setDraft] = useState("");
   const [editing, setEditing] = useState(null); // habit id whose text is open
@@ -39,6 +43,8 @@ export default function Today() {
       setGoal(d?.goal || "");
       setHabits(d?.habits || []);
       setPrinciples(d?.principles || []);
+      setFocus(d?.focus || null);
+      setFocusDraft(d?.focus?.text || "");
       const list = d?.habits || [];
       wasAllDone.current = list.length === 0 || list.every((h) => h.done);
     });
@@ -49,6 +55,27 @@ export default function Today() {
   useEffect(() => {
     if (editingGoal) goalRef.current?.focus();
   }, [editingGoal]);
+  useEffect(() => {
+    if (editingFocus) focusRef.current?.focus();
+  }, [editingFocus]);
+
+  async function saveFocus() {
+    setEditingFocus(false);
+    if (focusDraft.trim() === (focus?.text || "")) return;
+    const saved = await send("/api/today/focus", "PUT", { text: focusDraft });
+    if (saved) {
+      setFocus(saved.focus);
+      setFocusDraft(saved.focus?.text || "");
+    }
+  }
+
+  async function toggleFocus() {
+    if (!focus) return;
+    const saved = await send("/api/today/focus/done", focus.done ? "DELETE" : "POST");
+    if (saved) setFocus(saved.focus);
+  }
+
+  const clock = (iso) => (iso ? new Date(iso).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "");
 
   async function saveGoal() {
     setEditingGoal(false);
@@ -204,6 +231,47 @@ export default function Today() {
           </button>
         )}
         {editingGoal && <p className="hint">{t("goalHint")}</p>}
+      </div>
+
+      <div className={"panel focuspanel" + (focus?.done ? " done" : focus ? " set" : "")}>
+        <p className="qnum">{t("focus")}</p>
+        {editingFocus ? (
+          <textarea
+            ref={focusRef}
+            className="focusedit"
+            rows={2}
+            value={focusDraft}
+            onChange={(e) => setFocusDraft(e.target.value)}
+            onBlur={saveFocus}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                saveFocus();
+              }
+              if (e.key === "Escape") {
+                setFocusDraft(focus?.text || "");
+                setEditingFocus(false);
+              }
+            }}
+            placeholder={t("focusPh")}
+          />
+        ) : (
+          <button type="button" className={"focustext" + (focus ? "" : " empty")} onClick={() => setEditingFocus(true)}>
+            {focus?.text || t("focusPh")}
+          </button>
+        )}
+        {focus && !editingFocus && (
+          <div className="focusfoot">
+            <button type="button" className={"focustick" + (focus.done ? " on" : "")} onClick={toggleFocus}>
+              {focus.done ? "✓ " + t("focusDone") : t("focusDone") + "？"}
+            </button>
+            <span className="hint">
+              {focus.done
+                ? `${t("focusDoneAt")} ${clock(focus.done_at)}`
+                : `${t("focusDecidedAt")} ${clock(focus.created_at)}`}
+            </span>
+          </div>
+        )}
       </div>
 
       <div className="panel">
