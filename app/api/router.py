@@ -7,6 +7,7 @@ from fastapi import APIRouter
 
 from app.api.routes import (
     coach,
+    food,
     health,
     journal,
     mantras,
@@ -29,3 +30,4 @@ api_router.include_router(meals.router)
 api_router.include_router(questions.router)
 api_router.include_router(today.router)
 api_router.include_router(shopping.router)
+api_router.include_router(food.router)
