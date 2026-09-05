@@ -8,3 +8,7 @@ data/
 .pytest_cache/
 secrets/
 *firebase-adminsdk*.json
+
+# The Taiwan food table ships with the app; data/ above is for local scratch.
+!app/data/
+!app/data/tfnd.json
