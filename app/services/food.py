@@ -7,6 +7,7 @@ from sqlalchemy import select
 from app.core import clock, db
 from app.models import FoodLog, NutritionTarget
 from app.models.food import KINDS, SOURCES
+from app.services import food_items
 
 NUTRIENTS = ("kcal", "protein", "carbs", "fat")
 DEFAULT_TARGET = {"kcal": 2500, "protein": 160, "carbs": 280, "fat": 80}
@@ -59,7 +60,12 @@ def add_log(user_id: str, *, text: str, kcal, protein, carbs, fat, kind="meal", 
         )
         s.add(log)
         s.commit()
-        return _dict(log)
+        out = _dict(log)
+    # Real numbers are worth keeping: a label read or a brand's table.
+    for it in items or []:
+        if isinstance(it, dict) and it.get("source") in ("label", "brand"):
+            food_items.remember(user_id, it.get("name", ""), it.get("grams") or 0, it, it["source"])
+    return out
 
 
 def update_log(user_id: str, log_id: int, **changes) -> dict | None:

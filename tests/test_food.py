@@ -47,6 +47,24 @@ def test_editing_a_label_entry_by_hand_drops_the_label_claim(sqlite_db):
     assert food.update_log("u1", a["id"], kcal=300)["source"] == "model"
 
 
+def test_saving_a_log_remembers_label_and_brand_items(sqlite_db):
+    from app.services import food_items
+
+    food.add_log("u1", text="早餐", kcal=690, protein=28, carbs=52, fat=31, source="mixed", items=[
+        {"name": "無敵豬肉滿福堡加蛋", "grams": 190, "kcal": 550, "protein": 25, "carbs": 47, "fat": 30, "source": "brand"},
+        {"name": "無糖豆漿", "grams": 400, "kcal": 140, "protein": 14, "carbs": 6, "fat": 7, "source": "label"},
+        {"name": "黑咖啡", "grams": 300, "kcal": 5, "protein": 0, "carbs": 0, "fat": 0, "source": "model"},
+    ])
+    saved = food_items.list_items("u1")
+    assert [i["name"] for i in saved] == ["無敵豬肉滿福堡加蛋", "無糖豆漿"]
+    burger = next(i for i in saved if i["name"].startswith("無敵"))
+    assert burger["serving_g"] == 190 and round(burger["kcal"] * 1.9) == 550
+    assert food_items.match("u1", "早上一個無敵豬肉滿福堡加蛋")["name"] == "無敵豬肉滿福堡加蛋"
+    assert food_items.per_grams(burger, 190)["kcal"] == 550.0
+    assert food_items.forget("u1", burger["id"]) is True
+    assert food_items.forget("u2", saved[1]["id"]) is False
+
+
 def test_targets_default_then_set(sqlite_db):
     assert food.get_targets("u1") == food.DEFAULT_TARGET
     assert food.set_targets("u1", {"kcal": 2200, "protein": 170, "carbs": 220, "fat": 70})["kcal"] == 2200
@@ -87,7 +105,7 @@ def signed_in(sqlite_db, monkeypatch):
     class Fake:
         def invoke(self, msgs):
             return food_estimate._Estimate(
-                items=[food_estimate._Item(name="水煮馬鈴薯", grams=200, kcal=1, protein=1, carbs=1, fat=1, table_name="馬鈴薯")],
+                items=[food_estimate._Item(name="水煮馬鈴薯", grams=200, kcal=160, protein=4, carbs=36, fat=0.4, table_name="馬鈴薯")],
                 note="估的",
             )
 
@@ -126,6 +144,15 @@ def test_estimate_refuses_nothing_and_bad_kinds(signed_in):
     assert client.post("/api/food/estimate", data={"text": "  ", "kind": "meal"}).status_code == 422
     assert client.post("/api/food/estimate", data={"text": "x", "kind": "snack"}).status_code == 422
     assert client.get("/api/food", params={"day": "yesterday"}).status_code == 422
+
+
+def test_my_items_routes(signed_in):
+    from app.services import food_items
+
+    it = food_items.remember(UID, "無糖豆漿", 400, {"kcal": 140, "protein": 14, "carbs": 6, "fat": 7}, "label")
+    assert client.get("/api/food/items").json()["items"][0]["name"] == "無糖豆漿"
+    assert client.delete(f"/api/food/items/{it['id']}").json() == {"deleted": it["id"]}
+    assert client.delete(f"/api/food/items/{it['id']}").status_code == 404
 
 
 def test_targets_routes(signed_in):

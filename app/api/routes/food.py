@@ -6,7 +6,7 @@ from fastapi import APIRouter, File, Form, HTTPException, Query, UploadFile
 from app.api.deps import CurrentUid
 from app.core import clock
 from app.schemas.food import LogPatch, LogWrite, TargetsWrite
-from app.services import blobs, food, food_estimate
+from app.services import blobs, food, food_estimate, food_items
 from app.services.food import FoodError
 
 router = APIRouter(prefix="/api/food", tags=["food"])
@@ -48,7 +48,7 @@ async def estimate(
     if data and not (photo.content_type or "").startswith("image/"):
         raise HTTPException(status_code=422, detail="Only image files")
     try:
-        result = food_estimate.estimate(text, data, photo.content_type if photo else "image/jpeg", kind)
+        result = food_estimate.estimate(text, data, photo.content_type if photo else "image/jpeg", kind, uid)
     except Exception:  # noqa: BLE001 — the model is the one thing here that fails in the wild
         raise HTTPException(status_code=502, detail="Could not estimate this one; try again or type the numbers")
     photo_url = None
@@ -84,6 +84,19 @@ def delete_log(log_id: int, uid: CurrentUid):
     if not food.delete_log(uid, log_id):
         raise HTTPException(status_code=404, detail="No such entry")
     return {"deleted": log_id}
+
+
+@router.get("/items")
+def my_items(uid: CurrentUid):
+    """The foods this person has real numbers for."""
+    return {"items": food_items.list_items(uid)}
+
+
+@router.delete("/items/{item_id}")
+def forget_item(item_id: int, uid: CurrentUid):
+    if not food_items.forget(uid, item_id):
+        raise HTTPException(status_code=404, detail="No such item")
+    return {"deleted": item_id}
 
 
 @router.get("/targets")

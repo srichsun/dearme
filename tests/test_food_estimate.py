@@ -7,7 +7,8 @@ def _est(*items, note=""):
 
 
 def test_a_matched_item_takes_the_tables_numbers_and_says_so():
-    est = _est({"name": "水煮馬鈴薯", "grams": 200, "kcal": 999, "protein": 99, "carbs": 99, "fat": 99, "table_name": "馬鈴薯"})
+    # The model's guess is in the right ballpark, so the table's numbers replace it.
+    est = _est({"name": "水煮馬鈴薯", "grams": 200, "kcal": 170, "protein": 4, "carbs": 38, "fat": 0.5, "table_name": "馬鈴薯"})
     out = fe.check(est, "meal")
     item = out["items"][0]
     assert item["source"] == "tfnd" and item["matched"] == "馬鈴薯"
@@ -24,7 +25,7 @@ def test_an_unmatched_item_keeps_the_models_guess():
 
 def test_mixed_sources_add_up():
     est = _est(
-        {"name": "白飯", "grams": 200, "kcal": 1, "protein": 1, "carbs": 1, "fat": 1, "table_name": "白飯"},
+        {"name": "白飯", "grams": 200, "kcal": 300, "protein": 5, "carbs": 65, "fat": 0.5, "table_name": "白飯"},
         {"name": "神秘醬", "grams": 30, "kcal": 90, "protein": 0, "carbs": 5, "fat": 8, "table_name": None},
         note="一碗飯",
     )
@@ -32,6 +33,33 @@ def test_mixed_sources_add_up():
     assert {i["source"] for i in out["items"]} == {"tfnd", "model"}
     assert out["source"] == "mixed" and out["note"] == "一碗飯"
     assert out["totals"]["kcal"] == sum(i["kcal"] for i in out["items"])
+
+
+def test_a_wild_table_match_is_not_used():
+    # 黑咖啡 ≈ 5 kcal; the table's nearest 咖啡 is a 3-in-1 at ~117 kcal.
+    est = _est({"name": "黑咖啡", "grams": 300, "kcal": 5, "protein": 0.3, "carbs": 0, "fat": 0, "table_name": "咖啡"})
+    out = fe.check(est, "meal")
+    item = out["items"][0]
+    assert item["source"] == "model" and item["kcal"] == 5
+    assert item["matched"] and "未採用" in item["matched"]
+
+
+def test_a_brands_published_numbers_are_marked_and_kept():
+    est = _est({"name": "無敵豬肉滿福堡加蛋", "grams": 190, "kcal": 550, "protein": 25, "carbs": 47, "fat": 30,
+                "published": True, "table_name": "豬肉"})
+    out = fe.check(est, "meal")
+    assert out["items"][0]["source"] == "brand" and out["items"][0]["kcal"] == 550
+    assert out["source"] == "brand"
+
+
+def test_a_saved_food_wins_over_everything(sqlite_db):
+    from app.services import food_items
+
+    food_items.remember("u1", "無敵豬肉滿福堡加蛋", 190, {"kcal": 550, "protein": 25, "carbs": 47, "fat": 30}, "brand")
+    est = _est({"name": "無敵豬肉滿福堡加蛋", "grams": 190, "kcal": 900, "protein": 1, "carbs": 1, "fat": 1, "table_name": "豬肉"})
+    out = fe.check(est, "meal", "u1")
+    assert out["items"][0]["source"] == "saved" and out["items"][0]["kcal"] == 550
+    assert fe.check(est, "meal", "someone-else")["items"][0]["source"] != "saved"
 
 
 def test_a_label_is_trusted_as_read():
