@@ -200,8 +200,10 @@ export default function Food() {
         <div className="photorow">
           <button type="button" className="ghost" onClick={() => mealPhotoRef.current?.click()}>📷 {t("photoMeal")}</button>
           <button type="button" className="ghost" onClick={() => labelPhotoRef.current?.click()}>🏷 {t("photoLabel")}</button>
-          <input ref={mealPhotoRef} type="file" accept="image/*" capture="environment" hidden onChange={(e) => { pickPhoto(e.target.files?.[0], "meal"); e.target.value = ""; }} />
-          <input ref={labelPhotoRef} type="file" accept="image/*" capture="environment" hidden onChange={(e) => { pickPhoto(e.target.files?.[0], "label"); e.target.value = ""; }} />
+          {/* No `capture`: with it iOS opens the camera only; without it the
+              sheet offers camera, photo library, or a file. */}
+          <input ref={mealPhotoRef} type="file" accept="image/*" hidden onChange={(e) => { pickPhoto(e.target.files?.[0], "meal"); e.target.value = ""; }} />
+          <input ref={labelPhotoRef} type="file" accept="image/*" hidden onChange={(e) => { pickPhoto(e.target.files?.[0], "label"); e.target.value = ""; }} />
           {photo && (
             <span className="photopick">
               <img src={photo.preview} alt="" />
@@ -212,6 +214,7 @@ export default function Food() {
             {busy && !est ? t("estimating") : t("estimate")}
           </button>
         </div>
+        <p className="hint" style={{ margin: "0.4rem 0 0" }}>{t("photoHint")}</p>
         {error && <p className="qerror">{error}</p>}
 
         {est && (
