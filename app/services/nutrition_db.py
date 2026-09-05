@@ -11,6 +11,7 @@ name. No embeddings: the vocabulary is small and Chinese food names are
 short; a wrong fuzzy match is worse than falling back to the model.
 """
 import json
+import re
 from functools import lru_cache
 from pathlib import Path
 
@@ -33,6 +34,12 @@ def _index() -> dict[str, dict]:
     for food in foods():  # canonical names first: 馬鈴薯 is the potato,
         idx.setdefault(_norm(food["name"]), food)  # not 紅馬鈴薯's alias
     for food in foods():
+        # "酪梨(綠皮)", "酪梨(室溫存放3天)" — the table often has only
+        # variants; the bare name should still find one (the first listed).
+        base = _bare(food["name"])
+        if base and base != _norm(food["name"]):
+            idx.setdefault(base, food)
+    for food in foods():
         for alias in food["aliases"]:
             # 洋芋 is an alias of 紅馬鈴薯, 馬鈴薯 and 小馬鈴薯 alike: an alias
             # points at the plainest variant, i.e. the shortest name.
@@ -44,6 +51,11 @@ def _index() -> dict[str, dict]:
 
 def _norm(s: str) -> str:
     return (s or "").strip().replace("（", "(").replace("）", ")").lower()
+
+
+def _bare(s: str) -> str:
+    """The name without any parenthetical: "酪梨(綠皮)" → "酪梨"."""
+    return re.sub(r"\([^)]*\)", "", _norm(s)).strip()
 
 
 def match(name: str) -> dict | None:
@@ -59,6 +71,9 @@ def match(name: str) -> dict | None:
     idx = _index()
     if q in idx:
         return idx[q]
+    bare = _bare(q)  # "酪梨(半顆)" → "酪梨"
+    if bare and bare in idx:
+        return idx[bare]
     # A table entry contained in the query: prefer the longest.
     best = None
     for key, food in idx.items():

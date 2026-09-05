@@ -23,6 +23,12 @@ def test_longest_contained_name_wins_and_short_junk_does_not():
     assert ndb.match("不存在的東西xyz") is None
 
 
+def test_a_bare_name_finds_a_variant_and_parentheses_are_ignored():
+    assert ndb.match("酪梨")["name"].startswith("酪梨")
+    assert ndb.match("酪梨（半顆）")["name"].startswith("酪梨")
+    assert ndb.match("雞胸肉") is not None
+
+
 def test_scaling_by_grams():
     potato = ndb.match("馬鈴薯")
     assert ndb.per_grams(potato, 200) == {"kcal": 148.0, "protein": 5.2, "fat": 0.4, "carbs": 31.6}
