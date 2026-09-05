@@ -40,3 +40,35 @@ export async function shrinkImage(file, maxSide = 1280) {
     return file;
   }
 }
+
+// Totals from the items, rounded the way the API rounds. Blank fields count
+// as zero while the person is still typing.
+export function sumItems(items) {
+  const totals = {};
+  for (const n of NUTRIENTS) {
+    const sum = (items || []).reduce((acc, i) => acc + (Number(i[n]) || 0), 0);
+    totals[n] = n === "kcal" ? Math.round(sum) : Math.round(sum * 10) / 10;
+  }
+  return totals;
+}
+
+// One field of one item changed by hand: keep the text as typed (so "" and
+// "0." survive), mark the item as edited, recompute totals.
+export function editItem(est, index, field, value) {
+  const items = est.items.map((it, i) => (i === index ? { ...it, [field]: value, source: "model", matched: null } : it));
+  return { ...est, items, totals: sumItems(items), source: "mixed" };
+}
+
+export function dropItem(est, index) {
+  const items = est.items.filter((_, i) => i !== index);
+  return { ...est, items, totals: sumItems(items) };
+}
+
+// Numbers for saving: every item field a real number.
+export function cleanItems(items) {
+  return (items || []).map((it) => {
+    const out = { ...it };
+    for (const n of [...NUTRIENTS, "grams"]) out[n] = Number(it[n]) || 0;
+    return out;
+  });
+}

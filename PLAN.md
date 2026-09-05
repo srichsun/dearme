@@ -206,10 +206,11 @@
 
 ### 35. feat: food_items, brand source, table sanity check
 - Files: `app/models/food.py`, `migrations/versions/b0c1d2e3f4a5_add_food_items.py`, `app/services/food_items.py`, `food_estimate.py`, `food.py`, `routes/food.py`, tests
-- Status: todo
+- Status: done
 
 ### 36. feat(web): edit or drop each item; source tags
-- Status: todo
+- Files: `frontend/src/meals/Food.jsx`, `foodmath.js`, `foodmath.test.js`, `i18n.js`, `meals.css`
+- Status: done
 
 ## 收工前
 1. `uv run ruff check . && uv run pytest -q`；`cd frontend && npm run lint && npm test && npm run build`

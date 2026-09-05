@@ -3,7 +3,7 @@ import { authFetch, getJSON, postJSON } from "../api";
 import { MicIcon, StopIcon } from "../icons";
 import { transcribe, useRecorder } from "../speech";
 import FoodReport from "./FoodReport";
-import { NUTRIENTS, progress, scale, shrinkImage } from "./foodmath";
+import { NUTRIENTS, cleanItems, dropItem, editItem, progress, scale, shrinkImage, sumItems } from "./foodmath";
 import { appendSpoken } from "./flow";
 import { useLang } from "./i18n";
 
@@ -16,7 +16,7 @@ async function send(path, method, body) {
   return res.ok ? res.json() : null;
 }
 
-const SOURCE_KEY = { tfnd: "fromTable", model: "fromModel", label: "fromLabel" };
+const SOURCE_KEY = { tfnd: "fromTable", model: "fromModel", label: "fromLabel", brand: "fromBrand", saved: "fromSaved" };
 
 // The food log. Say it, type it, or shoot it; the numbers come back in a
 // few seconds, get nudged if they look off, and land on the day's bars.
@@ -33,6 +33,7 @@ export default function Food() {
   const [targetDraft, setTargetDraft] = useState(null);
   const [view, setView] = useState("day"); // "day" | "report"
   const [confirming, setConfirming] = useState(null);
+  const [myFoods, setMyFoods] = useState(null); // null = closed
   const mealPhotoRef = useRef(null);
   const labelPhotoRef = useRef(null);
 
@@ -82,12 +83,13 @@ export default function Food() {
   async function save() {
     if (!est || busy) return;
     setBusy(true);
+    const items = cleanItems(est.items);
     const { ok } = await postJSON("/api/food", {
-      text: text.trim() || est.items.map((i) => i.name).join("、") || "—",
-      ...est.totals,
+      text: text.trim() || items.map((i) => i.name).join("、") || "—",
+      ...sumItems(items),
       kind: est.kind || "meal",
       source: est.source,
-      items: est.items,
+      items,
       photo_url: est.photo_url || null,
     });
     setBusy(false);
@@ -115,10 +117,14 @@ export default function Food() {
     }
   }
 
-  function setEstNumber(n, value) {
-    const v = Number(value);
-    if (Number.isNaN(v)) return;
-    setEst((e) => ({ ...e, totals: { ...e.totals, [n]: v }, source: "model" }));
+  async function openMyFoods() {
+    const d = await getJSON("/api/food/items");
+    setMyFoods(d?.items || []);
+  }
+
+  async function forgetFood(id) {
+    const ok = await send(`/api/food/items/${id}`, "DELETE");
+    if (ok) setMyFoods((f) => f.filter((x) => x.id !== id));
   }
 
   if (view === "report") return <FoodReport onBack={() => setView("day")} />;
@@ -131,6 +137,7 @@ export default function Food() {
           <p className="qnum">{t("foodToday")}</p>
           <span className="rowbtns">
             <button type="button" className="clear" onClick={() => setView("report")}>{t("report")}</button>
+            <button type="button" className="clear" onClick={() => (myFoods ? setMyFoods(null) : openMyFoods())}>{t("myFoods")}</button>
             <button
               type="button"
               className="clear"
@@ -221,20 +228,34 @@ export default function Food() {
           <div className="estimate">
             <div className="esttotals">
               {NUTRIENTS.map((n) => (
-                <label key={n} className="estnum">
+                <div key={n} className="estnum">
                   <span>{t(n)}</span>
-                  <input type="number" inputMode="decimal" value={est.totals[n]} onChange={(e) => setEstNumber(n, e.target.value)} />
-                </label>
+                  <b>{est.totals[n]}</b>
+                </div>
               ))}
             </div>
-            <ul className="estitems">
+            <ul className="estitems editable">
               {est.items.map((i, idx) => (
                 <li key={idx}>
-                  <span>{i.name} <small>{i.grams} g</small></span>
-                  <span>
-                    <b>{Math.round(i.kcal)}</b> kcal · P{i.protein} C{i.carbs} F{i.fat}
+                  <div className="itemhead">
+                    <span className="itemname">{i.name} <small>{i.grams} g</small></span>
                     <em className={"src " + i.source}>{t(SOURCE_KEY[i.source] || "fromModel")}</em>
-                  </span>
+                    <button type="button" className="habitdel" aria-label={t("del")} onClick={() => setEst((e) => dropItem(e, idx))}>×</button>
+                  </div>
+                  <div className="itemnums">
+                    {NUTRIENTS.map((n) => (
+                      <label key={n}>
+                        <span>{n === "kcal" ? "kcal" : n[0].toUpperCase()}</span>
+                        <input
+                          type="text"
+                          inputMode="decimal"
+                          value={i[n]}
+                          onChange={(e) => setEst((est0) => editItem(est0, idx, n, e.target.value))}
+                        />
+                      </label>
+                    ))}
+                  </div>
+                  {i.matched && i.source !== "tfnd" && i.source !== "saved" && <small className="matchnote">{i.matched}</small>}
                 </li>
               ))}
             </ul>
@@ -250,6 +271,28 @@ export default function Food() {
           </div>
         )}
       </div>
+
+      {myFoods && (
+        <div className="panel">
+          <p className="qnum">{t("myFoods")}</p>
+          <p className="note">{t("myFoodsHint")}</p>
+          {myFoods.length === 0 ? (
+            <p className="hint">{t("noFoods")}</p>
+          ) : (
+            <ul className="clips">
+              {myFoods.map((f) => (
+                <li key={f.id}>
+                  <span className="habittext" style={{ display: "grid" }}>
+                    <span>{f.name} <em className={"src " + f.source}>{t(SOURCE_KEY[f.source] || "fromModel")}</em></span>
+                    <small className="foodmacros">{t("per100")}: {Math.round(f.kcal)} kcal · P {Math.round(f.protein)} · C {Math.round(f.carbs)} · F {Math.round(f.fat)} · {f.serving_g} g</small>
+                  </span>
+                  <button type="button" className="habitdel" aria-label={t("del")} onClick={() => forgetFood(f.id)}>×</button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
 
       {/* the day's entries */}
       {day && day.logs.length === 0 ? (
