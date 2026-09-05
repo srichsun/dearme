@@ -149,6 +149,9 @@ export const STRINGS = {
   reflectLede: { zh: "飲食、訓練、睡眠、情緒——任何跟能量有關的發現，講一句或打一句。之後整理成你的 pattern。", en: "Food, training, sleep, mood — anything you noticed about your energy, said or typed. Later it becomes your patterns." },
   reflectPh: { zh: "例如：早上不想吃燕麥高蛋白，因為不香不油／練腿隔天睡得特別沉", en: "e.g. I don't want oats in the morning — not fragrant, not oily / slept deep the day after leg day" },
   keep: { zh: "記下來", en: "Keep it" },
+  keeping: { zh: "存檔中…", en: "Saving…" },
+  kept: { zh: "✓ 存好了", en: "✓ Saved" },
+  keepFailed: { zh: "沒存進去。文字還在框裡，再按一次；還是不行就跟我說。", en: "Not saved. Your words are still in the box — try again." },
   noReflect: { zh: "還沒有反思。", en: "Nothing yet." },
 };
 

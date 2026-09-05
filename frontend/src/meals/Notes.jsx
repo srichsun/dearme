@@ -15,6 +15,8 @@ export default function Notes() {
   const [draft, setDraft] = useState("");
   const [listening, setListening] = useState(false);
   const [confirming, setConfirming] = useState(null);
+  const [saving, setSaving] = useState(false);
+  const [saveNote, setSaveNote] = useState(null); // "kept" | "failed" | null
 
   useEffect(() => {
     getJSON("/api/meals/notes").then((d) => setNotes(d?.notes || []));
@@ -32,13 +34,23 @@ export default function Notes() {
     }
   });
 
+  // Say what happened. A save that fails quietly, with the words gone or
+  // still there, reads as "it broke" — even when it actually went through.
   async function keep() {
     const text = draft.trim();
-    if (!text) return;
+    if (!text || saving) return;
+    setSaving(true);
+    setSaveNote(null);
     const { ok, data } = await postJSON("/api/meals/notes", { text });
-    if (!ok) return;
+    setSaving(false);
+    if (!ok) {
+      setSaveNote("failed");
+      return;
+    }
     setDraft("");
     setNotes((prev) => [data, ...(prev || [])]);
+    setSaveNote("kept");
+    setTimeout(() => setSaveNote((s) => (s === "kept" ? null : s)), 2500);
   }
 
   async function remove(id) {
@@ -71,8 +83,10 @@ export default function Notes() {
           </button>
         </div>
         {listening && <p className="hint">{t("listening")}</p>}
-        <button type="button" className="primary wide" onClick={keep} disabled={!draft.trim()}>
-          {t("keep")}
+        {saveNote === "failed" && <p className="qerror">{t("keepFailed")}</p>}
+        {saveNote === "kept" && <p className="hint alldone">{t("kept")}</p>}
+        <button type="button" className="primary wide" onClick={keep} disabled={!draft.trim() || saving}>
+          {saving ? t("keeping") : t("keep")}
         </button>
       </div>
 
