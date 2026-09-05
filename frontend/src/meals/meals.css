@@ -626,3 +626,55 @@ body.meals-body { background: #0d0e10; }
   letter-spacing: 0.06em;
 }
 .focustick.on { background: var(--amber-ink); color: var(--sage); border-color: var(--amber-ink); }
+
+/* --- food ------------------------------------------------------------------ */
+
+.rowbtns { display: flex; gap: 0.9rem; }
+.bars { display: grid; gap: 0.7rem; margin-top: 0.3rem; }
+.bar .barhead { display: flex; justify-content: space-between; align-items: baseline; font-size: 0.85rem; color: var(--ink-soft); }
+.bar .barhead b { color: var(--ink); font-family: var(--mono); font-size: 0.95rem; }
+.bar .barhead small { color: var(--ink-faint); font-size: 0.72rem; }
+.bar .track { display: block; height: 6px; margin: 0.3rem 0 0.15rem; background: var(--edge); border-radius: 3px; overflow: hidden; }
+.bar .track i { display: block; height: 100%; transition: width 0.3s ease; background: var(--ink-soft); }
+.bar.kcal .track i { background: var(--sage); }
+.bar.protein .track i { background: var(--clay); }
+.bar.carbs .track i { background: #e2b15f; }
+.bar.fat .track i { background: #8aa4c8; }
+.bar .remain { font-family: var(--mono); font-size: 0.7rem; color: var(--ink-faint); letter-spacing: 0.06em; }
+.bar .remain.over { color: var(--clay); }
+.targets { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; margin-top: 0.4rem; }
+.targets label { display: grid; gap: 0.2rem; font-size: 0.78rem; color: var(--ink-faint); }
+.targets input { border: 1px solid var(--edge-strong); border-radius: 4px; background: var(--well); color: var(--ink); padding: 0.45rem 0.6rem; font-family: var(--mono); }
+.targets .primary { grid-column: 1 / -1; }
+.photorow { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; margin-top: 0.6rem; }
+.photorow .ghost { padding: 0.4rem 0.7rem; font-size: 0.78rem; }
+.photopick { display: inline-flex; align-items: center; gap: 0.2rem; }
+.photopick img { width: 40px; height: 40px; object-fit: cover; border-radius: 4px; border: 1px solid var(--edge-strong); }
+.estimate { margin-top: 0.8rem; padding-top: 0.8rem; border-top: 1px solid var(--edge); }
+.esttotals { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.4rem; }
+.estnum { display: grid; gap: 0.15rem; font-size: 0.7rem; color: var(--ink-faint); letter-spacing: 0.06em; }
+.estnum input { width: 100%; border: 1px solid var(--edge-strong); border-radius: 4px; background: var(--well); color: var(--ink); padding: 0.4rem 0.3rem; font-family: var(--mono); font-size: 0.95rem; text-align: center; }
+.estitems { list-style: none; margin: 0.6rem 0 0; padding: 0; display: grid; gap: 0.3rem; font-size: 0.85rem; }
+.estitems li { display: flex; justify-content: space-between; gap: 0.6rem; color: var(--ink-soft); }
+.estitems li small { color: var(--ink-faint); }
+.estitems li b { color: var(--ink); font-family: var(--mono); }
+.src { font-style: normal; font-family: var(--mono); font-size: 0.64rem; letter-spacing: 0.08em; margin-left: 0.4rem; padding: 0.05rem 0.35rem; border-radius: 3px; border: 1px solid var(--edge); color: var(--ink-faint); }
+.src.tfnd { border-color: var(--sage); color: var(--sage); }
+.src.label { border-color: #e2b15f; color: #e2b15f; }
+.foodlog { padding: 0.8rem 1rem; }
+.foodhead { display: flex; align-items: baseline; gap: 0.5rem; }
+.foodhead b { font-family: var(--mono); font-size: 1.1rem; margin-left: auto; }
+.foodhead small { color: var(--ink-faint); }
+.foodtext { margin: 0.3rem 0 0; font-size: 0.95rem; }
+.foodmacros { margin: 0.15rem 0 0; font-family: var(--mono); font-size: 0.72rem; color: var(--ink-faint); letter-spacing: 0.06em; }
+.foodphoto { display: block; max-width: 100%; max-height: 180px; border-radius: 4px; margin-top: 0.5rem; }
+.reportfacts { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; margin-top: 0.8rem; }
+.reportfacts div { display: grid; gap: 0.1rem; }
+.reportfacts .qnum { margin: 0; }
+.reportfacts b { font-family: var(--mono); font-size: 1.3rem; }
+.reportfacts small { color: var(--ink-faint); font-size: 0.75rem; }
+.reportdays { list-style: none; margin: 0.8rem 0 0; padding: 0; }
+.reportdays li { display: flex; align-items: baseline; gap: 0.6rem; padding: 0.35rem 0; border-top: 1px solid var(--edge); font-size: 0.85rem; }
+.reportdays li b { font-family: var(--mono); }
+.reportdays li small { color: var(--ink-faint); margin-left: auto; font-family: var(--mono); font-size: 0.7rem; }
+.meals .switch button { padding: 0.5rem 0.1rem; font-size: 0.74rem; letter-spacing: 0.05em; }

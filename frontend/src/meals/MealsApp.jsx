@@ -5,6 +5,7 @@ import { onAuthChange, signInWithGoogle, signOutUser } from "../firebase";
 import { useTheme } from "../theme";
 import { LangProvider, useLangState } from "./i18n";
 import AddChooser from "./AddChooser";
+import Food from "./Food";
 import GoDialog from "./GoDialog";
 import ShopFromLink from "./ShopFromLink";
 import MealList from "./MealList";
@@ -117,6 +118,9 @@ export default function MealsApp() {
         <button className={screen === "shop" ? "on" : ""} onClick={() => setScreen("shop")}>
           {t("tabShop")}
         </button>
+        <button className={screen === "food" ? "on" : ""} onClick={() => setScreen("food")}>
+          {t("tabFood")}
+        </button>
       </nav>
       {/* Below the tabs, not in the header, so switching tabs never moves
           the header around. */}
@@ -158,6 +162,7 @@ export default function MealsApp() {
         )}
         {screen === "notes" && <Notes />}
         {screen === "shop" && <Shopping />}
+        {screen === "food" && <Food />}
       </main>
       <footer className="buildstamp">
         build {buildStamp()} ·{" "}
