@@ -147,6 +147,18 @@
 - `shopping_items`（user_id / section / text / done / position）。買到打勾（持續，不歸零）；「清掉已買」一次刪掉打勾的。
 - API（prefix `/api/shopping`）：`GET /` → `{items:[{id,section,text,done}]}` 依區塊、位置排；`POST /` `{section,text}`；`PATCH /{id}` `{text?, done?}`；`DELETE /{id}`；`POST /clear-done`。未知區塊 422，別人的 404。
 
+### 飲食紀錄（2026-09-05 開工）
+- 第六個切換「飲食」。輸入越接近「講一句」越好；算的事交給模型＋衛福部資料庫。
+- **四種輸入同一條路**：講話（現有 /transcribe）／打字／食物照／營養標示照（拍或從圖庫選）。→ `POST /api/food/estimate`（multipart：`text`、可選 `photo`、`kind=meal|label`）→ 視覺模型拆項目＋估克數（structured output；照片用 CHAT_MODEL，純文字用 worker）→ 每項決定來源。回 `{items, totals, note, source, photo_url}`，**不存**。
+- **來源五種**：`label` 標示照直接讀／`saved` 我的食物資料／`brand` 餐廳公布值（模型引用連鎖店官方表，`published=true`）／`tfnd` 衛福部（`app/data/tfnd.json`，2,180 種每 100g，正名優先、俗名指最短名、去括號比對）／`model` 估。**保險**：衛福部數字和模型估值差 3 倍以上不採用，註明對到什麼。
+- **我的食物資料 `food_items`**（user_id / name / per-100g 四值 / serving_g / source）：`label`、`brand` 來源的項目在記下來時自動存；估算時先查這裡。`GET/DELETE /api/food/items`。
+- 畫面：每個項目可改數字（含 0）、可刪，總數由項目加總；×0.75／×1.5 → `POST /api/food` 存 `food_logs`（day、eaten_at、text、photo_url、四值、items JSON、source、meal_id 可選）。`PATCH`／`DELETE`。
+- 目標 `nutrition_targets`（每人一筆）`GET/PUT /api/food/targets`；預設 2500／160／280／80。
+- `GET /api/food?day=` → 當天紀錄＋合計＋目標；`GET /api/food/report?days=7|30` → 每天合計、有記天數平均、熱量在 ±10% 內天數。
+- 照片存 bucket `heydearmyself-videos` 底下 `food/`，手機端先壓到最長邊 1280。
+- 之後（第三段）：紀錄連到餐點／食譜、用剩餘額度從清單挑晚餐、條碼掃 Open Food Facts。
+- 為什麼不用 USDA／FatSecret：英文、美國食材；FatSecret 在地化要付費。
+
 ## 不做
 一週規劃、拖拉、熱量與營養素、AI 推薦、心得濃縮、心得編輯、圖片、分享、Dear Me 的 tab 連到 `/meals`、資料匯入、地圖畫面、營業時間。
 

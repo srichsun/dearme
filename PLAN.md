@@ -180,6 +180,37 @@
 - Check: `cd frontend && npm run lint && npm test && npm run build`
 - Status: done
 
+### 29. feat: Taiwan food table in the repo, with matching
+- Files: `app/data/tfnd.json`, `app/services/nutrition_db.py`, `tests/test_nutrition_db.py`
+- Status: done
+
+### 30. feat: food_logs and nutrition_targets tables
+- Files: `app/models/food.py`, `migrations/versions/a9b0c1d2e3f4_add_food_logs.py`
+- Status: done
+
+### 31. feat: estimate a meal from words or a photo, checked against the table
+- Files: `app/services/food_estimate.py`, `app/services/blobs.py`, `tests/test_food_estimate.py`
+- Status: done
+
+### 32. feat: food log API — the day, save, edit, targets, report
+- Files: `app/services/food.py`, `app/schemas/food.py`, `app/api/routes/food.py`, `tests/test_food.py`
+- Status: done
+
+### 33. feat(web): 飲食 tab — input, preview, day, targets
+- Files: `frontend/src/meals/Food.jsx`, `foodmath.js`, `foodmath.test.js`
+- Status: done
+
+### 34. feat(web): report — days and weekly averages
+- Files: `frontend/src/meals/FoodReport.jsx`
+- Status: done
+
+### 35. feat: food_items, brand source, table sanity check
+- Files: `app/models/food.py`, `migrations/versions/b0c1d2e3f4a5_add_food_items.py`, `app/services/food_items.py`, `food_estimate.py`, `food.py`, `routes/food.py`, tests
+- Status: todo
+
+### 36. feat(web): edit or drop each item; source tags
+- Status: todo
+
 ## 收工前
 1. `uv run ruff check . && uv run pytest -q`；`cd frontend && npm run lint && npm test && npm run build`
 2. `/verify-tests` 看新測試

@@ -7,7 +7,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 from app.models.base import Base, now
 
 KINDS = ("meal", "label")  # a plate described/photographed, or a nutrition label read
-SOURCES = ("tfnd", "model", "label", "mixed")
+SOURCES = ("tfnd", "model", "label", "brand", "saved", "mixed")
 
 
 class FoodLog(Base):
@@ -31,6 +31,25 @@ class FoodLog(Base):
     items: Mapped[str] = mapped_column(Text, default="[]")
     source: Mapped[str] = mapped_column(String(16), default="model")
     meal_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+
+
+class FoodItem(Base):
+    """A food this person has real numbers for — read off a label or a
+    chain's published table — kept per 100 g so it scales to any portion.
+    Next time the same name comes up, these win over any estimate."""
+
+    __tablename__ = "food_items"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[str] = mapped_column(String(128), index=True)
+    name: Mapped[str] = mapped_column(String(200))
+    kcal_100: Mapped[float] = mapped_column(Float)
+    protein_100: Mapped[float] = mapped_column(Float)
+    carbs_100: Mapped[float] = mapped_column(Float)
+    fat_100: Mapped[float] = mapped_column(Float)
+    serving_g: Mapped[float] = mapped_column(Float)
+    source: Mapped[str] = mapped_column(String(16))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
 
 
