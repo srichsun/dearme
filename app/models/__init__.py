@@ -8,6 +8,7 @@ without caring which file it lives in.
 from app.models.base import Base
 from app.models.entry import Entry
 from app.models.fact import CATEGORIES, Category, Fact
+from app.models.food import FoodLog, NutritionTarget
 from app.models.mantra import Mantra
 from app.models.meal import CATEGORIES as MEAL_CATEGORIES
 from app.models.meal import METHODS, PROTEINS, SEASONS, SOURCES, Meal
@@ -26,6 +27,8 @@ __all__ = [
     "Entry",
     "Fact",
     "Focus",
+    "FoodLog",
+    "NutritionTarget",
     "Goal",
     "Habit",
     "HabitCheck",
